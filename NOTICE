@@ -1,0 +1,38 @@
+ESPHome-Yamaha-Serial
+Copyright (C) 2026 ESPHome-Yamaha-Serial contributors
+
+License
+-------
+
+This repository is licensed under the GNU General Public License version 3
+only (GPL-3.0-only). See LICENSE for the full license text.
+
+This project is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
+
+Attribution
+-----------
+
+This ESPHome external component is a new implementation for ESPHome. Protocol
+behavior, receiver profile mappings, and command handling were reimplemented
+from publicly available Yamaha RS-232 behavior, hardware testing, and the
+earlier GPL-3.0 project memphi2/homie-yamaha-rs232.
+
+No Yamaha manual PDFs, manual images, vendor diagrams, or verbatim manual
+tables are included in this repository.
+
+Third-party projects
+--------------------
+
+ESPHome is a separate project. ESPHome publishes its C++ runtime code under
+GPLv3 and its Python/other code under MIT terms. This component is intended to
+be consumed through ESPHome's external_components mechanism.
+
+Trademarks
+----------
+
+Yamaha, ESPHome, Home Assistant, GitHub, and any other names referenced in
+this repository may be trademarks of their respective owners. This project is
+not affiliated with, endorsed by, or sponsored by Yamaha Corporation, ESPHome,
+Home Assistant, GitHub, or their related entities.

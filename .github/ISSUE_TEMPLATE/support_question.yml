@@ -1,0 +1,47 @@
+name: Support question
+description: Ask about setup, wiring, profiles or expected behaviour.
+title: "[Question]: "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Setup and wiring questions are welcome. Please check
+        [docs/wiring.md](https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/wiring.md)
+        and
+        [docs/troubleshooting.md](https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/troubleshooting.md)
+        first, since most first-contact problems are the RS-232 level converter or the UART
+        pins.
+
+  - type: input
+    id: receiver_model
+    attributes:
+      label: Receiver model
+      placeholder: "RX-V1600"
+    validations:
+      required: true
+
+  - type: input
+    id: esphome_version
+    attributes:
+      label: ESPHome version
+      placeholder: "2026.9.1"
+    validations:
+      required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+
+  - type: textarea
+    id: yaml
+    attributes:
+      label: Relevant YAML
+      description: "Optional, but usually makes the answer concrete. Remove secrets."
+      render: yaml
+    validations:
+      required: false

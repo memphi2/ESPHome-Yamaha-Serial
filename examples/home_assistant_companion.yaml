@@ -1,0 +1,15 @@
+# Optional Home Assistant companion media_player wrapper.
+# Copy the custom_components/yamaha_serial_receiver directory into Home Assistant
+# and adapt these entity IDs to the ESPHome entity IDs created by your node.
+
+media_player:
+  - platform: yamaha_serial_receiver
+    name: Yamaha RX-V1600
+    unique_id: yamaha_rxv1600_receiver
+    model: RX-V1600
+    media_player_entity: media_player.yamaha_receiver
+    power_entity: switch.yamaha_power
+    mute_entity: switch.yamaha_mute
+    source_entity: select.yamaha_input
+    sound_mode_entity: select.yamaha_program
+    availability_entity: binary_sensor.yamaha_availability
