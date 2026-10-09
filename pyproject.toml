@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "esphome-yamaha-serial"
+version = "0.2.0"
+description = "ESPHome external component for Yamaha RS-232 serial control"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "GPL-3.0-only" }
+classifiers = [
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+dependencies = []
+
+[tool.setuptools]
+packages = []
+
+[project.optional-dependencies]
+dev = [
+  # The ESPHome floor is the version CI installs and compiles against; it is
+  # the baseline stated in SUPPORT.md and is bumped manually.
+  "esphome>=2026.9.0",
+  "pytest>=8.3.0",
+  # The test suite parses the example YAML directly.
+  "pyyaml>=6.0.2",
+  "ruff>=0.14.0",
+  "yamllint>=1.37.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "PIE", "RET", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["components", "custom_components"]

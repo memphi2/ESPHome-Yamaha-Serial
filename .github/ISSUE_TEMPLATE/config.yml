@@ -1,0 +1,20 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Wiring and safety
+    url: https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/wiring.md
+    about: Read this before connecting anything. Yamaha DB9 uses true RS-232 levels, not 3.3V TTL.
+  - name: Troubleshooting
+    url: https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/troubleshooting.md
+    about: No responses, timeouts, parse errors, wrong input or program names.
+  - name: Supported models and profiles
+    url: https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/supported_models.md
+    about: Which receiver families are mapped, what auto-detection does and what is unvalidated.
+  - name: Command matrix
+    url: https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/command_matrix.md
+    about: Which functions are entities, which are symbolic aliases and which need a raw payload.
+  - name: Releases and update notes
+    url: https://github.com/memphi2/ESPHome-Yamaha-Serial/releases
+    about: Current release notes and migration notes.
+  - name: ESPHome documentation
+    url: https://esphome.io/components/external_components.html
+    about: External components, UART setup and ESPHome platform questions.

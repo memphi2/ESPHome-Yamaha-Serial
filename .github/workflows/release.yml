@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: release validation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[dev]"
+      - name: Lint and tests
+        run: |
+          ruff check components tests tools custom_components
+          pytest
+      - name: Lint YAML
+        run: yamllint -c .yamllint.yml examples .github
+      - name: Check that the tag matches the declared version
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: python tools/check_release_version.py "$TAG_NAME"
+      - name: Prepare CI example configs
+        run: python tools/prepare_ci_configs.py
+      - name: Validate ESPHome YAMLs
+        run: |
+          for config in .ci/yamaha_rx_v*.yaml; do
+            esphome config "$config"
+          done
+      - name: Compile ESPHome basic example (ESP32)
+        run: esphome compile .ci/yamaha_rx_v_basic.yaml
+      - name: Compile ESPHome full example (ESP8266)
+        run: esphome compile .ci/yamaha_rx_v_full.yaml | tee /tmp/yamaha_rx_v_full_compile.log
+      - name: Check ESP8266 full example size budget
+        run: python tools/check_compile_size.py /tmp/yamaha_rx_v_full_compile.log --max-ram 64000 --max-flash 560000
+
+  hacs:
+    name: release hacs
+    # The action reads hacs.json and the companion manifest back as file
+    # content, and those reads return nothing while the repository is private,
+    # so the checks fail as "Got None" no matter what the files contain. The
+    # action already defaults github_token to the workflow token, so this is
+    # not a missing-credential problem. The job therefore waits until the
+    # repository is public instead of failing every push.
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: HACS validation
+        uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
+        with:
+          category: integration
+
+  hassfest:
+    name: release hassfest
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Hassfest
+        uses: home-assistant/actions/hassfest@06749dd8c0b54f350bc69c8752456cee498808a3 # master
+
+  release:
+    name: publish release
+    runs-on: ubuntu-24.04
+    needs: [validate, hacs, hassfest]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: Build release notes
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: python tools/build_release_notes.py "$TAG_NAME" --output release_notes.md
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" --notes-file release_notes.md
+          else
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --notes-file release_notes.md \
+              --verify-tag
+          fi

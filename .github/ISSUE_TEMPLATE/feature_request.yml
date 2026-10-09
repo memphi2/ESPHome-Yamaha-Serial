@@ -1,0 +1,72 @@
+name: Feature request
+description: Propose a receiver function, entity or behaviour.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check
+        [docs/command_matrix.md](https://github.com/memphi2/ESPHome-Yamaha-Serial/blob/main/docs/command_matrix.md)
+        first. Many receiver functions are already reachable through the
+        `yamaha_serial.raw_command` action or a symbolic alias without being an entity, and
+        that split is deliberate: entities cost flash, and the ESP8266 example runs against
+        a size budget enforced in CI.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of request is this?
+      options:
+        - A new entity for a function that currently needs a raw payload
+        - A new symbolic alias for a raw command
+        - Support for another receiver family or profile
+        - A change to existing entity behaviour
+        - Documentation
+        - Tooling or CI
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: "Describe the goal, not only the proposed solution."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+    validations:
+      required: true
+
+  - type: input
+    id: receiver_model
+    attributes:
+      label: Receiver model this applies to
+      placeholder: "RX-V2700"
+    validations:
+      required: false
+
+  - type: textarea
+    id: protocol
+    attributes:
+      label: Known protocol behaviour
+      description: >-
+        If you know the command or report frame, describe its observed
+        behaviour and how you observed it. Do not paste vendor manual tables
+        or attach manual PDFs; this repository deliberately contains none.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: raw_checked
+    attributes:
+      label: Confirmation
+      options:
+        - label: I checked whether the raw command action or an existing alias already covers this.
+          required: true

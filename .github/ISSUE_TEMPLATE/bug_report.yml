@@ -1,0 +1,151 @@
+name: Bug report
+description: Report a reproducible problem with the component.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please fill in the fields below so the issue can be analyzed without repeated back-and-forth.
+
+        Before reporting a wiring or no-response problem, confirm you are using an RS-232
+        level converter. A direct GPIO connection is the most common cause of silence on the
+        bus, and it can damage hardware.
+
+        ESPHome logs contain your device name and may contain your IP address. Redact what you do not want public.
+
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected area
+      description: Select every area that is affected.
+      multiple: true
+      options:
+        - Compile / configuration validation
+        - No communication with the receiver
+        - Media player entity
+        - Power / zone switches
+        - Volume (number, sensor or media player)
+        - Input source select
+        - Program / DSP select
+        - Tuner controls
+        - Extended setup controls (bass, treble, distances, dimmer)
+        - Raw command action or API service
+        - Profile auto-detection
+        - Diagnostics entities
+        - Home Assistant companion integration
+        - Flash or RAM size on ESP8266
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: component_version
+    attributes:
+      label: Component version
+      description: "Release tag, or the commit you pinned in external_components. Example: 0.1.0"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: esphome_version
+    attributes:
+      label: ESPHome version
+      description: "Example: 2026.9.1"
+      placeholder: "2026.9.1"
+    validations:
+      required: true
+
+  - type: input
+    id: receiver_model
+    attributes:
+      label: Receiver model
+      description: "The exact model, for example RX-V1600. Say so if the model text_sensor reports something different."
+      placeholder: "RX-V1600"
+    validations:
+      required: true
+
+  - type: input
+    id: receiver_profile
+    attributes:
+      label: Configured receiver_profile
+      description: "The value in your YAML, and the profile the component actually selected if it differs."
+      placeholder: "auto"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: board
+    attributes:
+      label: Board family
+      options:
+        - ESP32
+        - ESP32-S2 / S3 / C3
+        - ESP8266
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: level_shifter
+    attributes:
+      label: RS-232 interface
+      description: "Which level converter, and how TX/RX/GND are wired. State explicitly if the ESP is wired directly."
+      placeholder: "MAX3232 breakout, receiver pin 2 -> converter RX, pin 3 -> converter TX, pin 5 -> GND"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: yaml
+    attributes:
+      label: Relevant YAML
+      description: "The yamaha_serial block and the affected platform entries. Remove secrets."
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: "ESPHome logs around the failure. A uart: debug trace is what makes a protocol problem decidable."
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics entity states
+      description: "connection_state, last_error, last_parse_error, last_response_age and the counters, if available."
+      render: text
+    validations:
+      required: false

@@ -1,0 +1,254 @@
+esphome:
+  name: yamaha-rxv-full
+  friendly_name: Yamaha RX-V Full
+
+esp8266:
+  board: nodemcuv2
+
+logger:
+  level: DEBUG
+  # RX-Vx600 wiring often uses ESP8266 UART0 (GPIO1/GPIO3) for Yamaha RS-232.
+  # Keep serial logger off this UART to avoid collisions with receiver traffic.
+  # Logs still work via the ESPHome API.
+  baud_rate: 0
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+  services:
+    - service: yamaha_raw_command
+      variables:
+        command: string
+      then:
+        - yamaha_serial.raw_command:
+            id: yamaha
+            command: !lambda "return command;"
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  min_auth_mode: WPA2
+
+external_components:
+  - source: github://memphi2/ESPHome-Yamaha-Serial
+    components: [yamaha_serial]
+
+# UART side is TTL (ESP), receiver side is RS-232.
+# Use MAX3232 or equivalent converter, do not wire DB9 directly to GPIO.
+uart:
+  - id: uart_yamaha
+    tx_pin: GPIO1
+    rx_pin: GPIO3
+    baud_rate: 9600
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    rx_buffer_size: 512
+
+yamaha_serial:
+  id: yamaha
+  uart_id: uart_yamaha
+  model: "RX-V1600"
+  receiver_profile: rx_vx600_extended
+  poll_interval: never
+  command_timeout: 1500ms
+  max_retries: 2
+  command_spacing: 120ms
+  power_on_delay: 2s
+  inputs:
+    phono: "PHONO"
+    cd: "CD"
+    tuner: "Tuner"
+    cdr: "CD-R"
+    md_tape: "MD/TAPE"
+    dvd: "DVD"
+    dtv_ld: "D-TV/LD"
+    cbl_sat: "CBL/SAT"
+    sat: "SAT"
+    vcr1: "VCR1"
+    vcr2_dvr: "VCR2/DVR"
+    vaux: "V-AUX"
+  volume:
+    min: -80
+    max: 16
+    step: 0.5
+
+media_player:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    receiver:
+      name: Yamaha Receiver
+
+switch:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    zone2_power:
+      name: Yamaha Zone2 Power
+    zone2_mute:
+      name: Yamaha Zone2 Mute
+    pure_direct:
+      name: Yamaha Pure Direct
+    speaker_a:
+      name: Yamaha Speaker A
+    speaker_b:
+      name: Yamaha Speaker B
+    fan_mode:
+      name: Yamaha Fan Mode
+
+button:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    refresh:
+      name: Yamaha Refresh
+    receiver_reset:
+      name: Yamaha Receiver Reset
+    tuner_auto_up:
+      name: Yamaha Tuner Auto Up
+    tuner_auto_down:
+      name: Yamaha Tuner Auto Down
+
+number:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    zone2_volume_db:
+      name: Yamaha Zone2 Volume dB
+      min_value: -80
+      max_value: 16
+      step: 0.5
+    bass:
+      name: Yamaha Bass
+      min_value: 0
+      max_value: 100
+      step: 1
+    treble:
+      name: Yamaha Treble
+      min_value: 0
+      max_value: 100
+      step: 1
+    center_distance:
+      name: Yamaha Center Distance
+      min_value: 30
+      max_value: 2400
+      step: 1
+    front_left_distance:
+      name: Yamaha Front Left Distance
+      min_value: 30
+      max_value: 2400
+      step: 1
+    front_right_distance:
+      name: Yamaha Front Right Distance
+      min_value: 30
+      max_value: 2400
+      step: 1
+    surround_left_distance:
+      name: Yamaha Surround Left Distance
+      min_value: 30
+      max_value: 2400
+      step: 1
+    surround_right_distance:
+      name: Yamaha Surround Right Distance
+      min_value: 30
+      max_value: 2400
+      step: 1
+    subwoofer_distance:
+      name: Yamaha Subwoofer Distance
+      min_value: 30
+      max_value: 2400
+      step: 1
+    dimmer:
+      name: Yamaha Dimmer
+      min_value: 0
+      max_value: 100
+      step: 25
+    tuner_fm_frequency:
+      name: Yamaha FM Frequency
+      min_value: 87.5
+      max_value: 108
+      step: 0.05
+    tuner_am_frequency:
+      name: Yamaha AM Frequency
+      min_value: 530
+      max_value: 1710
+      step: 1
+
+select:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    input_source:
+      name: Yamaha Input
+    zone2_input_source:
+      name: Yamaha Zone2 Input
+    program:
+      name: Yamaha Program
+    scene:
+      name: Yamaha System Memory
+    audio_select:
+      name: Yamaha Audio Select
+    night_mode:
+      name: Yamaha Night Mode
+    tuner_preset:
+      name: Yamaha Tuner Preset
+    tuner_preset_page:
+      name: Yamaha Tuner Preset Page
+    tuner_band:
+      name: Yamaha Tuner Band
+    sleep_timer:
+      name: Yamaha Sleep Timer
+    decoder_mode:
+      name: Yamaha Decoder Mode
+    extended_surround:
+      name: Yamaha Extended Surround
+    speaker_b_assignment:
+      name: Yamaha Speaker B Assignment
+    zone2_amp:
+      name: Yamaha Zone2 Amp
+
+sensor:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    sampling_rate:
+      name: Yamaha Sampling Rate
+    last_response_age:
+      name: Yamaha Last Response Age
+      disabled_by_default: true
+    commands_sent:
+      name: Yamaha Commands Sent
+      disabled_by_default: true
+    responses_received:
+      name: Yamaha Responses Received
+      disabled_by_default: true
+    parse_errors:
+      name: Yamaha Parse Errors
+      disabled_by_default: true
+    timeouts:
+      name: Yamaha Timeouts
+      disabled_by_default: true
+    queue_drops:
+      name: Yamaha Queue Drops
+      disabled_by_default: true
+
+text_sensor:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    playback_format:
+      name: Yamaha Playback Format
+    receiver_model:
+      name: Yamaha Receiver Model
+    connection_state:
+      name: Yamaha Connection State
+    last_error:
+      name: Yamaha Last Error
+      disabled_by_default: true
+    last_parse_error:
+      name: Yamaha Last Parse Error
+      disabled_by_default: true
+
+binary_sensor:
+  - platform: yamaha_serial
+    yamaha_serial_id: yamaha
+    availability:
+      name: Yamaha Availability
