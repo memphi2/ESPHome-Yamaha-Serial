@@ -25,415 +25,117 @@ namespace esphome::yamaha_serial {
 
 class YamahaSerialComponent;
 
-class YamahaPowerSwitch : public switch_::Switch {
+
+// Every entity below is the same object with a different receiver command
+// behind it, so the component ships one class per ESPHome entity kind and
+// selects the command with an enum. That keeps one vtable per kind instead of
+// one per control, which is what the ESP8266 flash budget actually notices.
+
+enum class SwitchFunction : uint8_t {
+  POWER,
+  MAIN_ZONE_POWER,
+  MUTE,
+  ZONE2_POWER,
+  PURE_DIRECT,
+  FAN_MODE,
+  ZONE2_MUTE,
+  SPEAKER_A,
+  SPEAKER_B,
+};
+
+enum class NumberFunction : uint8_t {
+  VOLUME,
+  ZONE2_VOLUME,
+  BASS,
+  TREBLE,
+  CENTER_DISTANCE,
+  FRONT_LEFT_DISTANCE,
+  FRONT_RIGHT_DISTANCE,
+  SURROUND_LEFT_DISTANCE,
+  SURROUND_RIGHT_DISTANCE,
+  SUBWOOFER_DISTANCE,
+  DIMMER,
+  TUNER_FM_FREQUENCY,
+  TUNER_AM_FREQUENCY,
+};
+
+enum class SelectFunction : uint8_t {
+  // Not INPUT: the Arduino ESP8266 core defines INPUT as a macro, which
+  // would rewrite the enumerator to a numeric constant.
+  INPUT_SOURCE,
+  ZONE2_INPUT_SOURCE,
+  PROGRAM,
+  SCENE,
+  AUDIO_SELECT,
+  NIGHT_MODE,
+  TUNER_PRESET,
+  TUNER_PRESET_PAGE,
+  TUNER_BAND,
+  SLEEP_TIMER,
+  DECODER_MODE,
+  EXTENDED_SURROUND,
+  SPEAKER_B_ASSIGNMENT,
+  ZONE2_AMP,
+};
+
+enum class ButtonFunction : uint8_t {
+  REFRESH,
+  POWER_TOGGLE,
+  VOLUME_UP,
+  VOLUME_DOWN,
+  ZONE2_VOLUME_UP,
+  ZONE2_VOLUME_DOWN,
+  RECEIVER_RESET,
+  TUNER_AUTO_UP,
+  TUNER_AUTO_DOWN,
+};
+
+class YamahaSwitch : public switch_::Switch {
  public:
   void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
+  void set_function(SwitchFunction function) { this->function_ = function; }
 
  protected:
   void write_state(bool state) override;
   YamahaSerialComponent *parent_{nullptr};
+  SwitchFunction function_{SwitchFunction::POWER};
 };
 
-class YamahaMainZonePowerSwitch : public switch_::Switch {
+class YamahaNumber : public number::Number {
  public:
   void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaMuteSwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaZone2PowerSwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaPureDirectSwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaFanModeSwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaZone2MuteSwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSpeakerASwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSpeakerBSwitch : public switch_::Switch {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void write_state(bool state) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaVolumeNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
+  void set_function(NumberFunction function) { this->function_ = function; }
 
  protected:
   void control(float value) override;
   YamahaSerialComponent *parent_{nullptr};
+  NumberFunction function_{NumberFunction::VOLUME};
 };
 
-class YamahaZone2VolumeNumber : public number::Number {
+class YamahaSelect : public select::Select {
  public:
   void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaBassNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTrebleNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaCenterDistanceNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaFrontLeftDistanceNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaFrontRightDistanceNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSurroundLeftDistanceNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSurroundRightDistanceNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSubwooferDistanceNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaDimmerNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerFmFrequencyNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerAmFrequencyNumber : public number::Number {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(float value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaInputSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
+  void set_function(SelectFunction function) { this->function_ = function; }
+  // Only the input, zone2 input and program selects take their options from
+  // the configured labels; the rest carry a fixed option list from YAML.
   void set_options_from_labels(const std::vector<std::string> &labels);
 
  protected:
   void control(const std::string &value) override;
   YamahaSerialComponent *parent_{nullptr};
+  SelectFunction function_{SelectFunction::INPUT_SOURCE};
   std::vector<std::string> stored_options_{};
 };
 
-class YamahaZone2InputSelect : public select::Select {
+class YamahaButton : public button::Button {
  public:
   void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-  void set_options_from_labels(const std::vector<std::string> &labels);
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-  std::vector<std::string> stored_options_{};
-};
-
-class YamahaProgramSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-  void set_options_from_labels(const std::vector<std::string> &labels);
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-  std::vector<std::string> stored_options_{};
-};
-
-class YamahaSceneSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaAudioSelectSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaNightModeSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerPresetSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerPresetPageSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerBandSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSleepTimerSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaDecoderModeSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaExtendedSurroundSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaSpeakerBAssignmentSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaZone2AmpSelect : public select::Select {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void control(const std::string &value) override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaRefreshButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
+  void set_function(ButtonFunction function) { this->function_ = function; }
 
  protected:
   void press_action() override;
   YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaPowerToggleButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaVolumeUpButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaVolumeDownButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaZone2VolumeUpButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaZone2VolumeDownButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaReceiverResetButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerAutoUpButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
-};
-
-class YamahaTunerAutoDownButton : public button::Button {
- public:
-  void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
-
- protected:
-  void press_action() override;
-  YamahaSerialComponent *parent_{nullptr};
+  ButtonFunction function_{ButtonFunction::REFRESH};
 };
 
 class YamahaMediaPlayer : public media_player::MediaPlayer {
@@ -465,60 +167,60 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_volume_config(float min_db, float max_db, float step_db);
   void add_input_mapping(const std::string &key, const std::string &label);
 
-  void set_power_switch(YamahaPowerSwitch *obj) { this->power_switch_ = obj; }
-  void set_main_zone_power_switch(YamahaMainZonePowerSwitch *obj) { this->main_zone_power_switch_ = obj; }
-  void set_mute_switch(YamahaMuteSwitch *obj) { this->mute_switch_ = obj; }
-  void set_zone2_power_switch(YamahaZone2PowerSwitch *obj) { this->zone2_power_switch_ = obj; }
-  void set_pure_direct_switch(YamahaPureDirectSwitch *obj) { this->pure_direct_switch_ = obj; }
-  void set_fan_mode_switch(YamahaFanModeSwitch *obj) { this->fan_mode_switch_ = obj; }
-  void set_zone2_mute_switch(YamahaZone2MuteSwitch *obj) { this->zone2_mute_switch_ = obj; }
-  void set_speaker_a_switch(YamahaSpeakerASwitch *obj) { this->speaker_a_switch_ = obj; }
-  void set_speaker_b_switch(YamahaSpeakerBSwitch *obj) { this->speaker_b_switch_ = obj; }
+  void set_power_switch(YamahaSwitch *obj) { this->power_switch_ = obj; }
+  void set_main_zone_power_switch(YamahaSwitch *obj) { this->main_zone_power_switch_ = obj; }
+  void set_mute_switch(YamahaSwitch *obj) { this->mute_switch_ = obj; }
+  void set_zone2_power_switch(YamahaSwitch *obj) { this->zone2_power_switch_ = obj; }
+  void set_pure_direct_switch(YamahaSwitch *obj) { this->pure_direct_switch_ = obj; }
+  void set_fan_mode_switch(YamahaSwitch *obj) { this->fan_mode_switch_ = obj; }
+  void set_zone2_mute_switch(YamahaSwitch *obj) { this->zone2_mute_switch_ = obj; }
+  void set_speaker_a_switch(YamahaSwitch *obj) { this->speaker_a_switch_ = obj; }
+  void set_speaker_b_switch(YamahaSwitch *obj) { this->speaker_b_switch_ = obj; }
 
-  void set_volume_number(YamahaVolumeNumber *obj) { this->volume_number_ = obj; }
-  void set_zone2_volume_number(YamahaZone2VolumeNumber *obj) { this->zone2_volume_number_ = obj; }
-  void set_bass_number(YamahaBassNumber *obj) { this->bass_number_ = obj; }
-  void set_treble_number(YamahaTrebleNumber *obj) { this->treble_number_ = obj; }
-  void set_center_distance_number(YamahaCenterDistanceNumber *obj) { this->center_distance_number_ = obj; }
-  void set_front_left_distance_number(YamahaFrontLeftDistanceNumber *obj) { this->front_left_distance_number_ = obj; }
-  void set_front_right_distance_number(YamahaFrontRightDistanceNumber *obj) { this->front_right_distance_number_ = obj; }
-  void set_surround_left_distance_number(YamahaSurroundLeftDistanceNumber *obj) {
+  void set_volume_number(YamahaNumber *obj) { this->volume_number_ = obj; }
+  void set_zone2_volume_number(YamahaNumber *obj) { this->zone2_volume_number_ = obj; }
+  void set_bass_number(YamahaNumber *obj) { this->bass_number_ = obj; }
+  void set_treble_number(YamahaNumber *obj) { this->treble_number_ = obj; }
+  void set_center_distance_number(YamahaNumber *obj) { this->center_distance_number_ = obj; }
+  void set_front_left_distance_number(YamahaNumber *obj) { this->front_left_distance_number_ = obj; }
+  void set_front_right_distance_number(YamahaNumber *obj) { this->front_right_distance_number_ = obj; }
+  void set_surround_left_distance_number(YamahaNumber *obj) {
     this->surround_left_distance_number_ = obj;
   }
-  void set_surround_right_distance_number(YamahaSurroundRightDistanceNumber *obj) {
+  void set_surround_right_distance_number(YamahaNumber *obj) {
     this->surround_right_distance_number_ = obj;
   }
-  void set_subwoofer_distance_number(YamahaSubwooferDistanceNumber *obj) { this->subwoofer_distance_number_ = obj; }
-  void set_dimmer_number(YamahaDimmerNumber *obj) { this->dimmer_number_ = obj; }
-  void set_tuner_fm_frequency_number(YamahaTunerFmFrequencyNumber *obj) { this->tuner_fm_frequency_number_ = obj; }
-  void set_tuner_am_frequency_number(YamahaTunerAmFrequencyNumber *obj) { this->tuner_am_frequency_number_ = obj; }
+  void set_subwoofer_distance_number(YamahaNumber *obj) { this->subwoofer_distance_number_ = obj; }
+  void set_dimmer_number(YamahaNumber *obj) { this->dimmer_number_ = obj; }
+  void set_tuner_fm_frequency_number(YamahaNumber *obj) { this->tuner_fm_frequency_number_ = obj; }
+  void set_tuner_am_frequency_number(YamahaNumber *obj) { this->tuner_am_frequency_number_ = obj; }
 
-  void set_input_source_select(YamahaInputSelect *obj);
-  void set_zone2_input_source_select(YamahaZone2InputSelect *obj);
-  void set_program_select(YamahaProgramSelect *obj);
-  void set_scene_select(YamahaSceneSelect *obj) { this->scene_select_ = obj; }
-  void set_audio_select_select(YamahaAudioSelectSelect *obj) { this->audio_select_select_ = obj; }
-  void set_night_mode_select(YamahaNightModeSelect *obj) { this->night_mode_select_ = obj; }
-  void set_tuner_preset_select(YamahaTunerPresetSelect *obj) { this->tuner_preset_select_ = obj; }
-  void set_tuner_preset_page_select(YamahaTunerPresetPageSelect *obj) { this->tuner_preset_page_select_ = obj; }
-  void set_tuner_band_select(YamahaTunerBandSelect *obj) { this->tuner_band_select_ = obj; }
-  void set_sleep_timer_select(YamahaSleepTimerSelect *obj) { this->sleep_timer_select_ = obj; }
-  void set_decoder_mode_select(YamahaDecoderModeSelect *obj) { this->decoder_mode_select_ = obj; }
-  void set_extended_surround_select(YamahaExtendedSurroundSelect *obj) { this->extended_surround_select_ = obj; }
-  void set_speaker_b_assignment_select(YamahaSpeakerBAssignmentSelect *obj) {
+  void set_input_source_select(YamahaSelect *obj);
+  void set_zone2_input_source_select(YamahaSelect *obj);
+  void set_program_select(YamahaSelect *obj);
+  void set_scene_select(YamahaSelect *obj) { this->scene_select_ = obj; }
+  void set_audio_select_select(YamahaSelect *obj) { this->audio_select_select_ = obj; }
+  void set_night_mode_select(YamahaSelect *obj) { this->night_mode_select_ = obj; }
+  void set_tuner_preset_select(YamahaSelect *obj) { this->tuner_preset_select_ = obj; }
+  void set_tuner_preset_page_select(YamahaSelect *obj) { this->tuner_preset_page_select_ = obj; }
+  void set_tuner_band_select(YamahaSelect *obj) { this->tuner_band_select_ = obj; }
+  void set_sleep_timer_select(YamahaSelect *obj) { this->sleep_timer_select_ = obj; }
+  void set_decoder_mode_select(YamahaSelect *obj) { this->decoder_mode_select_ = obj; }
+  void set_extended_surround_select(YamahaSelect *obj) { this->extended_surround_select_ = obj; }
+  void set_speaker_b_assignment_select(YamahaSelect *obj) {
     this->speaker_b_assignment_select_ = obj;
   }
-  void set_zone2_amp_select(YamahaZone2AmpSelect *obj) { this->zone2_amp_select_ = obj; }
+  void set_zone2_amp_select(YamahaSelect *obj) { this->zone2_amp_select_ = obj; }
 
-  void set_refresh_button(YamahaRefreshButton *obj) { this->refresh_button_ = obj; }
-  void set_power_toggle_button(YamahaPowerToggleButton *obj) { this->power_toggle_button_ = obj; }
-  void set_volume_up_button(YamahaVolumeUpButton *obj) { this->volume_up_button_ = obj; }
-  void set_volume_down_button(YamahaVolumeDownButton *obj) { this->volume_down_button_ = obj; }
-  void set_zone2_volume_up_button(YamahaZone2VolumeUpButton *obj) { this->zone2_volume_up_button_ = obj; }
-  void set_zone2_volume_down_button(YamahaZone2VolumeDownButton *obj) { this->zone2_volume_down_button_ = obj; }
-  void set_receiver_reset_button(YamahaReceiverResetButton *obj) { this->receiver_reset_button_ = obj; }
-  void set_tuner_auto_up_button(YamahaTunerAutoUpButton *obj) { this->tuner_auto_up_button_ = obj; }
-  void set_tuner_auto_down_button(YamahaTunerAutoDownButton *obj) { this->tuner_auto_down_button_ = obj; }
+  void set_refresh_button(YamahaButton *obj) { this->refresh_button_ = obj; }
+  void set_power_toggle_button(YamahaButton *obj) { this->power_toggle_button_ = obj; }
+  void set_volume_up_button(YamahaButton *obj) { this->volume_up_button_ = obj; }
+  void set_volume_down_button(YamahaButton *obj) { this->volume_down_button_ = obj; }
+  void set_zone2_volume_up_button(YamahaButton *obj) { this->zone2_volume_up_button_ = obj; }
+  void set_zone2_volume_down_button(YamahaButton *obj) { this->zone2_volume_down_button_ = obj; }
+  void set_receiver_reset_button(YamahaButton *obj) { this->receiver_reset_button_ = obj; }
+  void set_tuner_auto_up_button(YamahaButton *obj) { this->tuner_auto_up_button_ = obj; }
+  void set_tuner_auto_down_button(YamahaButton *obj) { this->tuner_auto_down_button_ = obj; }
 
   void set_volume_db_sensor(sensor::Sensor *obj) { this->volume_db_sensor_ = obj; }
   void set_zone2_volume_db_sensor(sensor::Sensor *obj) { this->zone2_volume_db_sensor_ = obj; }
@@ -842,54 +544,54 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   uint32_t timeouts_{0};
   uint32_t queue_drops_{0};
 
-  YamahaPowerSwitch *power_switch_{nullptr};
-  YamahaMainZonePowerSwitch *main_zone_power_switch_{nullptr};
-  YamahaMuteSwitch *mute_switch_{nullptr};
-  YamahaZone2PowerSwitch *zone2_power_switch_{nullptr};
-  YamahaPureDirectSwitch *pure_direct_switch_{nullptr};
-  YamahaFanModeSwitch *fan_mode_switch_{nullptr};
-  YamahaZone2MuteSwitch *zone2_mute_switch_{nullptr};
-  YamahaSpeakerASwitch *speaker_a_switch_{nullptr};
-  YamahaSpeakerBSwitch *speaker_b_switch_{nullptr};
+  YamahaSwitch *power_switch_{nullptr};
+  YamahaSwitch *main_zone_power_switch_{nullptr};
+  YamahaSwitch *mute_switch_{nullptr};
+  YamahaSwitch *zone2_power_switch_{nullptr};
+  YamahaSwitch *pure_direct_switch_{nullptr};
+  YamahaSwitch *fan_mode_switch_{nullptr};
+  YamahaSwitch *zone2_mute_switch_{nullptr};
+  YamahaSwitch *speaker_a_switch_{nullptr};
+  YamahaSwitch *speaker_b_switch_{nullptr};
 
-  YamahaVolumeNumber *volume_number_{nullptr};
-  YamahaZone2VolumeNumber *zone2_volume_number_{nullptr};
-  YamahaBassNumber *bass_number_{nullptr};
-  YamahaTrebleNumber *treble_number_{nullptr};
-  YamahaCenterDistanceNumber *center_distance_number_{nullptr};
-  YamahaFrontLeftDistanceNumber *front_left_distance_number_{nullptr};
-  YamahaFrontRightDistanceNumber *front_right_distance_number_{nullptr};
-  YamahaSurroundLeftDistanceNumber *surround_left_distance_number_{nullptr};
-  YamahaSurroundRightDistanceNumber *surround_right_distance_number_{nullptr};
-  YamahaSubwooferDistanceNumber *subwoofer_distance_number_{nullptr};
-  YamahaDimmerNumber *dimmer_number_{nullptr};
-  YamahaTunerFmFrequencyNumber *tuner_fm_frequency_number_{nullptr};
-  YamahaTunerAmFrequencyNumber *tuner_am_frequency_number_{nullptr};
+  YamahaNumber *volume_number_{nullptr};
+  YamahaNumber *zone2_volume_number_{nullptr};
+  YamahaNumber *bass_number_{nullptr};
+  YamahaNumber *treble_number_{nullptr};
+  YamahaNumber *center_distance_number_{nullptr};
+  YamahaNumber *front_left_distance_number_{nullptr};
+  YamahaNumber *front_right_distance_number_{nullptr};
+  YamahaNumber *surround_left_distance_number_{nullptr};
+  YamahaNumber *surround_right_distance_number_{nullptr};
+  YamahaNumber *subwoofer_distance_number_{nullptr};
+  YamahaNumber *dimmer_number_{nullptr};
+  YamahaNumber *tuner_fm_frequency_number_{nullptr};
+  YamahaNumber *tuner_am_frequency_number_{nullptr};
 
-  YamahaInputSelect *input_source_select_{nullptr};
-  YamahaZone2InputSelect *zone2_input_source_select_{nullptr};
-  YamahaProgramSelect *program_select_{nullptr};
-  YamahaSceneSelect *scene_select_{nullptr};
-  YamahaAudioSelectSelect *audio_select_select_{nullptr};
-  YamahaNightModeSelect *night_mode_select_{nullptr};
-  YamahaTunerPresetSelect *tuner_preset_select_{nullptr};
-  YamahaTunerPresetPageSelect *tuner_preset_page_select_{nullptr};
-  YamahaTunerBandSelect *tuner_band_select_{nullptr};
-  YamahaSleepTimerSelect *sleep_timer_select_{nullptr};
-  YamahaDecoderModeSelect *decoder_mode_select_{nullptr};
-  YamahaExtendedSurroundSelect *extended_surround_select_{nullptr};
-  YamahaSpeakerBAssignmentSelect *speaker_b_assignment_select_{nullptr};
-  YamahaZone2AmpSelect *zone2_amp_select_{nullptr};
+  YamahaSelect *input_source_select_{nullptr};
+  YamahaSelect *zone2_input_source_select_{nullptr};
+  YamahaSelect *program_select_{nullptr};
+  YamahaSelect *scene_select_{nullptr};
+  YamahaSelect *audio_select_select_{nullptr};
+  YamahaSelect *night_mode_select_{nullptr};
+  YamahaSelect *tuner_preset_select_{nullptr};
+  YamahaSelect *tuner_preset_page_select_{nullptr};
+  YamahaSelect *tuner_band_select_{nullptr};
+  YamahaSelect *sleep_timer_select_{nullptr};
+  YamahaSelect *decoder_mode_select_{nullptr};
+  YamahaSelect *extended_surround_select_{nullptr};
+  YamahaSelect *speaker_b_assignment_select_{nullptr};
+  YamahaSelect *zone2_amp_select_{nullptr};
 
-  YamahaRefreshButton *refresh_button_{nullptr};
-  YamahaPowerToggleButton *power_toggle_button_{nullptr};
-  YamahaVolumeUpButton *volume_up_button_{nullptr};
-  YamahaVolumeDownButton *volume_down_button_{nullptr};
-  YamahaZone2VolumeUpButton *zone2_volume_up_button_{nullptr};
-  YamahaZone2VolumeDownButton *zone2_volume_down_button_{nullptr};
-  YamahaReceiverResetButton *receiver_reset_button_{nullptr};
-  YamahaTunerAutoUpButton *tuner_auto_up_button_{nullptr};
-  YamahaTunerAutoDownButton *tuner_auto_down_button_{nullptr};
+  YamahaButton *refresh_button_{nullptr};
+  YamahaButton *power_toggle_button_{nullptr};
+  YamahaButton *volume_up_button_{nullptr};
+  YamahaButton *volume_down_button_{nullptr};
+  YamahaButton *zone2_volume_up_button_{nullptr};
+  YamahaButton *zone2_volume_down_button_{nullptr};
+  YamahaButton *receiver_reset_button_{nullptr};
+  YamahaButton *tuner_auto_up_button_{nullptr};
+  YamahaButton *tuner_auto_down_button_{nullptr};
 
   sensor::Sensor *volume_db_sensor_{nullptr};
   sensor::Sensor *zone2_volume_db_sensor_{nullptr};

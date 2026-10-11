@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ast
 import pathlib
-import re
 
 import yaml
 
@@ -216,39 +215,70 @@ def test_x500_example_uses_explicit_x500_profile_and_inputs() -> None:
     assert services[0]["then"][0]["yamaha_serial.raw_command"]["id"] == "yamaha"
 
 
-def test_tone_numbers_are_controls_not_config_entities() -> None:
-    source = (ROOT / "components/yamaha_serial/number.py").read_text(encoding="utf-8")
+def _number_entry(key: str) -> ast.Dict:
+    """Return the NUMBER_TYPES entry for one YAML key, read from the source.
 
-    for key in ("CONF_BASS", "CONF_TREBLE"):
-        match = re.search(
-            rf"cv\.Optional\({key}\): number\.number_schema\((.*?)\)\.extend\(BASS_TREBLE_SCHEMA\)",
-            source,
-            flags=re.DOTALL,
-        )
-        assert match is not None
-        assert "entity_category" not in match.group(1)
+    The table is the single place that decides a control's icon, unit and
+    entity category, so the tests read it instead of matching repeated schema
+    calls. Parsing beats importing here: the module pulls in esphome.codegen.
+    """
+    source = (ROOT / "components/yamaha_serial/number.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(
+            isinstance(target, ast.Name) and target.id == "NUMBER_TYPES"
+            for target in node.targets
+        ):
+            continue
+        assert isinstance(node.value, ast.Dict)
+        for entry_key, entry_value in zip(node.value.keys, node.value.values, strict=True):
+            if isinstance(entry_key, ast.Constant) and entry_key.value == key:
+                assert isinstance(entry_value, ast.Tuple)
+                kwargs = entry_value.elts[2]
+                assert isinstance(kwargs, ast.Dict)
+                return kwargs
+    raise AssertionError(f"NUMBER_TYPES has no entry for {key!r}")
+
+
+def _kwarg_keys(kwargs: ast.Dict) -> set[str]:
+    keys: set[str] = set()
+    for key in kwargs.keys:
+        if key is None:  # a ** spread, for example the shared _DISTANCE block
+            continue
+        assert isinstance(key, ast.Constant)
+        keys.add(key.value)
+    return keys
+
+
+def _spread_names(kwargs: ast.Dict) -> set[str]:
+    return {
+        value.id
+        for key, value in zip(kwargs.keys, kwargs.values, strict=True)
+        if key is None and isinstance(value, ast.Name)
+    }
+
+
+def test_tone_numbers_are_controls_not_config_entities() -> None:
+    for key in ("bass", "treble"):
+        kwargs = _number_entry(key)
+        assert "entity_category" not in _kwarg_keys(kwargs)
+        assert not _spread_names(kwargs)
 
 
 def test_zone2_volume_is_control_not_config_entity() -> None:
-    source = (ROOT / "components/yamaha_serial/number.py").read_text(encoding="utf-8")
-
-    match = re.search(
-        r"cv\.Optional\(CONF_ZONE2_VOLUME_DB\): number\.number_schema\((.*?)\)\.extend\(NUMBER_EXT_SCHEMA\)",
-        source,
-        flags=re.DOTALL,
-    )
-    assert match is not None
-    assert "entity_category" not in match.group(1)
+    kwargs = _number_entry("zone2_volume_db")
+    assert "entity_category" not in _kwarg_keys(kwargs)
+    assert not _spread_names(kwargs)
 
 
 def test_subwoofer_distance_uses_available_icon() -> None:
-    source = (ROOT / "components/yamaha_serial/number.py").read_text(encoding="utf-8")
-
-    match = re.search(
-        r"cv\.Optional\(CONF_SUBWOOFER_DISTANCE\): number\.number_schema\((.*?)\)\.extend\(DISTANCE_SCHEMA\)",
-        source,
-        flags=re.DOTALL,
-    )
-    assert match is not None
-    assert 'icon="mdi:speaker"' in match.group(1)
-    assert "mdi:subwoofer" not in match.group(1)
+    kwargs = _number_entry("subwoofer_distance")
+    icons = [
+        value.value
+        for key, value in zip(kwargs.keys, kwargs.values, strict=True)
+        if isinstance(key, ast.Constant) and key.value == "icon"
+    ]
+    assert icons == ["mdi:speaker"], icons
+    assert "mdi:subwoofer" not in ast.dump(kwargs)
