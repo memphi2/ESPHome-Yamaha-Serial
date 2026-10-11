@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-11
+
 ### Changed
 - Collapsed the 45 per-control C++ entity classes into one class per ESPHome
   entity kind that dispatches on a function enum, and made the Python codegen
