@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Collapsed the 45 per-control C++ entity classes into one class per ESPHome
+  entity kind that dispatches on a function enum, and made the Python codegen
+  table-driven. The YAML surface is unchanged. Measured on the ESP8266 full
+  example, flash drops by 912 bytes and RAM rises by 280.
+
+### Fixed
+- The select function enum spells its first entry `INPUT_SOURCE`: the Arduino
+  ESP8266 core defines `INPUT` as a macro, which rewrites a bare enumerator
+  into a numeric constant and breaks the build. ESP32 builds against ESP-IDF
+  and never includes `Arduino.h`, so only the ESP8266 compile catches it.
+
 ## [0.2.0] - 2026-10-09
 
 ### Added
