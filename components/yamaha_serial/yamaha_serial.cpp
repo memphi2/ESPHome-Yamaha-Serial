@@ -233,161 +233,91 @@ static const SamplingRateInfo SAMPLING_RATE_REPORTS[] = {
     {0xB, "48kHz (DTS 96/24)", 48000.0f},
 };
 
-void YamahaPowerSwitch::write_state(bool state) {
+void YamahaSwitch::write_state(bool state) {
   if (this->parent_ == nullptr) {
     return;
   }
-  this->parent_->command_power(state);
+  switch (this->function_) {
+    case SwitchFunction::POWER:
+      this->parent_->command_power(state);
+      break;
+    case SwitchFunction::MAIN_ZONE_POWER:
+      this->parent_->command_main_zone_power(state);
+      break;
+    case SwitchFunction::MUTE:
+      this->parent_->command_mute(state);
+      break;
+    case SwitchFunction::ZONE2_POWER:
+      this->parent_->command_zone2_power(state);
+      break;
+    case SwitchFunction::PURE_DIRECT:
+      this->parent_->command_pure_direct(state);
+      break;
+    case SwitchFunction::FAN_MODE:
+      this->parent_->command_fan_mode(state);
+      break;
+    case SwitchFunction::ZONE2_MUTE:
+      this->parent_->command_zone2_mute(state);
+      break;
+    case SwitchFunction::SPEAKER_A:
+      this->parent_->command_speaker_relay('A', state);
+      break;
+    case SwitchFunction::SPEAKER_B:
+      this->parent_->command_speaker_relay('B', state);
+      break;
+  }
 }
 
-void YamahaMainZonePowerSwitch::write_state(bool state) {
+void YamahaNumber::control(float value) {
   if (this->parent_ == nullptr) {
     return;
   }
-  this->parent_->command_main_zone_power(state);
-}
-
-void YamahaMuteSwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
+  // The distance controls share one command and differ only in the speaker
+  // index the receiver expects.
+  switch (this->function_) {
+    case NumberFunction::VOLUME:
+      this->parent_->command_volume_absolute(value, false);
+      break;
+    case NumberFunction::ZONE2_VOLUME:
+      this->parent_->command_volume_absolute(value, true);
+      break;
+    case NumberFunction::BASS:
+      this->parent_->command_bass_percent(value);
+      break;
+    case NumberFunction::TREBLE:
+      this->parent_->command_treble_percent(value);
+      break;
+    case NumberFunction::CENTER_DISTANCE:
+      this->parent_->command_speaker_distance(0x0, static_cast<uint16_t>(std::lround(value)));
+      break;
+    case NumberFunction::FRONT_LEFT_DISTANCE:
+      this->parent_->command_speaker_distance(0x2, static_cast<uint16_t>(std::lround(value)));
+      break;
+    case NumberFunction::FRONT_RIGHT_DISTANCE:
+      this->parent_->command_speaker_distance(0x3, static_cast<uint16_t>(std::lround(value)));
+      break;
+    case NumberFunction::SURROUND_LEFT_DISTANCE:
+      this->parent_->command_speaker_distance(0x4, static_cast<uint16_t>(std::lround(value)));
+      break;
+    case NumberFunction::SURROUND_RIGHT_DISTANCE:
+      this->parent_->command_speaker_distance(0x5, static_cast<uint16_t>(std::lround(value)));
+      break;
+    case NumberFunction::SUBWOOFER_DISTANCE:
+      this->parent_->command_speaker_distance(0xA, static_cast<uint16_t>(std::lround(value)));
+      break;
+    case NumberFunction::DIMMER:
+      this->parent_->command_dimmer_percent(value);
+      break;
+    case NumberFunction::TUNER_FM_FREQUENCY:
+      this->parent_->command_tuner_frequency(value, true);
+      break;
+    case NumberFunction::TUNER_AM_FREQUENCY:
+      this->parent_->command_tuner_frequency(value, false);
+      break;
   }
-  this->parent_->command_mute(state);
 }
 
-void YamahaZone2PowerSwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_zone2_power(state);
-}
-
-void YamahaPureDirectSwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_pure_direct(state);
-}
-
-void YamahaFanModeSwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_fan_mode(state);
-}
-
-void YamahaZone2MuteSwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_zone2_mute(state);
-}
-
-void YamahaSpeakerASwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_relay('A', state);
-}
-
-void YamahaSpeakerBSwitch::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_relay('B', state);
-}
-
-void YamahaVolumeNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_volume_absolute(value, false);
-}
-
-void YamahaZone2VolumeNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_volume_absolute(value, true);
-}
-
-void YamahaBassNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_bass_percent(value);
-}
-
-void YamahaTrebleNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_treble_percent(value);
-}
-
-void YamahaCenterDistanceNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_distance(0x0, static_cast<uint16_t>(std::lround(value)));
-}
-
-void YamahaFrontLeftDistanceNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_distance(0x2, static_cast<uint16_t>(std::lround(value)));
-}
-
-void YamahaFrontRightDistanceNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_distance(0x3, static_cast<uint16_t>(std::lround(value)));
-}
-
-void YamahaSurroundLeftDistanceNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_distance(0x4, static_cast<uint16_t>(std::lround(value)));
-}
-
-void YamahaSurroundRightDistanceNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_distance(0x5, static_cast<uint16_t>(std::lround(value)));
-}
-
-void YamahaSubwooferDistanceNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_distance(0xA, static_cast<uint16_t>(std::lround(value)));
-}
-
-void YamahaDimmerNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_dimmer_percent(value);
-}
-
-void YamahaTunerFmFrequencyNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_tuner_frequency(value, true);
-}
-
-void YamahaTunerAmFrequencyNumber::control(float value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_tuner_frequency(value, false);
-}
-
-void YamahaInputSelect::set_options_from_labels(const std::vector<std::string> &labels) {
+void YamahaSelect::set_options_from_labels(const std::vector<std::string> &labels) {
   this->stored_options_ = labels;
   FixedVector<const char *> options{};
   options.init(this->stored_options_.size());
@@ -397,191 +327,97 @@ void YamahaInputSelect::set_options_from_labels(const std::vector<std::string> &
   this->traits.set_options(options);
 }
 
-void YamahaInputSelect::control(const std::string &value) {
+void YamahaSelect::control(const std::string &value) {
   if (this->parent_ == nullptr) {
     return;
   }
-  this->parent_->command_input(value, false);
-}
-
-void YamahaZone2InputSelect::set_options_from_labels(const std::vector<std::string> &labels) {
-  this->stored_options_ = labels;
-  FixedVector<const char *> options{};
-  options.init(this->stored_options_.size());
-  for (const auto &label : this->stored_options_) {
-    options.push_back(label.c_str());
+  switch (this->function_) {
+    case SelectFunction::INPUT_SOURCE:
+      this->parent_->command_input(value, false);
+      break;
+    case SelectFunction::ZONE2_INPUT_SOURCE:
+      this->parent_->command_input(value, true);
+      break;
+    case SelectFunction::PROGRAM:
+      this->parent_->command_program(value);
+      break;
+    case SelectFunction::SCENE:
+      this->parent_->command_scene(value);
+      break;
+    case SelectFunction::AUDIO_SELECT:
+      this->parent_->command_audio_select(value);
+      break;
+    case SelectFunction::NIGHT_MODE:
+      this->parent_->command_night_mode(value);
+      break;
+    case SelectFunction::TUNER_PRESET:
+      // The option label carries the preset number, for example "Preset 3".
+      // The last digit 1..8 wins so a relabeled option still resolves.
+      for (auto it = value.rbegin(); it != value.rend(); ++it) {
+        if (*it >= '1' && *it <= '8') {
+          this->parent_->command_tuner_preset(static_cast<uint8_t>(*it - '0'));
+          return;
+        }
+      }
+      this->parent_->command_tuner_preset(0);
+      break;
+    case SelectFunction::TUNER_PRESET_PAGE:
+      this->parent_->command_tuner_preset_page(value);
+      break;
+    case SelectFunction::TUNER_BAND:
+      this->parent_->command_tuner_band(value);
+      break;
+    case SelectFunction::SLEEP_TIMER:
+      this->parent_->command_sleep_timer(value);
+      break;
+    case SelectFunction::DECODER_MODE:
+      this->parent_->command_decoder_mode(value);
+      break;
+    case SelectFunction::EXTENDED_SURROUND:
+      this->parent_->command_extended_surround(value);
+      break;
+    case SelectFunction::SPEAKER_B_ASSIGNMENT:
+      this->parent_->command_speaker_b_assignment(value);
+      break;
+    case SelectFunction::ZONE2_AMP:
+      this->parent_->command_zone2_amp(value);
+      break;
   }
-  this->traits.set_options(options);
 }
 
-void YamahaZone2InputSelect::control(const std::string &value) {
+void YamahaButton::press_action() {
   if (this->parent_ == nullptr) {
     return;
   }
-  this->parent_->command_input(value, true);
-}
-
-void YamahaProgramSelect::set_options_from_labels(const std::vector<std::string> &labels) {
-  this->stored_options_ = labels;
-  FixedVector<const char *> options{};
-  options.init(this->stored_options_.size());
-  for (const auto &label : this->stored_options_) {
-    options.push_back(label.c_str());
+  switch (this->function_) {
+    case ButtonFunction::REFRESH:
+      this->parent_->command_refresh();
+      break;
+    case ButtonFunction::POWER_TOGGLE:
+      this->parent_->command_power_toggle();
+      break;
+    case ButtonFunction::VOLUME_UP:
+      this->parent_->command_volume_step(true, false);
+      break;
+    case ButtonFunction::VOLUME_DOWN:
+      this->parent_->command_volume_step(false, false);
+      break;
+    case ButtonFunction::ZONE2_VOLUME_UP:
+      this->parent_->command_volume_step(true, true);
+      break;
+    case ButtonFunction::ZONE2_VOLUME_DOWN:
+      this->parent_->command_volume_step(false, true);
+      break;
+    case ButtonFunction::RECEIVER_RESET:
+      this->parent_->command_receiver_reset();
+      break;
+    case ButtonFunction::TUNER_AUTO_UP:
+      this->parent_->command_tuner_auto_seek(true);
+      break;
+    case ButtonFunction::TUNER_AUTO_DOWN:
+      this->parent_->command_tuner_auto_seek(false);
+      break;
   }
-  this->traits.set_options(options);
-}
-
-void YamahaProgramSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_program(value);
-}
-
-void YamahaSceneSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_scene(value);
-}
-
-void YamahaAudioSelectSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_audio_select(value);
-}
-
-void YamahaNightModeSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_night_mode(value);
-}
-
-void YamahaTunerPresetSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  for (auto it = value.rbegin(); it != value.rend(); ++it) {
-    if (*it >= '1' && *it <= '8') {
-      this->parent_->command_tuner_preset(static_cast<uint8_t>(*it - '0'));
-      return;
-    }
-  }
-  this->parent_->command_tuner_preset(0);
-}
-
-void YamahaTunerPresetPageSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_tuner_preset_page(value);
-}
-
-void YamahaTunerBandSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_tuner_band(value);
-}
-
-void YamahaSleepTimerSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_sleep_timer(value);
-}
-
-void YamahaDecoderModeSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_decoder_mode(value);
-}
-
-void YamahaExtendedSurroundSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_extended_surround(value);
-}
-
-void YamahaSpeakerBAssignmentSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_speaker_b_assignment(value);
-}
-
-void YamahaZone2AmpSelect::control(const std::string &value) {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_zone2_amp(value);
-}
-
-void YamahaRefreshButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_refresh();
-}
-
-void YamahaPowerToggleButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_power_toggle();
-}
-
-void YamahaVolumeUpButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_volume_step(true, false);
-}
-
-void YamahaVolumeDownButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_volume_step(false, false);
-}
-
-void YamahaZone2VolumeUpButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_volume_step(true, true);
-}
-
-void YamahaZone2VolumeDownButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_volume_step(false, true);
-}
-
-void YamahaReceiverResetButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_receiver_reset();
-}
-
-void YamahaTunerAutoUpButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_tuner_auto_seek(true);
-}
-
-void YamahaTunerAutoDownButton::press_action() {
-  if (this->parent_ == nullptr) {
-    return;
-  }
-  this->parent_->command_tuner_auto_seek(false);
 }
 
 media_player::MediaPlayerTraits YamahaMediaPlayer::get_traits() {
@@ -665,17 +501,17 @@ void YamahaSerialComponent::set_volume_config(float min_db, float max_db, float 
   this->volume_step_db_ = std::max(step_db, 0.5f);
 }
 
-void YamahaSerialComponent::set_input_source_select(YamahaInputSelect *obj) {
+void YamahaSerialComponent::set_input_source_select(YamahaSelect *obj) {
   this->input_source_select_ = obj;
   this->configure_input_select_options_();
 }
 
-void YamahaSerialComponent::set_zone2_input_source_select(YamahaZone2InputSelect *obj) {
+void YamahaSerialComponent::set_zone2_input_source_select(YamahaSelect *obj) {
   this->zone2_input_source_select_ = obj;
   this->configure_input_select_options_();
 }
 
-void YamahaSerialComponent::set_program_select(YamahaProgramSelect *obj) {
+void YamahaSerialComponent::set_program_select(YamahaSelect *obj) {
   this->program_select_ = obj;
   this->configure_program_select_options_();
 }
