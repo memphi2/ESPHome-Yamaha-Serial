@@ -39,6 +39,12 @@ updates:
           - "version-update:semver-major"
       # The ESPHome floor is the version CI compiles against and is bumped
       # manually, together with the baseline stated in SUPPORT.md.
+      # Spelled as update-types, not versions: ">=0". A bare version range
+      # is applied on the security path too, which would hide an advisory
+      # against these pins; naming the version-update types keeps routine
+      # bumps out and leaves security updates free to open a pull request.
       - dependency-name: "esphome"
-        versions:
-          - ">=0"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
