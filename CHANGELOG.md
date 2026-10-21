@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-21
+
 ### Changed
 - The examples authenticate OTA with the API encryption key instead of a
   separate OTA password. ESPHome reports that the password costs roughly
   3.5 KB of flash and 60 bytes of RAM on a device that already carries the
   key, and the ESP8266 full example is compiled against a size budget in CI.
   The now unused `ota_password` is gone from `examples/secrets.example.yaml`.
+  A device already running a password build cannot take this change over
+  the air: the uploader makes the key mandatory and the running firmware
+  still asks for the password, so the switch needs one flash over serial.
 - The compatibility baseline names ESPHome `2026.10.x` as validated. CI
   installs the newest release that satisfies the `>=2026.9.0` floor, and
   2026.10.0 compiles both examples green, including the switch of the ESP8266
