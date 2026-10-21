@@ -13,9 +13,10 @@ All notable changes to this project will be documented in this file.
   key; measured on the ESP8266 full example, which CI compiles against a size
   budget, it is 3 256 bytes of flash and 32 bytes of RAM.
   The now unused `ota_password` is gone from `examples/secrets.example.yaml`.
-  A device already running a password build cannot take this change over
-  the air: the uploader makes the key mandatory and the running firmware
-  still asks for the password, so the switch needs one flash over serial.
+  Adopting it on a running device is an ordinary OTA install: the OTA
+  component already offers the encrypted protocol because the examples
+  configure `api: encryption:`, and an `ota: encryption:` block only adds the
+  requirement, so the device never reaches its password phase.
 - The compatibility baseline names ESPHome `2026.10.x` as validated. CI
   installs the newest release that satisfies the `>=2026.9.0` floor, and
   2026.10.0 compiles both examples green, including the switch of the ESP8266

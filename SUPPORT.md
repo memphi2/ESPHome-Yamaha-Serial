@@ -13,9 +13,12 @@
 - Targets: ESP32 (basic example) and ESP8266 (full example), both compiled in
   CI on every push
 
-The minimum is the oldest ESPHome the CI really installs and compiles against,
-not the oldest one the code might import successfully. Older `2026.x` releases
-are likely to work but are not claimed, because they are not tested.
+CI installs the newest ESPHome that satisfies the declared floor, so the
+validated line is the one the compiles actually prove. The minimum is the
+oldest release this project intends to support; it is raised by hand and is
+not separately re-compiled, so a regression confined to `2026.9.x` would not
+be caught here. Older `2026.x` releases are likely to work but are not
+claimed, because they are not tested.
 
 ## ESPHome Media Player Limitation
 
