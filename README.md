@@ -62,7 +62,7 @@ ESPHome has `SELECT_SOURCE` and `SELECT_SOUND_MODE` feature flags, but its
 C++/native-API media-player call path carries no source or sound-mode value:
 `media_player::MediaPlayerCall` has only `command`, `media_url`, `volume` and
 `announcement`, and `MediaPlayerTraits` has no `source_list` or
-`sound_mode_list`. This is still true on ESPHome `dev` as of 2026.9. This
+`sound_mode_list`. This is still true on ESPHome `2026.10`. This
 repository therefore keeps the ESPHome media-player entity conservative and
 provides an optional Home Assistant companion wrapper for native
 `media_player.select_source` and `media_player.select_sound_mode`.

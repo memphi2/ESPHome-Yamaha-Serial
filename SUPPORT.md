@@ -7,7 +7,7 @@
 ## Compatibility Baseline
 
 - Minimum ESPHome: `2026.9.0`
-- Validated ESPHome: `2026.9.x`
+- Validated ESPHome: `2026.10.x`
 - Python (for the repository's own tooling and tests): `3.12`, `3.13`, `3.14`
 - Minimum Home Assistant for the optional companion integration: `2026.9.0`
 - Targets: ESP32 (basic example) and ESP8266 (full example), both compiled in
