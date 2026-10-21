@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-21
+
+### Changed
+- The examples authenticate OTA with the API encryption key instead of a
+  separate OTA password. ESPHome reports that the password costs roughly
+  3.5 KB of flash and 60 bytes of RAM on a device that already carries the
+  key; measured on the ESP8266 full example, which CI compiles against a size
+  budget, it is 3 256 bytes of flash and 32 bytes of RAM.
+  The now unused `ota_password` is gone from `examples/secrets.example.yaml`.
+  Adopting it on a running device is an ordinary OTA install: the OTA
+  component already offers the encrypted protocol because the examples
+  configure `api: encryption:`, and an `ota: encryption:` block only adds the
+  requirement, so the device never reaches its password phase.
+- The compatibility baseline names ESPHome `2026.10.x` as validated. CI
+  installs the newest release that satisfies the `>=2026.9.0` floor, and
+  2026.10.0 compiles both examples green, including the switch of the ESP8266
+  build to the native Arduino toolchain.
+- The media-player limitation is restated against ESPHome `2026.10` instead of
+  `dev` as of 2026.9. `media_player.h` is byte-identical between 2026.9.1 and
+  2026.10.0, so the missing source and sound-mode values in the call path are
+  unchanged.
+
 ## [0.2.1] - 2026-10-11
 
 ### Changed
