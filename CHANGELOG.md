@@ -10,7 +10,8 @@ All notable changes to this project will be documented in this file.
 - The examples authenticate OTA with the API encryption key instead of a
   separate OTA password. ESPHome reports that the password costs roughly
   3.5 KB of flash and 60 bytes of RAM on a device that already carries the
-  key, and the ESP8266 full example is compiled against a size budget in CI.
+  key; measured on the ESP8266 full example, which CI compiles against a size
+  budget, it is 3 256 bytes of flash and 32 bytes of RAM.
   The now unused `ota_password` is gone from `examples/secrets.example.yaml`.
   A device already running a password build cannot take this change over
   the air: the uploader makes the key mandatory and the running firmware
