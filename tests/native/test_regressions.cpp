@@ -59,6 +59,8 @@ void test_regressions() {
   ready(ext);
   ext.command_speaker_distance(2, 100);
   ext.process_command_queue_();
+  ext.feed(extended("1009041020064")); // Different DC4 software/kind cannot acknowledge an Extended write.
+  assert(ext.in_flight_);
   ext.feed(extended("2009041030064")); // Same command, different channel.
   assert(ext.in_flight_);
   ext.feed(extended("2009041020064"));

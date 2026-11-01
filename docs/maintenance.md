@@ -65,11 +65,11 @@ Local comparison on 2026-11-01, ESPHome 2026.10.1, default example configuration
 
 | Example | Before RAM | After RAM | Before Flash | After Flash |
 |---|---:|---:|---:|---:|
-| ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,508 B |
-| ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,907 B |
+| ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,540 B |
+| ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,943 B |
 
 ESP8266 static RAM falls by 14,612 bytes (24.9%); the additional checks increase
-flash by 8,148 bytes (1.7%). The flash string placement primarily benefits
+flash by 8,180 bytes (1.7%). The flash string placement primarily benefits
 ESP8266; it is not a claim of equivalent ESP32 RAM savings. CI budgets are
 48,000 bytes RAM and 520,000 bytes flash for Full.
 

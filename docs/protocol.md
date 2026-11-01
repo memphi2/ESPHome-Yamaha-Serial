@@ -24,8 +24,9 @@ but remain errors. Invalid frames never acknowledge commands.
 
 There is no transaction identifier: a coincident matching unsolicited report
 cannot be distinguished from a solicited reply. An acknowledgement is not a
-transactional guarantee. Unknown raw operations have no inferred acknowledgement
-and are sent once. Reads and recognized absolute setters may retry; relative
+transactional guarantee. Unclassified STX operations have no inferred
+acknowledgement. Unknown DC4 writes match only the command ID, without claiming
+selector/value verification. Both are sent once. Reads and recognized absolute setters may retry; relative
 steps, toggles and unclassified writes never retry. This policy applies equally
 to aliases and typed controls. Typed volume steps use absolute targets respecting
 the configured limits and step. Raw relative-volume aliases remain available.

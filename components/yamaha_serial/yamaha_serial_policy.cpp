@@ -147,7 +147,8 @@ bool YamahaSerialComponent::response_matches_(const QueuedCommand &command, cons
   if (command.response_type == FrameType::DC1)
     return parse_hex_(payload.substr(0, 2)) == command.response_code;
   if (command.response_type == FrameType::DC4) {
-    if (payload.size() < 10 || parse_hex_(payload.substr(4, 3)) != command.response_code)
+    if (payload.size() < 10 || payload.substr(0, 2) != "20" ||
+        parse_hex_(payload.substr(4, 3)) != command.response_code)
       return false;
     if (payload[7] != '0')
       return true;  // A matching rejection is final, not success.
