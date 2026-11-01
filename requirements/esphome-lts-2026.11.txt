@@ -1,0 +1,2 @@
+# Pinned ESPHome baseline verified for the November 2026 maintenance line.
+esphome==2026.10.1

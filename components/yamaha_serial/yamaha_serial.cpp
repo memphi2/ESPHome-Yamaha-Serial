@@ -552,15 +552,8 @@ void YamahaSerialComponent::add_input_mapping(const std::string &key, const std:
     return;
   }
 
-  InputMapping mapping{};
-  mapping.key = key_norm;
-  mapping.label = label.empty() ? key : label;
-  mapping.report_id = 0xFF;
-  mapping.zone2_report_id = 0xFF;
-  mapping.main_command = "";
-  mapping.zone2_command = "";
-  this->inputs_.push_back(mapping);
-  this->configure_input_select_options_();
+  // Keep the override for model detection, but do not expose an unusable input.
+  ESP_LOGW(TAG, "Input key '%s' is not in profile %s", key_norm.c_str(), this->active_profile_.c_str());
 }
 
 void YamahaSerialComponent::setup() {
@@ -636,6 +629,10 @@ void YamahaSerialComponent::command_zone2_power(bool on) {
 }
 
 void YamahaSerialComponent::command_volume_absolute(float db, bool zone2) {
+  if (!std::isfinite(db)) {
+    this->set_last_error_("Volume must be finite");
+    return;
+  }
   if (zone2 && !this->profile_caps_.supports_zone2) {
     this->set_last_error_("Zone2 volume control not supported by active profile");
     return;
@@ -1990,7 +1987,7 @@ void YamahaSerialComponent::apply_input_overrides_() {
     }
 
     if (!found) {
-      this->inputs_.push_back({override.key, override.label, 0xFF, 0xFF, "", ""});
+      ESP_LOGW(TAG, "Input key '%s' is not in profile %s", override.key.c_str(), this->active_profile_.c_str());
     }
   }
 }
@@ -2283,14 +2280,21 @@ void YamahaSerialComponent::configure_input_select_options_() {
   }
   std::vector<std::string> labels{};
   labels.reserve(this->inputs_.size());
-  for (const auto &input : this->inputs_) {
-    labels.push_back(input.label);
-  }
-
   if (this->input_source_select_ != nullptr) {
+    for (const auto &input : this->inputs_) {
+      if (!input.main_command.empty()) {
+        labels.push_back(input.label);
+      }
+    }
     this->input_source_select_->set_options_from_labels(labels);
   }
   if (this->zone2_input_source_select_ != nullptr) {
+    labels.clear();
+    for (const auto &input : this->inputs_) {
+      if (this->profile_caps_.supports_zone2 && !input.zone2_command.empty()) {
+        labels.push_back(input.label);
+      }
+    }
     this->zone2_input_source_select_->set_options_from_labels(labels);
   }
 }
@@ -2391,7 +2395,10 @@ void YamahaSerialComponent::queue_simple_command_(FrameType type, const std::str
   command.tag = tag;
   command.expect_response = expect_response;
   command.timeout_ms = this->command_timeout_ms_;
-  command.retries_left = this->max_retries_;
+  // Retrying a volume step after a lost report changes the level twice.
+  const bool volume_step = std::strcmp(tag, "volume_up") == 0 || std::strcmp(tag, "volume_down") == 0 ||
+                           std::strcmp(tag, "zone2_volume_up") == 0 || std::strcmp(tag, "zone2_volume_down") == 0;
+  command.retries_left = volume_step ? 0 : this->max_retries_;
   this->queue_command_(command);
 }
 
@@ -2410,6 +2417,9 @@ void YamahaSerialComponent::process_command_queue_() {
     if (!in_flight.command.expect_response) {
       this->in_flight_.reset();
     } else if (now - in_flight.sent_at_ms > in_flight.command.timeout_ms) {
+      if (now - this->last_tx_ms_ < this->command_spacing_ms_) {
+        return;
+      }
       if (in_flight.command.retries_left > 0) {
         in_flight.command.retries_left--;
         in_flight.attempts++;
@@ -2527,26 +2537,8 @@ void YamahaSerialComponent::parse_frame_(const std::vector<uint8_t> &frame) {
     return;
   }
 
-  this->responses_received_++;
-  this->last_response_ms_ = millis();
-  this->available_ = true;
-  if (this->availability_binary_sensor_ != nullptr) {
-    this->availability_binary_sensor_->publish_state(true);
-  }
-  this->publish_connection_state_("online");
-  this->clear_last_error_();
-
-  if (!this->receiver_reported_) {
-    this->receiver_reported_ = true;
-    this->queue_bootstrap_();
-    this->queue_poll_commands_();
-    ESP_LOGI(TAG, "Receiver responded; startup sync queued");
-  }
-
-  if (this->in_flight_.has_value() && this->in_flight_->command.expect_response) {
-    this->in_flight_.reset();
-  }
-
+  const uint32_t parse_errors_before = this->parse_errors_;
+  const uint32_t errors_before = this->error_generation_;
   switch (static_cast<FrameType>(frame[0])) {
     case FrameType::STX:
       this->parse_stx_frame_(frame);
@@ -2566,6 +2558,30 @@ void YamahaSerialComponent::parse_frame_(const std::vector<uint8_t> &frame) {
     default:
       this->record_parse_error_("Unknown frame type", frame);
       break;
+  }
+
+  // A damaged frame is not a response and must not cancel timeout/retry handling.
+  if (this->parse_errors_ != parse_errors_before) {
+    return;
+  }
+  this->responses_received_++;
+  this->last_response_ms_ = millis();
+  this->available_ = true;
+  if (this->availability_binary_sensor_ != nullptr) {
+    this->availability_binary_sensor_->publish_state(true);
+  }
+  this->publish_connection_state_(frame[0] == static_cast<uint8_t>(FrameType::DC2) ? "configured" : "online");
+  if (this->error_generation_ == errors_before) {
+    this->clear_last_error_();
+  }
+  if (this->in_flight_.has_value() && this->in_flight_->command.expect_response) {
+    this->in_flight_.reset();
+  }
+  if (!this->receiver_reported_) {
+    this->receiver_reported_ = true;
+    this->queue_bootstrap_();
+    this->queue_poll_commands_();
+    ESP_LOGI(TAG, "Receiver responded; startup sync queued");
   }
 }
 
@@ -3025,6 +3041,7 @@ void YamahaSerialComponent::publish_connection_state_(const std::string &state) 
 }
 
 void YamahaSerialComponent::set_last_error_(const std::string &message) {
+  this->error_generation_++;
   this->last_error_ = message;
   ESP_LOGW(TAG, "%s", message.c_str());
   if (this->last_error_text_sensor_ != nullptr) {
@@ -3579,7 +3596,7 @@ std::string YamahaSerialComponent::normalize_token_(const std::string &in) {
       out.push_back(static_cast<char>(std::tolower(c)));
       continue;
     }
-    if (ch == ' ' || ch == '-' || ch == '/' || ch == '.' || ch == ':') {
+    if (ch == '_' || ch == ' ' || ch == '-' || ch == '/' || ch == '.' || ch == ':') {
       if (out.empty() || out.back() == '_') {
         continue;
       }
@@ -3675,7 +3692,7 @@ std::optional<float> YamahaSerialComponent::parse_volume_text_db_(const std::str
   }
   char *end = nullptr;
   const float value = std::strtof(raw.c_str(), &end);
-  if (end == raw.c_str()) {
+  if (end == raw.c_str() || *end != '\0' || !std::isfinite(value)) {
     return std::nullopt;
   }
   return value;

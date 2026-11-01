@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-01
+
+### Fixed
+- Preserve underscores in profile IDs, input keys and raw command aliases.
+- Input selects use the active profile's labels and exclude entries without a
+  command for their zone; unknown overrides no longer create unusable controls.
+- HA companion state updates run on the HA event loop and preserve service context.
+- Missing or unknown configured availability sensors no longer report online.
+- Invalid entity domains, self references and nonfinite volume states are rejected.
+- Companion examples use the existing media player for power/mute.
+- Invalid UART frames no longer mark the receiver online or complete pending commands.
+- Receiver-reported errors remain visible; retries respect command spacing.
+- Typed volume steps are not retried after a lost report, avoiding double increments.
+- CI preserves executable `!lambda` actions instead of compiling literal secret text.
+- Firmware compile pipelines propagate failures through the log capture step.
+
+### Added
+- LTS maintenance baseline 11.2026 with ESPHome 2026.10.1 and HA 2026.10.4 pins.
+- Real HA runtime tests and production C++ parser/queue tests with sanitizers.
+- Release publication requires the HA runtime tests as well as firmware checks.
+
 ## [0.2.2] - 2026-10-21
 
 ### Changed

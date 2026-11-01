@@ -83,14 +83,22 @@ POLL_INTERVAL_SCHEMA = cv.Any(
     cv.positive_time_period_milliseconds,
 )
 
-VOLUME_SCHEMA = cv.Schema(
-    {
-        cv.Optional(CONF_VOLUME_MIN, default=-80.0): cv.float_range(
-            min=-99.5, max=16.5
-        ),
-        cv.Optional(CONF_VOLUME_MAX, default=16.5): cv.float_range(min=-99.5, max=16.5),
-        cv.Optional(CONF_VOLUME_STEP, default=0.5): cv.float_range(min=0.5, max=10.0),
-    }
+
+def validate_volume_range(config):
+    if config[CONF_VOLUME_MIN] >= config[CONF_VOLUME_MAX]:
+        raise cv.Invalid("volume min must be less than max")
+    return config
+
+
+VOLUME_SCHEMA = cv.All(
+    cv.Schema(
+        {
+            cv.Optional(CONF_VOLUME_MIN, default=-80.0): cv.float_range(min=-99.5, max=16.5),
+            cv.Optional(CONF_VOLUME_MAX, default=16.5): cv.float_range(min=-99.5, max=16.5),
+            cv.Optional(CONF_VOLUME_STEP, default=0.5): cv.float_range(min=0.5, max=10.0),
+        }
+    ),
+    validate_volume_range,
 )
 
 CONFIG_SCHEMA = (
@@ -106,7 +114,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_MAX_RETRIES, default=2): cv.int_range(min=0, max=10),
             cv.Optional(CONF_COMMAND_SPACING, default="100ms"): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_POWER_ON_DELAY, default="2s"): cv.positive_time_period_milliseconds,
-            cv.Optional(CONF_INPUTS, default=DEFAULT_INPUTS): cv.Schema(
+            cv.Optional(CONF_INPUTS, default={}): cv.Schema(
                 {cv.string_strict: cv.string_strict}
             ),
             cv.Optional(CONF_VOLUME, default={}): VOLUME_SCHEMA,

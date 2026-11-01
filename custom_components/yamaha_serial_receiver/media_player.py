@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from math import isfinite
 from typing import Any
 
 import voluptuous as vol
@@ -25,7 +26,8 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-from homeassistant.core import Event, HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
@@ -60,13 +62,13 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_UNIQUE_ID): cv.string,
-        vol.Required(CONF_MEDIA_PLAYER_ENTITY): cv.entity_id,
-        vol.Optional(CONF_POWER_ENTITY): cv.entity_id,
-        vol.Optional(CONF_MUTE_ENTITY): cv.entity_id,
-        vol.Optional(CONF_VOLUME_ENTITY): cv.entity_id,
-        vol.Optional(CONF_SOURCE_ENTITY): cv.entity_id,
-        vol.Optional(CONF_SOUND_MODE_ENTITY): cv.entity_id,
-        vol.Optional(CONF_AVAILABILITY_ENTITY): cv.entity_id,
+        vol.Required(CONF_MEDIA_PLAYER_ENTITY): cv.entity_domain("media_player"),
+        vol.Optional(CONF_POWER_ENTITY): cv.entity_domain("switch"),
+        vol.Optional(CONF_MUTE_ENTITY): cv.entity_domain("switch"),
+        vol.Optional(CONF_VOLUME_ENTITY): cv.entity_domain("number"),
+        vol.Optional(CONF_SOURCE_ENTITY): cv.entity_domain("select"),
+        vol.Optional(CONF_SOUND_MODE_ENTITY): cv.entity_domain("select"),
+        vol.Optional(CONF_AVAILABILITY_ENTITY): cv.entity_domain("binary_sensor"),
         vol.Optional(CONF_MODEL): cv.string,
     }
 )
@@ -119,6 +121,9 @@ class YamahaSerialReceiverMediaPlayer(MediaPlayerEntity):
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to state changes from all wrapped entities."""
+        await super().async_added_to_hass()
+        if self.entity_id in self._tracked_entities:
+            raise ServiceValidationError("A receiver cannot wrap itself")
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -131,7 +136,9 @@ class YamahaSerialReceiverMediaPlayer(MediaPlayerEntity):
     def available(self) -> bool:
         """Return whether the wrapped receiver should be considered available."""
         availability = self._state(self._availability_entity)
-        if availability is not None and availability.state in {STATE_OFF, STATE_UNAVAILABLE}:
+        if self._availability_entity is not None and (
+            availability is None or availability.state != STATE_ON
+        ):
             return False
 
         media_player = self._state(self._media_player_entity)
@@ -174,7 +181,7 @@ class YamahaSerialReceiverMediaPlayer(MediaPlayerEntity):
         media_player = self._state(self._media_player_entity)
         if media_player is not None:
             value = media_player.attributes.get(ATTR_MEDIA_VOLUME_LEVEL)
-            if isinstance(value, int | float):
+            if isinstance(value, int | float) and not isinstance(value, bool) and isfinite(value):
                 return max(0.0, min(1.0, float(value)))
 
         volume = self._state(self._volume_entity)
@@ -183,6 +190,8 @@ class YamahaSerialReceiverMediaPlayer(MediaPlayerEntity):
         try:
             raw = float(volume.state)
         except (TypeError, ValueError):
+            return None
+        if not isfinite(raw):
             return None
         minimum = _float_attr(volume.attributes, "min", -80.0)
         maximum = _float_attr(volume.attributes, "max", 16.0)
@@ -304,7 +313,9 @@ class YamahaSerialReceiverMediaPlayer(MediaPlayerEntity):
     async def _select_option(self, entity_id: str | None, option: str) -> None:
         """Call select.select_option for a configured select entity."""
         if entity_id is None:
-            return
+            raise ServiceValidationError("No select entity configured")
+        if option not in (self._select_options(entity_id) or []):
+            raise ServiceValidationError(f"Unsupported option: {option}")
         await self._call_service(
             SELECT_DOMAIN,
             SERVICE_SELECT_OPTION,
@@ -313,8 +324,11 @@ class YamahaSerialReceiverMediaPlayer(MediaPlayerEntity):
 
     async def _call_service(self, domain: str, service: str, data: dict[str, Any]) -> None:
         """Call a Home Assistant service and wait for command acceptance."""
-        await self.hass.services.async_call(domain, service, data, blocking=True)
+        await self.hass.services.async_call(
+            domain, service, data, blocking=True, context=self._context
+        )
 
+    @callback
     def _handle_wrapped_entity_change(self, event: Event) -> None:
         """Refresh wrapper state after one wrapped entity changes."""
         self.async_write_ha_state()
@@ -356,6 +370,7 @@ def _defined(values: Iterable[str | None]) -> Iterable[str]:
 def _float_attr(attrs: dict[str, Any], key: str, default: float) -> float:
     """Read a numeric attribute with a safe fallback."""
     try:
-        return float(attrs.get(key, default))
+        value = float(attrs.get(key, default))
+        return value if isfinite(value) else default
     except (TypeError, ValueError):
         return default

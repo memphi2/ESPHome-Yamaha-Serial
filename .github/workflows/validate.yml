@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install ".[dev]"
+          python -m pip install ".[dev]" -c requirements/esphome-lts-2026.11.txt
       - name: Lint Python
         run: ruff check components tests tools custom_components
       - name: Run tests
@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install ".[dev]"
+          python -m pip install ".[dev]" -c requirements/esphome-lts-2026.11.txt
       - name: Report the resolved ESPHome version
         run: esphome version
       - name: Prepare CI example configs
@@ -67,9 +67,21 @@ jobs:
       - name: Compile ESPHome basic example (ESP32)
         run: esphome compile .ci/yamaha_rx_v_basic.yaml
       - name: Compile ESPHome full example (ESP8266)
+        shell: bash
         run: esphome compile .ci/yamaha_rx_v_full.yaml | tee /tmp/yamaha_rx_v_full_compile.log
       - name: Check ESP8266 full example size budget
         run: python tools/check_compile_size.py /tmp/yamaha_rx_v_full_compile.log --max-ram 64000 --max-flash 560000
+
+  companion:
+    name: HA companion runtime
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+      - run: python -m pip install -r requirements/ha-lts-2026.11.txt
+      - run: python -m pytest tests/test_companion_runtime.py
 
   hacs:
     name: hacs
