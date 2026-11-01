@@ -7,6 +7,7 @@ This project provides a native ESPHome external component for Yamaha RS-232 rece
 ## Project status
 
 - Current status: `beta`
+- LTS maintenance baseline: **11.2026** (`0.2.3`), see [SUPPORT.md](SUPPORT.md).
 - Focus: RX-Vx500 / RX-Vx600 / RX-Vx700 / RX-Vx800 RS-232 command families
 - Profile architecture: `auto` + standard/extended profiles for RX-Vx500, RX-Vx600, RX-Vx700, and RX-Vx800 families
 - Hardware validation: still required on multiple receiver models
@@ -40,7 +41,7 @@ Pin a tag for reproducible builds:
 
 ```yaml
 external_components:
-  - source: github://memphi2/ESPHome-Yamaha-Serial@v0.2.0
+  - source: github://memphi2/ESPHome-Yamaha-Serial@v0.2.3
     components: [yamaha_serial]
 ```
 
@@ -117,7 +118,7 @@ media_player:
 | `max_retries` | int | `2` | Retries after timeout before command fails. |
 | `command_spacing` | time | `100ms` | Minimum gap between transmitted commands. |
 | `power_on_delay` | time | `2s` | Holdoff after power-on before further queued commands. |
-| `inputs` | map | built-in set | Key/label mapping for input selects and text states. |
+| `inputs` | map | profile labels | Optional label overrides for existing profile input keys. Unknown keys are logged and are not exposed as controls; Zone2 lists only inputs with a Zone2 command. |
 | `volume.min` | float | `-80` | Minimum dB accepted by number control. |
 | `volume.max` | float | `16.5` | Maximum dB accepted by number control. |
 | `volume.step` | float | `0.5` | Step size used by number entity. |

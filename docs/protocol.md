@@ -16,6 +16,18 @@ Serial defaults used by Yamaha RX-Vx500 family:
 
 Frames are parsed non-blocking and may arrive fragmented or back-to-back.
 
+Only successfully parsed frames update availability and complete a pending
+command. Invalid checksums or payloads increment `parse_errors` without
+ending timeout/retry handling. Receiver-reported status errors stay visible.
+Retries obey `command_spacing`; typed volume-up/down steps are sent once to
+avoid applying them twice when a report is lost. Raw commands and aliases
+retain the configured retry policy.
+
+The protocol has no transaction identifier. The current queue accepts any valid
+receiver frame as completion, so an unrelated unsolicited report can complete
+a wait. Completion means receiver activity, not proof that a particular write
+was applied; entity states are taken from actual receiver reports.
+
 Supported frame start bytes:
 - `STX (0x02)` report/control responses
 - `DC1 (0x11)` ready/text responses

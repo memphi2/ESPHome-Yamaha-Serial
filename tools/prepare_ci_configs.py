@@ -10,18 +10,35 @@ class SecretSafeLoader(yaml.SafeLoader):
     pass
 
 
+class Lambda(str):
+    """Preserve ESPHome code through the YAML round trip."""
+
+
+class ConfigDumper(yaml.SafeDumper):
+    pass
+
+
+def lambda_constructor(loader: yaml.SafeLoader, node: yaml.Node) -> Lambda:
+    return Lambda(loader.construct_scalar(node))
+
+
+def lambda_representer(dumper: yaml.SafeDumper, value: Lambda):
+    return dumper.represent_scalar("!lambda", str(value))
+
+
 def secret_constructor(loader: yaml.SafeLoader, node: yaml.Node) -> str:
     return f"!secret {loader.construct_scalar(node)}"
 
 
 SecretSafeLoader.add_constructor("!secret", secret_constructor)
-SecretSafeLoader.add_constructor("!lambda", secret_constructor)
+SecretSafeLoader.add_constructor("!lambda", lambda_constructor)
+ConfigDumper.add_representer(Lambda, lambda_representer)
 
 
 def replace_secrets(value, secrets):
     if isinstance(value, str) and value.startswith("!secret "):
         key = value.split(" ", 1)[1]
-        return secrets.get(key, value)
+        return secrets[key]
     if isinstance(value, list):
         return [replace_secrets(item, secrets) for item in value]
     if isinstance(value, dict):
@@ -42,7 +59,7 @@ def main() -> None:
         data = yaml.load(src.read_text(encoding="utf-8"), Loader=SecretSafeLoader)
         data = replace_secrets(data, secrets)
         data["external_components"] = [{"source": {"type": "local", "path": "../components"}, "components": ["yamaha_serial"]}]
-        (out / name).write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        (out / name).write_text(yaml.dump(data, Dumper=ConfigDumper, sort_keys=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

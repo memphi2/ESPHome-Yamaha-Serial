@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "esphome-yamaha-serial"
-version = "0.2.2"
+version = "0.2.3"
 description = "ESPHome external component for Yamaha RS-232 serial control"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -19,8 +19,7 @@ packages = []
 
 [project.optional-dependencies]
 dev = [
-  # The ESPHome floor is the version CI installs and compiles against; it is
-  # the baseline stated in SUPPORT.md and is bumped manually.
+  # Minimum supported version; LTS builds use the requirements constraint.
   "esphome>=2026.9.0",
   "pytest>=8.3.0",
   # The test suite parses the example YAML directly.
@@ -32,6 +31,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+pythonpath = ["."]
 
 [tool.ruff]
 target-version = "py312"

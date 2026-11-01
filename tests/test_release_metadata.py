@@ -6,6 +6,8 @@ import re
 import subprocess
 import sys
 
+import yaml
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
@@ -82,3 +84,17 @@ def test_hacs_manifest_is_consistent() -> None:
     hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
     assert hacs["name"]
     assert re.fullmatch(r"\d+\.\d+\.\d+", hacs["homeassistant"])
+
+
+def test_compile_pipelines_propagate_failures() -> None:
+    for name in ("validate", "release"):
+        workflow = yaml.safe_load((ROOT / ".github/workflows" / f"{name}.yml").read_text())
+        pipelines = [
+            step
+            for job in workflow["jobs"].values()
+            for step in job["steps"]
+            if "esphome compile" in step.get("run", "") and "| tee" in step["run"]
+        ]
+        assert pipelines
+        # Explicit bash selects GitHub's -eo pipefail shell invocation.
+        assert all(step.get("shell") == "bash" for step in pipelines)

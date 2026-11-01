@@ -541,6 +541,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   uint32_t commands_sent_{0};
   uint32_t responses_received_{0};
   uint32_t parse_errors_{0};
+  uint32_t error_generation_{0};
   uint32_t timeouts_{0};
   uint32_t queue_drops_{0};
 

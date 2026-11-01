@@ -2,23 +2,36 @@
 
 ## Supported Release Line
 
-- `0.1.x`: active
+- LTS maintenance baseline: **11.2026**, reviewed on **2026-11-01**.
+- `0.2.x`: active maintenance line; `0.2.3` is the November baseline.
+- `0.1.x`: superseded; update to the current maintenance release.
+
+LTS names this project's maintenance snapshot, not an upstream ESPHome or
+Home Assistant LTS release. Maintenance covers bug, security and compatibility
+fixes on the current minor line; no fixed end-of-support date is promised.
 
 ## Compatibility Baseline
 
 - Minimum ESPHome: `2026.9.0`
-- Validated ESPHome: `2026.10.x`
+- LTS build ESPHome: `2026.10.1`
 - Python (for the repository's own tooling and tests): `3.12`, `3.13`, `3.14`
 - Minimum Home Assistant for the optional companion integration: `2026.9.0`
+- Runtime-tested Home Assistant companion: `2026.10.4` on Python `3.14`
 - Targets: ESP32 (basic example) and ESP8266 (full example), both compiled in
   CI on every push
 
-CI installs the newest ESPHome that satisfies the declared floor, so the
-validated line is the one the compiles actually prove. The minimum is the
-oldest release this project intends to support; it is raised by hand and is
-not separately re-compiled, so a regression confined to `2026.9.x` would not
-be caught here. Older `2026.x` releases are likely to work but are not
-claimed, because they are not tested.
+CI and releases constrain ESPHome using
+`requirements/esphome-lts-2026.11.txt`. The HA companion runs in a separate
+environment using `requirements/ha-lts-2026.11.txt`, so conflicting upstream
+dependencies cannot affect firmware builds. These pins are reviewed as
+maintenance updates arrive. On 2026-11-01 the latest stable releases are still
+2026.10; the November label does not claim compatibility with unreleased 2026.11.
+
+The minimum versions remain compatibility targets, not separately compiled
+or runtime-tested baselines. Real receiver validation is still required for
+model-specific behavior. The host C++ tests compile the production parser and
+queue with UART/entity doubles and AddressSanitizer/UBSan. HA tests exercise
+the real event dispatcher, service registry, availability and listener cleanup.
 
 ## ESPHome Media Player Limitation
 
@@ -26,8 +39,7 @@ ESPHome's `media_player` exposes `SELECT_SOURCE` and `SELECT_SOUND_MODE`
 feature flags, but its C++ and native-API call path carries no source or
 sound-mode value: `media_player::MediaPlayerCall` has only `command`,
 `media_url`, `volume` and `announcement`, and `MediaPlayerTraits` has no
-`source_list` or `sound_mode_list`. This is still true on ESPHome `dev` as of
-this release.
+`source_list` or `sound_mode_list`. This is verified on ESPHome `2026.10.1`.
 
 Consequences, which are deliberate and not bugs:
 

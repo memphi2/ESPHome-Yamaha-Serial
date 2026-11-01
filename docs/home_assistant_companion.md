@@ -35,8 +35,6 @@ media_player:
     unique_id: yamaha_rxv1600_receiver
     model: RX-V1600
     media_player_entity: media_player.yamaha_receiver
-    power_entity: switch.yamaha_power
-    mute_entity: switch.yamaha_mute
     source_entity: select.yamaha_input
     sound_mode_entity: select.yamaha_program
     availability_entity: binary_sensor.yamaha_availability
@@ -44,6 +42,11 @@ media_player:
 
 Use the real entity IDs from your ESPHome device. The full example is available
 in `examples/home_assistant_companion.yaml`.
+
+Restart Home Assistant after adding the YAML entry. The full ESPHome example
+already provides power and mute through its media player; no additional
+switches are needed. Only configure `power_entity` or `mute_entity` when your
+node actually exposes those optional switches. Keep all wrapped entities enabled.
 
 ## Behavior
 
