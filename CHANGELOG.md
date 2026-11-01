@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Match command acknowledgements to frame/report IDs, expected values and
   Extended selectors; unrelated reports no longer complete a pending write.
+- Accept every mapped DSP/input report for shared operation commands; test
+  program and input acknowledgements across all eight explicit profiles.
 - Apply one retry/holdoff policy to typed controls, aliases and raw commands.
   Relative/toggle/unknown writes are never retried; typed volume steps use
   bounded absolute targets and honor `volume.step`.

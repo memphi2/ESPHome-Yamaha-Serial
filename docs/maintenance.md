@@ -65,11 +65,11 @@ Local comparison on 2026-11-01, ESPHome 2026.10.1, default example configuration
 
 | Example | Before RAM | After RAM | Before Flash | After Flash |
 |---|---:|---:|---:|---:|
-| ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,284 B |
-| ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,755 B |
+| ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,508 B |
+| ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,907 B |
 
 ESP8266 static RAM falls by 14,612 bytes (24.9%); the additional checks increase
-flash by 7,924 bytes (1.7%). The flash string placement primarily benefits
+flash by 8,148 bytes (1.7%). The flash string placement primarily benefits
 ESP8266; it is not a claim of equivalent ESP32 RAM savings. CI budgets are
 48,000 bytes RAM and 520,000 bytes flash for Full.
 
@@ -77,6 +77,11 @@ RX is bounded at 268 bytes, raw input at 320 bytes, and the queue at 32 entries.
 Payloads and runtime profile/select lists still use dynamic storage. Static RAM
 reported by the linker is not free heap, stack headroom or proof against
 fragmentation. Do not extrapolate it to runtime stability.
+
+RX processing has a per-loop byte budget and expires incomplete frames even
+when no more bytes arrive. TX uses ESPHome's UART driver: software UART or an
+unbuffered driver may block during a write, so this is not a hard real-time TX
+guarantee. Prefer hardware UART and test long raw frames on the actual board.
 
 Reproduce size checks with the same ESPHome/toolchain and YAML:
 
