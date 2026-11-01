@@ -55,6 +55,9 @@ yamaha_serial:
   model: "RX-V1600"
   receiver_profile: rx_vx600_extended
   poll_interval: never
+  diagnostics_interval: 60s
+  # Enables the explicit raw API service and raw media-player shortcuts.
+  allow_raw_commands: true
   command_timeout: 1500ms
   max_retries: 2
   command_spacing: 120ms

@@ -2,9 +2,10 @@
 
 ## What this component collects
 
-Nothing leaves the local network. The component speaks RS-232 over a UART and
-makes no outbound network request of its own. There is no cloud account, no
-telemetry and no analytics.
+The component speaks RS-232 over a UART and makes no outbound network request
+of its own. It has no cloud account, telemetry or analytics. ESPHome, Home
+Assistant, backups and integrations you configure can transfer data elsewhere;
+this component cannot enforce a local-only installation.
 
 ## What is stored
 
@@ -21,16 +22,16 @@ telemetry and no analytics.
 The diagnostics entities exist to make a support report decidable. They
 contain protocol-level data only:
 
-- connection state, availability, last error and last parse error, including
-  the last rejected frame as a hex payload
+- connection state, availability, last error and last parse-error reason;
+  rejected frame bytes appear in local logs, not the text entity
 - counters for commands sent, responses received, parse errors, timeouts and
   queue drops
 - last response age
 
-A rejected-frame payload is a Yamaha RS-232 frame. It carries receiver state,
-not personal data. If you attach ESPHome logs to an issue, note that the logs
-also contain your device name, your Wi-Fi signal strength and, depending on
-your configuration, your IP address — redact those if you care about them.
+A rejected frame may contain custom input names, station/media text or other
+user-supplied content, as well as receiver state. Treat logs as potentially
+sensitive. Before sharing, redact names, addresses, credentials, tokens and
+anything identifying people or usage patterns.
 
 ## What you are sharing when you share logs
 

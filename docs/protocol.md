@@ -16,17 +16,19 @@ Serial defaults used by Yamaha RX-Vx500 family:
 
 Frames are parsed non-blocking and may arrive fragmented or back-to-back.
 
-Only successfully parsed frames update availability and complete a pending
-command. Invalid checksums or payloads increment `parse_errors` without
-ending timeout/retry handling. Receiver-reported status errors stay visible.
-Retries obey `command_spacing`; typed volume-up/down steps are sent once to
-avoid applying them twice when a report is lost. Raw commands and aliases
-retain the configured retry policy.
+Only successfully parsed frames update availability. A pending command completes
+only on its matching frame type, report/command ID, and known value or Extended
+selector (for example speaker channel). An unrelated unsolicited report cannot
+acknowledge a mute or volume command. Matching guarded/error replies end the wait
+but remain errors. Invalid frames never acknowledge commands.
 
-The protocol has no transaction identifier. The current queue accepts any valid
-receiver frame as completion, so an unrelated unsolicited report can complete
-a wait. Completion means receiver activity, not proof that a particular write
-was applied; entity states are taken from actual receiver reports.
+There is no transaction identifier: a coincident matching unsolicited report
+cannot be distinguished from a solicited reply. An acknowledgement is not a
+transactional guarantee. Unknown raw operations have no inferred acknowledgement
+and are sent once. Reads and recognized absolute setters may retry; relative
+steps, toggles and unclassified writes never retry. This policy applies equally
+to aliases and typed controls. Typed volume steps use absolute targets respecting
+the configured limits and step. Raw relative-volume aliases remain available.
 
 Supported frame start bytes:
 - `STX (0x02)` report/control responses
@@ -43,7 +45,9 @@ The parser:
 - tolerates multi-frame UART buffers
 - enforces max frame length
 - enforces frame assembly timeout
-- validates DC4 checksums before dispatching extended payloads
+- validates DC2/DC4 lengths and checksums before dispatch
+- accepts DC4 data up to 256 bytes (`00` length), preserving spaces and case
+- bounds RX at 268 bytes (maximum DC2 frame) and raw input at 320 bytes
 
 `parse_errors` count malformed frames, checksum failures, impossible declared
 payload lengths, interrupted frames and UART assembly timeouts. Normal Yamaha
@@ -58,10 +62,14 @@ The component uses a command queue with:
 - per-command timeout
 - configurable retries
 - single in-flight command
-- poll command coalescing (duplicate poll tags are merged)
+- poll coalescing by frame type and exact payload, never across a pending write
 - queue overflow protection with `queue_drops` diagnostics counter
 - no blocking sleeps in loop
-- profile capability gating (prevents unsupported commands on mismatched receiver profiles)
+- profile capability gating for typed controls (raw commands bypass capabilities)
+
+Power-on holdoff also applies to raw aliases, and the response timeout includes
+the configured startup delay. The queue is limited to 32 pending commands;
+overflow discards an old refresh first, otherwise the oldest pending command.
 
 ## Ported command set
 
@@ -75,9 +83,9 @@ Primary commands in this port:
 | `07E7F` | Power off | `switch.power` / `switch.main_zone_power` off |
 | `07EA2` | Mute on | `switch.mute` on |
 | `07EA3` | Mute off | `switch.mute` off |
-| `07A1A` | Volume up | `button.volume_up` |
-| `07A1B` | Volume down | `button.volume_down` |
-| `07ADA` | Zone2 volume up | `button.zone2_volume_up` |
+| `07A1A` | Relative volume up | raw alias `volume_up` |
+| `07A1B` | Relative volume down | raw alias `volume_down` |
+| `07ADA` | Relative Zone2 volume up | raw alias `zone2_volume_up` |
 | `07ADB` | Zone2 volume down | `button.zone2_volume_down` |
 | `230xx` | Absolute main volume | `number.volume_db` |
 | `231xx` | Absolute zone2 volume | `number.zone2_volume_db` |
@@ -303,7 +311,7 @@ Status is updated via:
 
 Parser diagnostics:
 - `parse_errors` counts rejected or incomplete frames.
-- `last_parse_error` stores the last rejection reason and, when available, the raw frame bytes as hex.
+- `last_parse_error` stores the rejection reason, limited to HA's 255-byte state bound. Rejected bytes are logged separately in bounded hex chunks, including offset and total length.
 - A valid later response does not reset `last_parse_error`; it is intentionally kept for debugging intermittent startup/noise issues.
 
 Startup/manual refresh queues:
@@ -345,6 +353,11 @@ bytes; the component adds `DC4`, the checksum and `ETX`. This makes every comman
 sendable while keeping high-level HA entities limited to controls that have stable
 semantics on RX-V1600-class hardware.
 
+Raw entry points require `allow_raw_commands: true`. DC4 bodies keep case and
+spaces exactly, including trailing padding; the declared length must match.
+For example, `dc4:2011011100508Hi Fi PC` preserves the eight-character name.
+Length/framing checks do not establish that a write is safe for your model.
+
 Model names from extended replies may include Yamaha's two-character prefix, for example `08RX-V1600`; the component normalizes that to `RX-V1600` for the public diagnostic entity.
 
 Receiver-specific behavior is modularized by profile:
@@ -358,8 +371,12 @@ Receiver-specific behavior is modularized by profile:
 - `rx_vx800_extended`: auto-selected x800 profile with DC4 raw/setup transport enabled.
 
 In `auto` mode, the configured `model` value is only a startup hint. Once a DC2
-or DC4 model response is received, the normalized receiver model is used to
-reselect the matching extended profile and refresh input/program options.
+or DC4 recognized model response is received, the normalized receiver model is
+used to reselect the matching extended profile and refresh input/program options.
+Known internal DC2 IDs are translated; `R0177` identifies the x500 family, not a
+unique model. Unknown IDs keep the configured model hint. Explicit profiles stay fixed.
+Changed option lists invalidate removed selections and request one native-API
+client reconnect so HA fetches fresh metadata. Repeated identical reports do not reconnect.
 
 When adding new models, create or extend a profile and map only the model-specific command/report differences while keeping parser/queue core unchanged.
 

@@ -136,7 +136,31 @@ If it stays unavailable:
 
 Note:
 - when unavailable/offline, the component only sends a lightweight ready probe and waits for a receiver response before startup sync resumes.
-- with `poll_interval: never`, the component stays online after startup and relies on Yamaha report frames instead of periodic heartbeat traffic.
+- with `poll_interval: never`, silence alone does not mark the receiver offline.
+  An acknowledged command that exhausts retries with no receiver activity marks
+  the protocol unavailable; the next valid report restores it and starts sync.
+  Startup readiness probes resume while unavailable. A quiet unplugged receiver
+  cannot be detected immediately without sending a request; use Refresh to check.
+
+### Raw commands rejected after updating
+
+Enable `yamaha_serial.allow_raw_commands: true` only when needed. All raw entry
+points, including aliases and `yamaha://raw/...`, require it. An enabled native
+API must have encryption. DC4 text must preserve case, spaces and declared length.
+
+### Brief API reconnect after model detection
+
+When detection changes input/program options, the component requests one client
+reconnect so HA reloads the lists. This is not a receiver reset or an ESP reboot.
+Repeated unchanged model reports must not cause a reconnect loop.
+
+### Long parse-error text shows unknown
+
+Update the component: error entities now hold a bounded reason rather than the
+whole raw frame. Read the separate `Rejected frame offset/length` log lines for
+the bytes. Redact custom names and other private content before sharing logs.
+The counter alone cannot establish the cause; include the rejected frame and
+the exact firmware/profile when reporting a parser problem.
 
 If `queue_drops` increases:
 - receiver is not responding fast enough for current command rate

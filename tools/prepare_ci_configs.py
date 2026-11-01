@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 
 import yaml
@@ -60,6 +61,14 @@ def main() -> None:
         data = replace_secrets(data, secrets)
         data["external_components"] = [{"source": {"type": "local", "path": "../components"}, "components": ["yamaha_serial"]}]
         (out / name).write_text(yaml.dump(data, Dumper=ConfigDumper, sort_keys=False), encoding="utf-8")
+        if name == "yamaha_rx_v_basic.yaml":
+            for model, family in (("RX-V1500", "500"), ("RX-V1600", "600"), ("RX-V1700", "700"), ("RX-V1800", "800")):
+                for suffix in ("", "_extended"):
+                    variant = deepcopy(data)
+                    variant["yamaha_serial"].update(model=model, receiver_profile=f"rx_vx{family}{suffix}")
+                    (out / f"yamaha_rx_vx{family}{suffix}_profile.yaml").write_text(
+                        yaml.dump(variant, Dumper=ConfigDumper, sort_keys=False), encoding="utf-8"
+                    )
 
 
 if __name__ == "__main__":
