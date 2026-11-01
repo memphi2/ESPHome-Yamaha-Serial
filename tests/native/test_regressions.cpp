@@ -17,6 +17,33 @@ static void ready(Receiver &r) {
 }
 
 void test_regressions() {
+  for (const std::string family : {"500", "600", "700", "800"}) {
+    for (const std::string suffix : {"", "_extended"}) {
+      Receiver mapped;
+      mapped.set_receiver_profile("rx_vx" + family + suffix);
+      ready(mapped);
+      auto acknowledge = [&](uint8_t report, uint8_t value) {
+        test_now += 200;
+        mapped.process_command_queue_();
+        assert(mapped.in_flight_ && mapped.in_flight_->command.expect_response);
+        char body[7];
+        snprintf(body, sizeof(body), "00%02X%02X", static_cast<unsigned>(report), static_cast<unsigned>(value));
+        mapped.feed(status(body));
+        assert(!mapped.in_flight_ && mapped.timeouts_ == 0 && mapped.available_);
+      };
+      for (const auto &program : mapped.programs_) {
+        mapped.command_program(program.label);
+        acknowledge(0x28, program.report_code);
+      }
+      for (const auto &input : mapped.inputs_) {
+        for (bool zone2 : {false, true}) {
+          if ((zone2 ? input.zone2_command : input.main_command).empty()) continue;
+          mapped.command_input(input.label, zone2);
+          acknowledge(zone2 ? 0x24 : 0x21, zone2 ? input.zone2_report_id : input.report_id);
+        }
+      }
+    }
+  }
   Receiver matching;
   ready(matching);
   matching.command_mute(true);

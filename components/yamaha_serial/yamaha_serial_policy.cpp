@@ -162,6 +162,24 @@ bool YamahaSerialComponent::response_matches_(const QueuedCommand &command, cons
   const auto value = parse_hex_(payload.substr(4, 2));
   if (!value.has_value())
     return false;
+  if (command.response_code == 0x28) {
+    // Some families share one operation command across several DSP reports.
+    for (const auto &program : this->programs_) {
+      const uint8_t mask = program.report_code == 0x80 ? 0x80 : 0x7F;
+      if (command.payload == program.command && (*value & mask) == program.report_code)
+        return true;
+    }
+    return false;
+  }
+  if (command.response_code == 0x21 || command.response_code == 0x24) {
+    const bool zone2 = command.response_code == 0x24;
+    for (const auto &input : this->inputs_) {
+      if (command.payload == (zone2 ? input.zone2_command : input.main_command) &&
+          *value == (zone2 ? input.zone2_report_id : input.report_id))
+        return true;
+    }
+    return false;
+  }
   if (command.response_code == 0x20) {
     const bool main_on = *value == 1 || *value == 2 || *value == 4 || *value == 5;
     const bool zone2_on = *value == 1 || *value == 3 || *value == 4 || *value == 6;

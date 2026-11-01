@@ -24,6 +24,7 @@ class Receiver : public yamaha_serial::YamahaSerialComponent {
   using YamahaSerialComponent::parse_volume_text_db_;
   using YamahaSerialComponent::active_profile_;
   using YamahaSerialComponent::inputs_;
+  using YamahaSerialComponent::programs_;
   using YamahaSerialComponent::queue_named_command_;
   using YamahaSerialComponent::normalize_token_;
   using YamahaSerialComponent::handle_detected_model_;
