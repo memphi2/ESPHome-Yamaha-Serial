@@ -89,3 +89,17 @@ against a size budget enforced in CI.
 
 Security and compatibility fixes target the current minor release line only,
 unless a release note states otherwise.
+
+### Dependency Updates
+
+The LTS line uses security-only Dependabot PRs for Python dependencies and
+GitHub Actions. `open-pull-requests-limit: 0` disables routine version-update
+PRs; it does not disable security updates. The required schedule field is not
+a delay for security updates. Security fixes are grouped per ecosystem, with
+no package or version exclusions. Repository-level Dependabot alerts and
+security updates remain enabled; existing CI and review requirements apply.
+
+Non-security dependency refreshes and baseline upgrades are reviewed during
+deliberate maintenance work rather than recurring bot PRs. This policy does
+not freeze dependencies declared with an open version range: CI still resolves
+those ranges normally, while the ESPHome and HA baseline pins remain fixed.
