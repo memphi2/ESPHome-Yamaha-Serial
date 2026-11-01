@@ -1,15 +1,15 @@
 version: 2
+# LTS: version refreshes are deliberate maintenance, not recurring bot PRs.
+# A zero limit disables version PRs only. Security PRs have a separate limit.
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "05:00"
-      timezone: "Europe/Berlin"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 0
     groups:
-      github-actions:
+      github-actions-security:
+        applies-to: "security-updates"
         patterns:
           - "*"
     commit-message:
@@ -17,34 +17,13 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/"
-    # Dependabot updates the dev extra in pyproject.toml.
     schedule:
       interval: "monthly"
-      time: "05:30"
-      timezone: "Europe/Berlin"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     groups:
-      python-patch-minor:
+      python-security:
+        applies-to: "security-updates"
         patterns:
           - "*"
-        update-types:
-          - "minor"
-          - "patch"
     commit-message:
       prefix: "deps"
-    ignore:
-      # Python majors are compatibility work, not routine maintenance.
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-      # The ESPHome floor and dated LTS constraints are reviewed manually,
-      # together with the baseline stated in SUPPORT.md.
-      # Spelled as update-types, not versions: ">=0". A bare version range
-      # is applied on the security path too, which would hide an advisory
-      # against these pins; naming the version-update types keeps routine
-      # bumps out and leaves security updates free to open a pull request.
-      - dependency-name: "esphome"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"
-          - "version-update:semver-patch"

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Limit Dependabot to grouped security-update PRs for Python and GitHub Actions;
+  routine version updates are handled during planned LTS maintenance.
+
 ## [0.2.3] - 2026-11-01
 
 ### Fixed
