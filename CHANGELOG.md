@@ -4,7 +4,39 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Match command acknowledgements to frame/report IDs, expected values and
+  Extended selectors; unrelated reports no longer complete a pending write.
+- Apply one retry/holdoff policy to typed controls, aliases and raw commands.
+  Relative/toggle/unknown writes are never retried; typed volume steps use
+  bounded absolute targets and honor `volume.step`.
+- Mark an event-driven connection unavailable after an unanswered command;
+  preserve availability when unrelated valid reports prove receiver activity.
+- Validate DC2/DC4 lengths and checksums, preserve DC4 text/padding, handle
+  maximum protocol frames, and reject invalid numeric reports/controls.
+- Keep parse-error text within HA state limits; log rejected bytes in chunks.
+- Canonicalize audio/surround report labels, allow standard-profile tuner
+  presets, preserve model hints for unknown IDs, and refresh HA option metadata
+  after late model detection without stale select indices.
+- Inherit volume number limits from the parent; reject inconsistent ranges.
+
+### Added
+- Explicit `allow_raw_commands` opt-in, including raw media-player shortcuts;
+  require API encryption when exposing raw access via the native API.
+- `diagnostics_interval` (default 60s), with noisy diagnostics disabled by
+  default and no long-term statistics classification for age/counters.
+- Production C++ regression/fuzz tests, generated catalog checks, C++ CodeQL,
+  minimum-version YAML checks and all-family profile validation.
+- Migration, recorder-load, memory-measurement and contributor documentation.
+- Security floors for compatible build dependencies; documented unresolved
+  Pillow/filelock upstream pins instead of overriding ESPHome requirements.
+
 ### Changed
+- Split the firmware into command, profile, entity, protocol, transport and
+  acknowledgement-policy modules. Generate shared select metadata and a
+  flash-resident string pool for all 666 command aliases.
+- Reduce the ESP8266 full-example static RAM budget from 64,000 to 48,000 bytes;
+  tighten the flash budget from 560,000 to 520,000 bytes.
 - Limit Dependabot to grouped security-update PRs for Python and GitHub Actions;
   routine version updates are handled during planned LTS maintenance.
 

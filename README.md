@@ -88,6 +88,8 @@ yamaha_serial:
   max_retries: 2
   command_spacing: 100ms
   power_on_delay: 2s
+  diagnostics_interval: 60s
+  allow_raw_commands: false
   inputs:
     tuner: "Tuner"
     cd: "CD"
@@ -115,13 +117,24 @@ media_player:
 | `receiver_profile` | `auto` \| `rx_vx500` \| `rx_vx500_extended` \| `rx_vx600` \| `rx_vx600_extended` \| `rx_vx700` \| `rx_vx700_extended` \| `rx_vx800` \| `rx_vx800_extended` | `auto` | Selects receiver-specific mapping/capability profile. Explicit standard profiles keep DC4 setup entities disabled; `auto` starts from the model hint and reapplies the matching extended profile when the receiver reports its real model. |
 | `poll_interval` | time \| `never` \| `off` | `never` | Optional periodic status refresh interval. `never` uses startup sync plus Yamaha report frames only. |
 | `command_timeout` | time | `1500ms` | Timeout for in-flight command responses. |
-| `max_retries` | int | `2` | Retries after timeout before command fails. |
+| `max_retries` | int | `2` | Maximum retries for reads and recognized idempotent setters. Relative/toggle/unknown writes are never retried. |
 | `command_spacing` | time | `100ms` | Minimum gap between transmitted commands. |
 | `power_on_delay` | time | `2s` | Holdoff after power-on before further queued commands. |
+| `diagnostics_interval` | time | `60s` | Diagnostic publishing cadence, 1s..7d. Does not query the receiver. |
+| `allow_raw_commands` | bool | `false` | Explicit opt-in for raw actions, aliases and raw media-player shortcuts. Requires API encryption when the native API is configured. |
 | `inputs` | map | profile labels | Optional label overrides for existing profile input keys. Unknown keys are logged and are not exposed as controls; Zone2 lists only inputs with a Zone2 command. |
-| `volume.min` | float | `-80` | Minimum dB accepted by number control. |
-| `volume.max` | float | `16.5` | Maximum dB accepted by number control. |
-| `volume.step` | float | `0.5` | Step size used by number entity. |
+| `volume.min` | float | `-80` | Minimum dB for typed media-player, button and number controls. Half-dB increments. |
+| `volume.max` | float | `16.5` | Maximum dB for typed controls. Set a lower ceiling for your speakers. Raw commands bypass it. |
+| `volume.step` | float | `0.5` | 0.5..10 dB for typed volume steps; inherited by number controls unless explicitly narrowed. |
+
+Volume steps use the last reported volume plus pending absolute targets. Before
+the first volume report, a step is rejected instead of guessing a loudness.
+Number ranges must fit the parent volume range; reversed or nonfinite limits fail validation.
+Command timeout, spacing and power-on delay are limited to 60s; polling to 7d.
+
+See [migration notes](docs/maintenance.md#migration) before updating an existing
+installation. Diagnostic counters, age and error details now default to disabled
+in HA; existing registry choices are not overridden by a firmware update.
 
 ## Implemented entities and features
 

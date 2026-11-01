@@ -1,2 +1,7 @@
 # Pinned ESPHome baseline verified for the November 2026 maintenance line.
+-c build-security.txt
 esphome==2026.10.1
+pytest==9.1.1
+PyYAML==6.0.3
+ruff==0.17.1
+yamllint==1.38.0

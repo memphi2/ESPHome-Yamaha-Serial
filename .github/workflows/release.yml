@@ -27,6 +27,8 @@ jobs:
           pytest
       - name: Lint YAML
         run: yamllint -c .yamllint.yml examples .github
+      - name: Fuzz production UART parser and raw input
+        run: python tools/run_native_tests.py --fuzz
       - name: Check that the tag matches the declared version
         env:
           TAG_NAME: ${{ github.ref_name }}
@@ -44,7 +46,7 @@ jobs:
         shell: bash
         run: esphome compile .ci/yamaha_rx_v_full.yaml | tee /tmp/yamaha_rx_v_full_compile.log
       - name: Check ESP8266 full example size budget
-        run: python tools/check_compile_size.py /tmp/yamaha_rx_v_full_compile.log --max-ram 64000 --max-flash 560000
+        run: python tools/check_compile_size.py /tmp/yamaha_rx_v_full_compile.log --max-ram 48000 --max-flash 520000
 
   companion:
     name: release HA companion runtime

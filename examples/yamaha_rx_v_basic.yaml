@@ -43,6 +43,8 @@ yamaha_serial:
   model: "RX-V1600"
   receiver_profile: auto
   poll_interval: never
+  diagnostics_interval: 60s
+  allow_raw_commands: false
   command_timeout: 1500ms
   max_retries: 2
   command_spacing: 100ms

@@ -27,11 +27,14 @@ dependencies cannot affect firmware builds. These pins are reviewed as
 maintenance updates arrive. On 2026-11-01 the latest stable releases are still
 2026.10; the November label does not claim compatibility with unreleased 2026.11.
 
-The minimum versions remain compatibility targets, not separately compiled
-or runtime-tested baselines. Real receiver validation is still required for
+The minimum ESPHome version has a separate configuration-validation job; binary
+builds target the LTS baseline. The minimum HA version remains a compatibility
+target, not a separately runtime-tested baseline. Real receiver validation is still required for
 model-specific behavior. The host C++ tests compile the production parser and
 queue with UART/entity doubles and AddressSanitizer/UBSan. HA tests exercise
 the real event dispatcher, service registry, availability and listener cleanup.
+CI also fuzzes the production parser/raw input, validates all eight explicit
+standard/extended profiles, checks generated catalogs, and runs C++ CodeQL.
 
 ## ESPHome Media Player Limitation
 
@@ -102,4 +105,7 @@ security updates remain enabled; existing CI and review requirements apply.
 Non-security dependency refreshes and baseline upgrades are reviewed during
 deliberate maintenance work rather than recurring bot PRs. This policy does
 not freeze dependencies declared with an open version range: CI still resolves
-those ranges normally, while the ESPHome and HA baseline pins remain fixed.
+transitive ranges normally, while ESPHome, HA and the firmware test/lint tools
+remain pinned. This is not a cross-platform dependency lockfile. Changes to
+resolved dependencies or framework packages can change binary sizes; compare
+builds using the same configuration, platform, ESPHome and toolchain.

@@ -53,6 +53,8 @@ yamaha_serial:
   model: "RX-V1500"
   receiver_profile: rx_vx500_extended
   poll_interval: never
+  diagnostics_interval: 60s
+  allow_raw_commands: true
   command_timeout: 1500ms
   max_retries: 2
   command_spacing: 100ms
