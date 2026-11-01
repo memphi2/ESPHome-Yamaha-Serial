@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import select
@@ -13,6 +16,8 @@ DEPENDENCIES = ["yamaha_serial"]
 
 YamahaSelect = yamaha_serial_ns.class_("YamahaSelect", select.Select)
 SelectFunction = yamaha_serial_ns.enum("SelectFunction", is_class=True)
+
+SELECT_CATALOG = json.loads(Path(__file__).with_name("select_catalog.json").read_text())["selects"]
 
 PROGRAM_OPTIONS = [
     "STRAIGHT",
@@ -62,16 +67,8 @@ PROGRAM_OPTIONS = [
 
 SCENE_OPTIONS = ["A", "B", "C", "D", "E", "F"]
 INPUT_OPTIONS = list(DEFAULT_INPUTS.values())
-AUDIO_SELECT_OPTIONS = ["Auto", "Coax/Opt", "Analog", "HDMI"]
-NIGHT_MODE_OPTIONS = [
-    "Off",
-    "Cinema Low",
-    "Cinema Mid",
-    "Cinema High",
-    "Music Low",
-    "Music Mid",
-    "Music High",
-]
+AUDIO_SELECT_OPTIONS = SELECT_CATALOG["audio_select"]["options"]
+NIGHT_MODE_OPTIONS = SELECT_CATALOG["night_mode"]["options"]
 TUNER_PRESET_OPTIONS = [
     "Preset 1",
     "Preset 2",
@@ -82,20 +79,13 @@ TUNER_PRESET_OPTIONS = [
     "Preset 7",
     "Preset 8",
 ]
-TUNER_PRESET_PAGE_OPTIONS = ["A", "B", "C", "D", "E"]
-TUNER_BAND_OPTIONS = ["FM", "AM"]
-SLEEP_TIMER_OPTIONS = ["Off", "30 min", "60 min", "90 min", "120 min"]
-DECODER_MODE_OPTIONS = ["Auto", "DTS", "AAC"]
-EXTENDED_SURROUND_OPTIONS = [
-    "Off",
-    "EX/ES",
-    "Auto",
-    "EX",
-    "PLIIx Movie",
-    "PLIIx Music",
-]
-SPEAKER_B_ASSIGNMENT_OPTIONS = ["Main", "Zone B"]
-ZONE2_AMP_OPTIONS = ["External", "Internal"]
+TUNER_PRESET_PAGE_OPTIONS = SELECT_CATALOG["tuner_preset_page"]["options"]
+TUNER_BAND_OPTIONS = SELECT_CATALOG["tuner_band"]["options"]
+SLEEP_TIMER_OPTIONS = SELECT_CATALOG["sleep_timer"]["options"]
+DECODER_MODE_OPTIONS = SELECT_CATALOG["decoder_mode"]["options"]
+EXTENDED_SURROUND_OPTIONS = SELECT_CATALOG["extended_surround"]["options"]
+SPEAKER_B_ASSIGNMENT_OPTIONS = SELECT_CATALOG["speaker_b_assignment"]["options"]
+ZONE2_AMP_OPTIONS = SELECT_CATALOG["zone2_amp"]["options"]
 
 # YAML key -> (component setter, receiver function, option list, icon). The
 # input and program setters replace the option list at runtime from the

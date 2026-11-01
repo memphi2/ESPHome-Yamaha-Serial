@@ -2,6 +2,7 @@
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome import automation
 from esphome.components import uart
 from esphome.const import CONF_ID, CONF_MODEL
@@ -34,6 +35,8 @@ CONF_VOLUME = "volume"
 CONF_VOLUME_MIN = "min"
 CONF_VOLUME_MAX = "max"
 CONF_VOLUME_STEP = "step"
+CONF_DIAGNOSTICS_INTERVAL = "diagnostics_interval"
+CONF_ALLOW_RAW_COMMANDS = "allow_raw_commands"
 
 yamaha_serial_ns = cg.esphome_ns.namespace("yamaha_serial")
 YamahaSerialComponent = yamaha_serial_ns.class_(
@@ -80,22 +83,38 @@ RECEIVER_PROFILES = [
 
 POLL_INTERVAL_SCHEMA = cv.Any(
     cv.one_of("never", "off", lower=True),
-    cv.positive_time_period_milliseconds,
+    cv.All(cv.positive_time_period_milliseconds, cv.Range(max=cv.TimePeriod(days=7))),
 )
 
 
 def validate_volume_range(config):
     if config[CONF_VOLUME_MIN] >= config[CONF_VOLUME_MAX]:
         raise cv.Invalid("volume min must be less than max")
+    if config[CONF_VOLUME_STEP] > config[CONF_VOLUME_MAX] - config[CONF_VOLUME_MIN]:
+        raise cv.Invalid("volume step must not exceed the range")
     return config
+
+
+def half_db(value):
+    value = cv.float_(value)
+    if not (-80.0 <= value <= 16.5) or value * 2 != round(value * 2):
+        raise cv.Invalid("volume values must be finite half-dB steps within -80..16.5")
+    return value
+
+
+def volume_step(value):
+    value = half_db(value)
+    if not 0.5 <= value <= 10:
+        raise cv.Invalid("volume step must be 0.5..10 dB")
+    return value
 
 
 VOLUME_SCHEMA = cv.All(
     cv.Schema(
         {
-            cv.Optional(CONF_VOLUME_MIN, default=-80.0): cv.float_range(min=-99.5, max=16.5),
-            cv.Optional(CONF_VOLUME_MAX, default=16.5): cv.float_range(min=-99.5, max=16.5),
-            cv.Optional(CONF_VOLUME_STEP, default=0.5): cv.float_range(min=0.5, max=10.0),
+            cv.Optional(CONF_VOLUME_MIN, default=-80.0): half_db,
+            cv.Optional(CONF_VOLUME_MAX, default=16.5): half_db,
+            cv.Optional(CONF_VOLUME_STEP, default=0.5): volume_step,
         }
     ),
     validate_volume_range,
@@ -110,10 +129,21 @@ CONFIG_SCHEMA = (
                 *RECEIVER_PROFILES, lower=True
             ),
             cv.Optional(CONF_POLL_INTERVAL, default="never"): POLL_INTERVAL_SCHEMA,
-            cv.Optional(CONF_COMMAND_TIMEOUT, default="1500ms"): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_COMMAND_TIMEOUT, default="1500ms"): cv.All(
+                cv.positive_time_period_milliseconds, cv.Range(max=cv.TimePeriod(seconds=60)),
+            ),
             cv.Optional(CONF_MAX_RETRIES, default=2): cv.int_range(min=0, max=10),
-            cv.Optional(CONF_COMMAND_SPACING, default="100ms"): cv.positive_time_period_milliseconds,
-            cv.Optional(CONF_POWER_ON_DELAY, default="2s"): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_COMMAND_SPACING, default="100ms"): cv.All(
+                cv.positive_time_period_milliseconds, cv.Range(max=cv.TimePeriod(seconds=60)),
+            ),
+            cv.Optional(CONF_POWER_ON_DELAY, default="2s"): cv.All(
+                cv.positive_time_period_milliseconds, cv.Range(max=cv.TimePeriod(seconds=60)),
+            ),
+            cv.Optional(CONF_DIAGNOSTICS_INTERVAL, default="60s"): cv.All(
+                cv.positive_time_period_milliseconds,
+                cv.Range(min=cv.TimePeriod(seconds=1), max=cv.TimePeriod(days=7)),
+            ),
+            cv.Optional(CONF_ALLOW_RAW_COMMANDS, default=False): cv.boolean,
             cv.Optional(CONF_INPUTS, default={}): cv.Schema(
                 {cv.string_strict: cv.string_strict}
             ),
@@ -122,6 +152,19 @@ CONFIG_SCHEMA = (
     )
     .extend(cv.COMPONENT_SCHEMA)
     .extend(uart.UART_DEVICE_SCHEMA)
+)
+
+
+def validate_raw_access(config):
+    api = fv.full_config.get().get("api")
+    if config[CONF_ALLOW_RAW_COMMANDS] and api is not None and "encryption" not in api:
+        raise cv.Invalid("allow_raw_commands requires api.encryption when the native API is enabled")
+    return config
+
+
+FINAL_VALIDATE_SCHEMA = cv.All(
+    uart.final_validate_device_schema("yamaha_serial", require_tx=True, require_rx=True),
+    validate_raw_access,
 )
 
 
@@ -144,6 +187,8 @@ async def to_code(config):
     cg.add(var.set_max_retries(config[CONF_MAX_RETRIES]))
     cg.add(var.set_command_spacing(config[CONF_COMMAND_SPACING].total_milliseconds))
     cg.add(var.set_power_on_delay(config[CONF_POWER_ON_DELAY].total_milliseconds))
+    cg.add(var.set_diagnostics_interval(config[CONF_DIAGNOSTICS_INTERVAL].total_milliseconds))
+    cg.add(var.set_allow_raw_commands(config[CONF_ALLOW_RAW_COMMANDS]))
 
     volume = config[CONF_VOLUME]
     cg.add(

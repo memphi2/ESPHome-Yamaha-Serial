@@ -1,42 +1,8 @@
-#include "yamaha_serial.h"
-#include <cassert>
-
-using namespace esphome;
-class Receiver : public yamaha_serial::YamahaSerialComponent {
- public:
-  using YamahaSerialComponent::process_incoming_byte_;
-  using YamahaSerialComponent::process_command_queue_;
-  using YamahaSerialComponent::queue_probe_ready_;
-  using YamahaSerialComponent::queue_poll_commands_;
-  using YamahaSerialComponent::apply_profile_;
-  using YamahaSerialComponent::receiver_reported_;
-  using YamahaSerialComponent::available_;
-  using YamahaSerialComponent::parse_errors_;
-  using YamahaSerialComponent::responses_received_;
-  using YamahaSerialComponent::last_response_ms_;
-  using YamahaSerialComponent::last_error_;
-  using YamahaSerialComponent::in_flight_;
-  using YamahaSerialComponent::queue_;
-  using YamahaSerialComponent::timeouts_;
-  using YamahaSerialComponent::queue_drops_;
-  using YamahaSerialComponent::parse_volume_text_db_;
-  using YamahaSerialComponent::active_profile_;
-  using YamahaSerialComponent::inputs_;
-  using YamahaSerialComponent::queue_named_command_;
-  using YamahaSerialComponent::normalize_token_;
-  using YamahaSerialComponent::handle_detected_model_;
-  void feed(const std::string &s) { for (uint8_t byte : s) process_incoming_byte_(byte); }
-};
-
-std::string extended(const std::string &body) {
-  unsigned sum = 0;
-  for (unsigned char c : body) sum += c;
-  char checksum[3];
-  snprintf(checksum, sizeof(checksum), "%02X", sum & 255);
-  return std::string(1, '\x14') + body + checksum + '\x03';
-}
+#include "test_support.h"
+void test_regressions();
 
 int main() {
+  test_regressions();
   Receiver receiver;
   receiver.apply_profile_("rx_vx600_extended");
   receiver.queue_poll_commands_();
@@ -57,12 +23,14 @@ int main() {
   receiver.feed(valid.substr(5) + std::string("\x02") + "002002\x03");
   assert(receiver.responses_received_ == 2);
   assert(receiver.available_ && receiver.receiver_reported_);
+  assert(receiver.in_flight_.has_value());
+  receiver.feed(std::string("\x02") + "002301\x03");
   assert(!receiver.in_flight_.has_value());
   // Valid error replies must remain visible after dispatch.
   receiver.feed(extended("20040331"));
   assert(receiver.last_error_.find("Extended command status error") == 0);
   receiver.feed(std::string("\x02") + "002600\x03");
-  assert(receiver.last_error_.empty());
+  assert(!receiver.last_error_.empty()); // Unrelated reports do not clear command errors.
 
   Receiver queue;
   queue.set_command_timeout(100);
@@ -84,14 +52,15 @@ int main() {
   assert(probes.queue_.size() == 1);
   // Interrupted/oversized frames recover at the next start marker.
   probes.feed(std::string("\x02") + "abc" + '\x02' + "002002\x03");
-  probes.feed(std::string(1, '\x02') + std::string(193, '0'));
+  probes.feed(std::string(1, '\x02') + std::string(269, '0'));
   probes.feed(std::string("\x02") + "002002\x03");
   assert(probes.parse_errors_ == 2 && probes.responses_received_ == 2);
 
   Receiver step;
   step.set_command_timeout(1);
   step.set_command_spacing(100);
-  step.command_volume_step(true, false);
+  step.set_allow_raw_commands(true);
+  step.command_raw_text("volume_up");
   step.process_command_queue_();
   test_now += 101;
   step.process_command_queue_();

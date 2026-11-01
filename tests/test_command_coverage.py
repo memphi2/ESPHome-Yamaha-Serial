@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+import json
 import pathlib
 import re
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-CPP = ROOT / "components/yamaha_serial/yamaha_serial.cpp"
+def component_source():
+    component = ROOT / "components/yamaha_serial"
+    return "\n".join(path.read_text(encoding="utf-8") for path in sorted(component.glob("*.cpp"))) + "\n" + "\n".join(path.read_text(encoding="utf-8") for path in sorted(component.glob("*.generated.h")))
+
 PROTOCOL_DOC = ROOT / "docs/protocol.md"
 PROFILES_DOC = ROOT / "docs/profiles.md"
 
 
 def test_core_reference_commands_present_in_component() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     required = [
         "07E7E",  # power on
         "07E7F",  # power off
@@ -73,7 +77,7 @@ def test_core_reference_commands_present_in_component() -> None:
 
 
 def test_rx_v1600_reference_commands_present_in_component() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     rx_v1600_commands = [
         "07A14",  # PHONO input
         "07A15",  # CD input
@@ -100,7 +104,7 @@ def test_rx_v1600_reference_commands_present_in_component() -> None:
 
 
 def test_x500_and_x600_profiles_keep_their_standard_input_differences() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     assert '{"md_tape", "MD/TAPE", 0x4, 0x4, "07AC9", "07ACF"}' in text
     assert 'if (input.key == "md_tape") {' in text
     assert 'input.main_command = "07A18";' in text
@@ -120,7 +124,7 @@ def test_protocol_doc_contains_command_coverage_table() -> None:
 
 
 def test_cpp_contains_profile_layout_hooks() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     profiles_doc = PROFILES_DOC.read_text(encoding="utf-8")
     assert 'return "rx_vx500";' in text
     assert 'return "rx_vx500_extended";' in text
@@ -144,7 +148,7 @@ def test_cpp_contains_profile_layout_hooks() -> None:
 
 
 def test_auto_detect_chooses_extended_profiles() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     assert "receiver_model_" in text
     for profile in (
         "rx_vx500_extended",
@@ -156,7 +160,7 @@ def test_auto_detect_chooses_extended_profiles() -> None:
 
 
 def test_detected_model_reapplies_auto_profile_and_refreshes_options() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     start = text.index("void YamahaSerialComponent::handle_detected_model_")
     end = text.index("void YamahaSerialComponent::configure_input_select_options_", start)
     body = text[start:end]
@@ -174,7 +178,7 @@ def test_input_label_overrides_survive_profile_reapply() -> None:
     header = (ROOT / "components/yamaha_serial/yamaha_serial.h").read_text(
         encoding="utf-8"
     )
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
 
     assert "struct InputOverride" in header
     assert "std::vector<InputOverride> input_overrides_" in header
@@ -185,7 +189,7 @@ def test_input_label_overrides_survive_profile_reapply() -> None:
 
 
 def test_standard_and_extended_profiles_have_distinct_capabilities() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
 
     def body(name: str) -> str:
         match = re.search(
@@ -210,7 +214,7 @@ def test_standard_and_extended_profiles_have_distinct_capabilities() -> None:
 
 
 def test_cpp_contains_x500_model_detection_and_profile_content() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     for token in (
         "vx500",
         "v1500",
@@ -227,7 +231,7 @@ def test_cpp_contains_x500_model_detection_and_profile_content() -> None:
 
 
 def test_cpp_contains_x700_x800_variant_commands() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     for token in (
         "v1700",
         "v2700",
@@ -245,7 +249,7 @@ def test_cpp_contains_x700_x800_variant_commands() -> None:
 
 
 def test_cpp_waits_for_receiver_before_regular_polling() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     assert 'publish_connection_state_("waiting_for_receiver")' in text
     assert "queue_probe_ready_();" in text
     assert "if (!this->receiver_reported_) {" in text
@@ -253,22 +257,22 @@ def test_cpp_waits_for_receiver_before_regular_polling() -> None:
 
 
 def test_dc4_parser_ignores_non_extended_payloads_before_minimum_length_check() -> None:
-    text = CPP.read_text(encoding="utf-8")
-    ignore_idx = text.index('ESP_LOGD(TAG, "Ignoring unsupported DC4 payload: %s"')
+    text = component_source()
+    ignore_idx = text.index('ESP_LOGD(TAG, "Ignoring unsupported DC4 payload:')
     minimum_idx = text.index('record_parse_error_("Extended payload shorter than minimum length", frame)')
     assert ignore_idx < minimum_idx
     assert "parse_dc4_extended_payload_(body, frame);" in text
 
 
 def test_status_frame_parser_does_not_queue_extended_poll_burst() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     start = text.index("void YamahaSerialComponent::parse_stx_frame_")
     end = text.index("void YamahaSerialComponent::parse_dc4_frame_")
     assert "queue_extended_poll_commands_" not in text[start:end]
 
 
 def test_media_player_routes_receiver_shortcuts_through_existing_mappings() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
     assert "MediaPlayerEntityFeature::PLAY" in text
     assert "MediaPlayerEntityFeature::NEXT_TRACK" in text
     assert "MediaPlayerEntityFeature::SELECT_SOURCE" not in text
@@ -292,16 +296,16 @@ def test_program_select_options_are_profile_driven() -> None:
     header = (ROOT / "components/yamaha_serial/yamaha_serial.h").read_text(
         encoding="utf-8"
     )
-    cpp = CPP.read_text(encoding="utf-8")
+    cpp = component_source()
 
-    assert "void set_options_from_labels" in header
+    assert "bool set_options_from_labels" in header
     assert "void YamahaSerialComponent::configure_program_select_options_" in cpp
     assert "this->program_select_->set_options_from_labels(labels);" in cpp
     assert "this->configure_program_select_options_();" in cpp
 
 
 def test_raw_command_action_covers_raw_command_matrix() -> None:
-    cpp = CPP.read_text(encoding="utf-8")
+    cpp = component_source()
     init = (ROOT / "components/yamaha_serial/__init__.py").read_text(encoding="utf-8")
 
     header = (ROOT / "components/yamaha_serial/yamaha_serial.h").read_text(
@@ -318,11 +322,8 @@ def test_raw_command_action_covers_raw_command_matrix() -> None:
 
 
 def test_symbolic_raw_command_alias_catalog_covers_receiver_tables() -> None:
-    cpp = CPP.read_text(encoding="utf-8")
-    aliases = re.findall(
-        r'\{"([^"]+)",\s*"([^"]+)",\s*static_cast<uint8_t>\(FrameType::(STX|DC4)\),\s*(true|false)\}',
-        cpp,
-    )
+    cpp = component_source()
+    aliases = json.loads((ROOT / "components/yamaha_serial/command_catalog.json").read_text())["commands"]
 
     assert "queue_named_command_" in cpp
     assert len(aliases) >= 640
@@ -373,7 +374,7 @@ def test_symbolic_raw_command_alias_catalog_covers_receiver_tables() -> None:
         "net_usb_play": "0F7F013EC1",
         "enhancer_7ch": "0F7E81146B",
     }
-    alias_payloads = {alias: (frame_type, payload) for alias, payload, frame_type, _ in aliases}
+    alias_payloads = {entry["name"]: (entry["frame"], entry["payload"]) for entry in aliases}
     for alias, payload in expected_aliases.items():
         assert alias_payloads[alias][1] == payload
     assert alias_payloads["ext_read_model_name"][0] == "DC4"

@@ -3,7 +3,10 @@ from __future__ import annotations
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-CPP = ROOT / "components/yamaha_serial/yamaha_serial.cpp"
+def component_source():
+    component = ROOT / "components/yamaha_serial"
+    return "\n".join(path.read_text(encoding="utf-8") for path in sorted(component.glob("*.cpp"))) + "\n" + "\n".join(path.read_text(encoding="utf-8") for path in sorted(component.glob("*.generated.h")))
+
 
 STX = 0x02
 ETX = 0x03
@@ -71,7 +74,7 @@ def test_dc4_checksum_vector_matches_component_rules() -> None:
 
 
 def test_component_parser_keeps_expected_frame_guards() -> None:
-    text = CPP.read_text(encoding="utf-8")
+    text = component_source()
 
     assert "is_frame_start_(byte)" in text
     assert "byte == static_cast<uint8_t>(FrameType::ETX)" in text

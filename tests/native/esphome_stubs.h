@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstdint>
 #include <optional>
+#include <memory>
+#include <cstring>
 #include <string>
 #include <vector>
 #define ESP_LOGD(...) ((void) 0)
@@ -11,9 +13,17 @@
 #define ESP_LOGW(...) ((void) 0)
 #define ESP_LOGE(...) ((void) 0)
 #define ESP_LOGCONFIG(...) ((void) 0)
+#define USE_API
 #define TEMPLATABLE_VALUE(type, name) struct { template<typename... A> type value(A...){ return {}; } } name##_;
 
 namespace esphome {
+struct TestEntity {
+  bool has_state() const { return has_state_; }
+  void set_has_state(bool value) { has_state_ = value; }
+  unsigned publishes{};
+ protected:
+  bool has_state_{};
+};
 inline uint32_t test_now = 1000;
 inline uint32_t millis() { return test_now; }
 template<typename T> T clamp(T v, T lo, T hi) { return std::clamp(v, lo, hi); }
@@ -34,25 +44,47 @@ struct UARTDevice {
   void write_array(const uint8_t *p, size_t n) { sent.emplace_back(p, p + n); }
 };
 }
-namespace switch_ { struct Switch { bool state{}; virtual void write_state(bool) = 0; void publish_state(bool v) { state = v; } }; }
-namespace number { struct Number { float state{}; virtual void control(float) = 0; void publish_state(float v) { state = v; } }; }
+namespace switch_ { struct Switch : TestEntity { bool state{}; virtual void write_state(bool) = 0; void publish_state(bool v) { state = v; has_state_ = true; ++publishes; } }; }
+namespace number { struct Number : TestEntity { float state{}; virtual void control(float) = 0; void publish_state(float v) { state = v; has_state_ = true; ++publishes; } }; }
 namespace button { struct Button { virtual void press_action() = 0; }; }
-namespace sensor { struct Sensor { float state{}; void publish_state(float v) { state = v; } }; }
-namespace binary_sensor { struct BinarySensor { bool state{}; void publish_state(bool v) { state = v; } }; }
-namespace text_sensor { struct TextSensor { std::string state; void publish_state(const std::string &v) { state = v; } }; }
+namespace sensor { struct Sensor : TestEntity { float state{}; void publish_state(float v) { state = v; has_state_ = true; ++publishes; } }; }
+namespace binary_sensor { struct BinarySensor : TestEntity { bool state{}; void publish_state(bool v) { state = v; has_state_ = true; ++publishes; } }; }
+namespace text_sensor { struct TextSensor : TestEntity { std::string state; void publish_state(const std::string &v) { state = v; has_state_ = true; ++publishes; } }; }
 namespace select {
-struct Select {
+struct Select : TestEntity {
   struct Traits {
     std::vector<const char *> options;
     void set_options(const std::vector<const char *> &v) { options = v; }
+    const auto &get_options() const { return options; }
   } traits;
-  std::string state;
+  size_t active_index_{};
   virtual void control(const std::string &) = 0;
   bool has_option(const std::string &v) const {
     return std::any_of(traits.options.begin(), traits.options.end(), [&](const char *x) { return v == x; });
   }
-  void publish_state(const std::string &v) { state = v; }
+  std::string current_option() const { return has_state() ? traits.options.at(active_index_) : ""; }
+  void publish_state(const std::string &v) {
+    for (size_t index = 0; index < traits.options.size(); ++index) {
+      if (v == traits.options[index]) { active_index_ = index; has_state_ = true; ++publishes; return; }
+    }
+  }
 };
+}
+namespace api {
+struct DisconnectRequest {};
+struct TestClient {
+  unsigned requests{};
+  bool send_ok{true};
+  bool failed{};
+  bool is_connection_setup() const { return true; }
+  bool send_message(DisconnectRequest) { ++requests; return send_ok; }
+  void on_fatal_error() { failed = true; }
+};
+struct APIServer {
+  std::vector<std::unique_ptr<TestClient>> clients;
+  auto &active_clients() { return clients; }
+};
+inline APIServer *global_api_server = nullptr;
 }
 namespace media_player {
 enum MediaPlayerEntityFeature { BROWSE_MEDIA=1, STOP=2, MEDIA_ANNOUNCE=4, VOLUME_SET=8, VOLUME_STEP=16, VOLUME_MUTE=32, PREVIOUS_TRACK=64, NEXT_TRACK=128, PLAY=256 };
