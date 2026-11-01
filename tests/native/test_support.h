@@ -49,4 +49,3 @@ inline std::string extended(const std::string &body) {
   snprintf(checksum, sizeof(checksum), "%02X", sum & 255);
   return std::string(1, '\x14') + body + checksum + '\x03';
 }
-

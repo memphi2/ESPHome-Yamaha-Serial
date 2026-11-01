@@ -57,7 +57,7 @@ def run(build, *, build_only=False, fuzz=False):
             for index, data in enumerate(seeds):
                 (corpus / str(index)).write_bytes(data)
             args += [str(corpus), "-runs=10000", "-max_len=1024", "-seed=1600"]
-        subprocess.run(args, cwd=build, check=True, timeout=90)
+        subprocess.run(args, cwd=build, check=True, timeout=180 if fuzz else 30)
 
 
 def main():
