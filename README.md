@@ -7,7 +7,7 @@ This project provides a native ESPHome external component for Yamaha RS-232 rece
 ## Project status
 
 - Current status: `beta`
-- LTS maintenance baseline: **11.2026** (`0.2.3`), see [SUPPORT.md](SUPPORT.md).
+- LTS maintenance baseline: **11.2026** (`0.2.4`), see [SUPPORT.md](SUPPORT.md).
 - Focus: RX-Vx500 / RX-Vx600 / RX-Vx700 / RX-Vx800 RS-232 command families
 - Profile architecture: `auto` + standard/extended profiles for RX-Vx500, RX-Vx600, RX-Vx700, and RX-Vx800 families
 - Hardware validation: still required on multiple receiver models
@@ -41,7 +41,7 @@ Pin a tag for reproducible builds:
 
 ```yaml
 external_components:
-  - source: github://memphi2/ESPHome-Yamaha-Serial@v0.2.3
+  - source: github://memphi2/ESPHome-Yamaha-Serial@v0.2.4
     components: [yamaha_serial]
 ```
 

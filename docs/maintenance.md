@@ -2,7 +2,8 @@
 
 ## Migration
 
-These changes are in the unreleased maintenance branch, not the `v0.2.3` tag.
+These changes ship in `v0.2.4`. Review them when upgrading from `v0.2.3`
+or earlier.
 
 - Raw actions, aliases and raw `play_media` shortcuts need
   `allow_raw_commands: true`. The full/x500 examples opt in explicitly and use

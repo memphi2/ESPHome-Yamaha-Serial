@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-11-01
+
 ### Fixed
 - Match command acknowledgements to frame/report IDs, expected values and
   Extended selectors; unrelated reports no longer complete a pending write.

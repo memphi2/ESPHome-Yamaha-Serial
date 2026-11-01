@@ -3,7 +3,7 @@
 ## Supported Release Line
 
 - LTS maintenance baseline: **11.2026**, reviewed on **2026-11-01**.
-- `0.2.x`: active maintenance line; `0.2.3` is the November baseline.
+- `0.2.x`: active maintenance line; `0.2.4` is the current November maintenance release.
 - `0.1.x`: superseded; update to the current maintenance release.
 
 LTS names this project's maintenance snapshot, not an upstream ESPHome or
