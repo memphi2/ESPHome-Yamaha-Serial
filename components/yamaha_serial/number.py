@@ -1,5 +1,8 @@
+import math
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome.components import number
 from esphome.const import (
     CONF_MAX_VALUE,
@@ -9,7 +12,13 @@ from esphome.const import (
     UNIT_DECIBEL,
 )
 
-from . import CONF_YAMAHA_SERIAL_ID, YAMAHA_SERIAL_COMPONENT_SCHEMA, yamaha_serial_ns
+from . import (
+    CONF_YAMAHA_SERIAL_ID,
+    YAMAHA_SERIAL_COMPONENT_SCHEMA,
+    half_db,
+    volume_step,
+    yamaha_serial_ns,
+)
 
 DEPENDENCIES = ["yamaha_serial"]
 
@@ -18,9 +27,9 @@ NumberFunction = yamaha_serial_ns.enum("NumberFunction", is_class=True)
 
 NUMBER_EXT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_MIN_VALUE, default=-80.0): cv.float_range(min=-99.5, max=16.5),
-        cv.Optional(CONF_MAX_VALUE, default=16.5): cv.float_range(min=-99.5, max=16.5),
-        cv.Optional(CONF_STEP, default=0.5): cv.float_range(min=0.5, max=10.0),
+        cv.Optional(CONF_MIN_VALUE): half_db,
+        cv.Optional(CONF_MAX_VALUE): half_db,
+        cv.Optional(CONF_STEP): volume_step,
     }
 )
 
@@ -190,3 +199,28 @@ async def to_code(config):
             cg.add(var.set_parent(paren))
             cg.add(var.set_function(function))
             cg.add(getattr(paren, setter)(var))
+
+
+def validate_ranges(config):
+    full = fv.full_config.get()
+    parent = full.get_config_for_path(full.get_path_for_id(config[CONF_YAMAHA_SERIAL_ID])[:-1])
+    volume = parent["volume"]
+    for key in NUMBER_TYPES:
+        if key not in config:
+            continue
+        item = config[key]
+        if key in ("volume_db", "zone2_volume_db"):
+            for target, source in ((CONF_MIN_VALUE, "min"), (CONF_MAX_VALUE, "max"), (CONF_STEP, "step")):
+                item.setdefault(target, volume[source])
+            if item[CONF_MIN_VALUE] < volume["min"] or item[CONF_MAX_VALUE] > volume["max"]:
+                raise cv.Invalid(f"{key} range must stay within yamaha_serial.volume")
+        if not all(math.isfinite(item[field]) for field in (CONF_MIN_VALUE, CONF_MAX_VALUE, CONF_STEP)):
+            raise cv.Invalid(f"{key}: limits and step must be finite")
+        if item[CONF_MIN_VALUE] >= item[CONF_MAX_VALUE]:
+            raise cv.Invalid(f"{key}: min_value must be less than max_value")
+        if item[CONF_STEP] > item[CONF_MAX_VALUE] - item[CONF_MIN_VALUE]:
+            raise cv.Invalid(f"{key}: step must not exceed the range")
+    return config
+
+
+FINAL_VALIDATE_SCHEMA = validate_ranges

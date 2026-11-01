@@ -1,0 +1,197 @@
+{
+  "license": "GPL-3.0-only",
+  "selects": {
+    "audio_select": {
+      "options": [
+        "Auto",
+        "Coax/Opt",
+        "Analog",
+        "HDMI"
+      ],
+      "commands": {
+        "auto": "07EA6",
+        "coax_opt": "07EA9",
+        "coax": "07EA9",
+        "optical": "07EA9",
+        "analog": "07EAA",
+        "hdmi": "07EDA"
+      },
+      "reports": {
+        "0": "Auto",
+        "3": "Coax/Opt",
+        "4": "Analog",
+        "5": "Analog",
+        "8": "HDMI"
+      }
+    },
+    "night_mode": {
+      "options": [
+        "Off",
+        "Cinema Low",
+        "Cinema Mid",
+        "Cinema High",
+        "Music Low",
+        "Music Mid",
+        "Music High"
+      ],
+      "commands": {
+        "off": "28B00",
+        "cinema_low": "28B10",
+        "cinema_mid": "28B11",
+        "cinema_high": "28B12",
+        "music_low": "28B20",
+        "music_mid": "28B21",
+        "music_high": "28B22"
+      },
+      "reports": {
+        "0": "Off",
+        "16": "Cinema Low",
+        "17": "Cinema Mid",
+        "18": "Cinema High",
+        "32": "Music Low",
+        "33": "Music Mid",
+        "34": "Music High"
+      }
+    },
+    "tuner_preset_page": {
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "commands": {
+        "a": "07AE0",
+        "b": "07AE1",
+        "c": "07AE2",
+        "d": "07AE3",
+        "e": "07AE4"
+      },
+      "reports": {
+        "0": "A",
+        "1": "B",
+        "2": "C",
+        "3": "D",
+        "4": "E"
+      }
+    },
+    "tuner_band": {
+      "options": [
+        "FM",
+        "AM"
+      ],
+      "commands": {
+        "fm": "07EBC",
+        "am": "07EBD"
+      },
+      "reports": {
+        "0": "FM",
+        "1": "AM"
+      }
+    },
+    "sleep_timer": {
+      "options": [
+        "Off",
+        "30 min",
+        "60 min",
+        "90 min",
+        "120 min"
+      ],
+      "commands": {
+        "off": "07EB3",
+        "120_min": "07EB4",
+        "90_min": "07EB5",
+        "60_min": "07EB6",
+        "30_min": "07EB7",
+        "120": "07EB4",
+        "90": "07EB5",
+        "60": "07EB6",
+        "30": "07EB7"
+      },
+      "reports": {
+        "0": "120 min",
+        "1": "90 min",
+        "2": "60 min",
+        "3": "30 min",
+        "4": "Off"
+      }
+    },
+    "decoder_mode": {
+      "options": [
+        "Auto",
+        "DTS",
+        "AAC"
+      ],
+      "commands": {
+        "auto": "07EDB",
+        "dts": "07EA8",
+        "aac": "07E3B"
+      },
+      "reports": {
+        "0": "Auto",
+        "16": "DTS",
+        "32": "AAC"
+      }
+    },
+    "extended_surround": {
+      "options": [
+        "Off",
+        "EX/ES",
+        "Auto",
+        "EX",
+        "PLIIx Movie",
+        "PLIIx Music"
+      ],
+      "commands": {
+        "ex_es": "07EB8",
+        "off": "07EB9",
+        "auto": "07E7C",
+        "ex": "07EDC",
+        "pliix_movie": "07EDD",
+        "pliix_music": "07EDE"
+      },
+      "reports": {
+        "0": "Off",
+        "1": "EX/ES",
+        "2": "EX/ES",
+        "3": "Auto",
+        "4": "EX",
+        "5": "PLIIx Movie",
+        "6": "PLIIx Music"
+      }
+    },
+    "speaker_b_assignment": {
+      "options": [
+        "Main",
+        "Zone B"
+      ],
+      "commands": {
+        "main": "07E28",
+        "zone_b": "07E29"
+      },
+      "reports": {
+        "0": "Main",
+        "1": "Zone B"
+      }
+    },
+    "zone2_amp": {
+      "options": [
+        "External",
+        "Internal"
+      ],
+      "commands": {
+        "internal": "07E99",
+        "int_presence": "07E99",
+        "external": "07E9A",
+        "ext": "07E9A"
+      },
+      "reports": {
+        "0": "External",
+        "1": "Internal",
+        "2": "Internal",
+        "3": "Internal"
+      }
+    }
+  }
+}

@@ -21,6 +21,12 @@ CONF_LAST_PARSE_ERROR = "last_parse_error"
 CONF_CONNECTION_STATE = "connection_state"
 CONF_RECEIVER_MODEL = "receiver_model"
 
+
+def diagnostic_schema(**kwargs):
+    return text_sensor.text_sensor_schema(**kwargs).extend(
+        {cv.Optional("disabled_by_default", default=True): cv.boolean}
+    )
+
 CONFIG_SCHEMA = YAMAHA_SERIAL_COMPONENT_SCHEMA.extend(
     {
         cv.Optional(CONF_POWER_STATE): text_sensor.text_sensor_schema(
@@ -51,11 +57,11 @@ CONFIG_SCHEMA = YAMAHA_SERIAL_COMPONENT_SCHEMA.extend(
         cv.Optional(CONF_NIGHT_MODE_STATE): text_sensor.text_sensor_schema(
             icon="mdi:weather-night"
         ),
-        cv.Optional(CONF_LAST_ERROR): text_sensor.text_sensor_schema(
+        cv.Optional(CONF_LAST_ERROR): diagnostic_schema(
             icon="mdi:alert-circle-outline",
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
-        cv.Optional(CONF_LAST_PARSE_ERROR): text_sensor.text_sensor_schema(
+        cv.Optional(CONF_LAST_PARSE_ERROR): diagnostic_schema(
             icon="mdi:file-search-outline",
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),

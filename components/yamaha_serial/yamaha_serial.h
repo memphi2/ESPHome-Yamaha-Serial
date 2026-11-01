@@ -19,12 +19,12 @@
 #include <deque>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace esphome::yamaha_serial {
 
 class YamahaSerialComponent;
-
 
 // Every entity below is the same object with a different receiver command
 // behind it, so the component ships one class per ESPHome entity kind and
@@ -118,7 +118,7 @@ class YamahaSelect : public select::Select {
   void set_function(SelectFunction function) { this->function_ = function; }
   // Only the input, zone2 input and program selects take their options from
   // the configured labels; the rest carry a fixed option list from YAML.
-  void set_options_from_labels(const std::vector<std::string> &labels);
+  bool set_options_from_labels(const std::vector<std::string> &labels);
 
  protected:
   void control(const std::string &value) override;
@@ -164,6 +164,8 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_max_retries(uint8_t max_retries) { this->max_retries_ = max_retries; }
   void set_command_spacing(uint32_t command_spacing_ms) { this->command_spacing_ms_ = command_spacing_ms; }
   void set_power_on_delay(uint32_t power_on_delay_ms) { this->power_on_delay_ms_ = power_on_delay_ms; }
+  void set_diagnostics_interval(uint32_t interval_ms) { this->diagnostics_interval_ms_ = interval_ms; }
+  void set_allow_raw_commands(bool allow) { this->allow_raw_commands_ = allow; }
   void set_volume_config(float min_db, float max_db, float step_db);
   void add_input_mapping(const std::string &key, const std::string &label);
 
@@ -184,12 +186,8 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_center_distance_number(YamahaNumber *obj) { this->center_distance_number_ = obj; }
   void set_front_left_distance_number(YamahaNumber *obj) { this->front_left_distance_number_ = obj; }
   void set_front_right_distance_number(YamahaNumber *obj) { this->front_right_distance_number_ = obj; }
-  void set_surround_left_distance_number(YamahaNumber *obj) {
-    this->surround_left_distance_number_ = obj;
-  }
-  void set_surround_right_distance_number(YamahaNumber *obj) {
-    this->surround_right_distance_number_ = obj;
-  }
+  void set_surround_left_distance_number(YamahaNumber *obj) { this->surround_left_distance_number_ = obj; }
+  void set_surround_right_distance_number(YamahaNumber *obj) { this->surround_right_distance_number_ = obj; }
   void set_subwoofer_distance_number(YamahaNumber *obj) { this->subwoofer_distance_number_ = obj; }
   void set_dimmer_number(YamahaNumber *obj) { this->dimmer_number_ = obj; }
   void set_tuner_fm_frequency_number(YamahaNumber *obj) { this->tuner_fm_frequency_number_ = obj; }
@@ -207,20 +205,8 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_sleep_timer_select(YamahaSelect *obj) { this->sleep_timer_select_ = obj; }
   void set_decoder_mode_select(YamahaSelect *obj) { this->decoder_mode_select_ = obj; }
   void set_extended_surround_select(YamahaSelect *obj) { this->extended_surround_select_ = obj; }
-  void set_speaker_b_assignment_select(YamahaSelect *obj) {
-    this->speaker_b_assignment_select_ = obj;
-  }
+  void set_speaker_b_assignment_select(YamahaSelect *obj) { this->speaker_b_assignment_select_ = obj; }
   void set_zone2_amp_select(YamahaSelect *obj) { this->zone2_amp_select_ = obj; }
-
-  void set_refresh_button(YamahaButton *obj) { this->refresh_button_ = obj; }
-  void set_power_toggle_button(YamahaButton *obj) { this->power_toggle_button_ = obj; }
-  void set_volume_up_button(YamahaButton *obj) { this->volume_up_button_ = obj; }
-  void set_volume_down_button(YamahaButton *obj) { this->volume_down_button_ = obj; }
-  void set_zone2_volume_up_button(YamahaButton *obj) { this->zone2_volume_up_button_ = obj; }
-  void set_zone2_volume_down_button(YamahaButton *obj) { this->zone2_volume_down_button_ = obj; }
-  void set_receiver_reset_button(YamahaButton *obj) { this->receiver_reset_button_ = obj; }
-  void set_tuner_auto_up_button(YamahaButton *obj) { this->tuner_auto_up_button_ = obj; }
-  void set_tuner_auto_down_button(YamahaButton *obj) { this->tuner_auto_down_button_ = obj; }
 
   void set_volume_db_sensor(sensor::Sensor *obj) { this->volume_db_sensor_ = obj; }
   void set_zone2_volume_db_sensor(sensor::Sensor *obj) { this->zone2_volume_db_sensor_ = obj; }
@@ -365,15 +351,24 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     bool expect_response{true};
     uint32_t timeout_ms{0};
     uint8_t retries_left{0};
+    FrameType response_type{FrameType::ETX};  // ETX means no known acknowledgement.
+    uint16_t response_code{0};
+    uint8_t response_value{0};
+    uint8_t response_mask{0};
+    uint8_t selector_length{0};
+    bool power_on{false};
   };
 
   struct InFlightCommand {
     QueuedCommand command;
     uint32_t sent_at_ms{0};
     uint8_t attempts{1};
+    uint32_t responses_at_send{0};
   };
 
-  static constexpr uint8_t BUFFER_MAX_LEN = 192;
+  static constexpr size_t MAX_EXTENDED_DATA_LEN = 256;
+  static constexpr size_t BUFFER_MAX_LEN = MAX_EXTENDED_DATA_LEN + 12;  // DC2 has the longest header.
+  static constexpr size_t MAX_RAW_INPUT_LEN = 320;
   static constexpr uint32_t FRAME_READ_TIMEOUT_MS = 550;
   static constexpr size_t MAX_QUEUE_LEN = 32;
 
@@ -397,7 +392,11 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void handle_detected_model_(const std::string &model);
   void configure_input_select_options_();
   void configure_program_select_options_();
-  void queue_command_(const QueuedCommand &command);
+  void queue_command_(QueuedCommand command);
+  void configure_command_policy_(QueuedCommand &command) const;
+  bool response_matches_(const QueuedCommand &command, const std::vector<uint8_t> &frame) const;
+  void mark_unavailable_();
+  void refresh_api_metadata_();
   static bool is_coalescible_tag_(const char *tag);
   void queue_simple_command_(FrameType type, const std::string &payload, const char *tag, bool expect_response = true);
   bool queue_named_command_(const std::string &alias);
@@ -407,15 +406,16 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void process_command_queue_();
   bool send_command_(const QueuedCommand &command);
   void process_incoming_byte_(uint8_t byte);
+  void check_frame_timeout_();
   void parse_frame_(const std::vector<uint8_t> &frame);
   void parse_stx_frame_(const std::vector<uint8_t> &frame);
   void parse_dc1_frame_(const std::vector<uint8_t> &frame);
   void parse_dc2_frame_(const std::vector<uint8_t> &frame);
   void parse_dc4_frame_(const std::vector<uint8_t> &frame);
-  void parse_dc4_extended_payload_(const std::string &payload, const std::vector<uint8_t> &frame);
-  void parse_tone_control_(const std::string &payload);
-  void parse_speaker_distance_(const std::string &payload);
-  void parse_tuner_station_(const std::string &payload);
+  void parse_dc4_extended_payload_(std::string_view payload, const std::vector<uint8_t> &frame);
+  void parse_tone_control_(std::string_view payload);
+  void parse_speaker_distance_(std::string_view payload);
+  void parse_tuner_station_(std::string_view payload);
   void record_parse_error_(const std::string &message);
   void record_parse_error_(const std::string &message, const std::vector<uint8_t> &frame);
   void publish_connection_state_(const std::string &state);
@@ -459,9 +459,10 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   static uint8_t nibble_to_hex_(uint8_t value);
   static std::string normalize_token_(const std::string &in);
   static std::string trim_(const std::string &in);
-  static std::string frame_to_hex_(const std::vector<uint8_t> &frame);
   static std::string normalize_model_name_(const std::string &model);
-  static uint8_t checksum_8bit_(const std::string &payload);
+  static uint8_t checksum_8bit_(std::string_view payload);
+  static std::optional<uint16_t> parse_hex_(std::string_view value);
+  static bool valid_extended_length_(std::string_view payload);
   static std::optional<float> parse_volume_text_db_(const std::string &text);
   static std::string uppercase_ascii_(const std::string &value);
   static bool payload_is_printable_ascii_(const std::string &payload);
@@ -482,7 +483,11 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   uint8_t max_retries_{2};
   uint32_t command_spacing_ms_{100};
   uint32_t power_on_delay_ms_{2000};
-  bool periodic_poll_enabled_{true};
+  uint32_t diagnostics_interval_ms_{60000};
+  bool periodic_poll_enabled_{false};
+  bool allow_raw_commands_{false};
+  bool api_metadata_dirty_{false};
+  bool has_response_{false};
 
   std::deque<QueuedCommand> queue_{};
   std::optional<InFlightCommand> in_flight_{};
@@ -584,16 +589,6 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   YamahaSelect *speaker_b_assignment_select_{nullptr};
   YamahaSelect *zone2_amp_select_{nullptr};
 
-  YamahaButton *refresh_button_{nullptr};
-  YamahaButton *power_toggle_button_{nullptr};
-  YamahaButton *volume_up_button_{nullptr};
-  YamahaButton *volume_down_button_{nullptr};
-  YamahaButton *zone2_volume_up_button_{nullptr};
-  YamahaButton *zone2_volume_down_button_{nullptr};
-  YamahaButton *receiver_reset_button_{nullptr};
-  YamahaButton *tuner_auto_up_button_{nullptr};
-  YamahaButton *tuner_auto_down_button_{nullptr};
-
   sensor::Sensor *volume_db_sensor_{nullptr};
   sensor::Sensor *zone2_volume_db_sensor_{nullptr};
   sensor::Sensor *sampling_rate_sensor_{nullptr};
@@ -621,7 +616,8 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   YamahaMediaPlayer *media_player_{nullptr};
 };
 
-template<typename... Ts> class YamahaRawCommandAction : public Action<Ts...>, public Parented<YamahaSerialComponent> {
+template <typename... Ts>
+class YamahaRawCommandAction : public Action<Ts...>, public Parented<YamahaSerialComponent> {
  public:
   TEMPLATABLE_VALUE(std::string, command)
 

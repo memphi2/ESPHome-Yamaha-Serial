@@ -1,0 +1,4001 @@
+{
+  "license": "GPL-3.0-only",
+  "commands": [
+    {
+      "name": "power_on",
+      "payload": "07E7E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "power_off",
+      "payload": "07E7F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "all_zone_power_on",
+      "payload": "07A1D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "all_zone_power_off",
+      "payload": "07A1E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_power_on",
+      "payload": "07E7E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_power_off",
+      "payload": "07E7F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_zone_power_on",
+      "payload": "07E7E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_zone_power_off",
+      "payload": "07E7F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_power_on",
+      "payload": "07EBA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_power_off",
+      "payload": "07EBB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_power_on",
+      "payload": "07AED",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_power_off",
+      "payload": "07AEE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "volume_up",
+      "payload": "07A1A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "volume_down",
+      "payload": "07A1B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "mute_on",
+      "payload": "07EA2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "mute_full_on",
+      "payload": "07EA2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "mute_20db_on",
+      "payload": "07EDF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "mute_off",
+      "payload": "07EA3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_up",
+      "payload": "07ADA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_down",
+      "payload": "07ADB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_mute_on",
+      "payload": "07EA0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_mute_off",
+      "payload": "07EA1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_up",
+      "payload": "07AFD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_down",
+      "payload": "07AFE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_mute_on",
+      "payload": "07E26",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_mute_off",
+      "payload": "07E66",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_phono",
+      "payload": "07A14",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_cd",
+      "payload": "07A15",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_tuner",
+      "payload": "07A16",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_cdr",
+      "payload": "07A19",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_md_tape",
+      "payload": "07A18",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_md_tape_rx_v1600",
+      "payload": "07A18",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_md_tape_x500",
+      "payload": "07AC9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_dvd",
+      "payload": "07AC1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_dtv",
+      "payload": "07A54",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_dtv_ld",
+      "payload": "07A54",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_dtv_cbl",
+      "payload": "07A54",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_cbl_sat",
+      "payload": "07AC0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_sat",
+      "payload": "07ACA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_vcr",
+      "payload": "07A0F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_vcr1",
+      "payload": "07A0F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_vcr2_dvr",
+      "payload": "07A13",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_dvr",
+      "payload": "07A13",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_vcr3",
+      "payload": "07AC8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_vaux",
+      "payload": "07A55",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_vaux_dock",
+      "payload": "07A55",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_multi_ch",
+      "payload": "07A87",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_xm",
+      "payload": "07AB4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_bd_hd_dvd",
+      "payload": "07AC8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_net_usb",
+      "payload": "0F7F013FC0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_phono",
+      "payload": "07AD0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_cd",
+      "payload": "07AD1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_tuner",
+      "payload": "07AD2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_md_tape",
+      "payload": "07AD3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_md_tape_x500",
+      "payload": "07ACF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_cdr",
+      "payload": "07AD4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_dvd",
+      "payload": "07ACD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_dtv",
+      "payload": "07AD9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_dtv_ld",
+      "payload": "07AD9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_dtv_cbl",
+      "payload": "07AD9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_cbl_sat",
+      "payload": "07ACC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_sat",
+      "payload": "07ACB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_vcr",
+      "payload": "07AD6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_vcr1",
+      "payload": "07AD6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_vcr2_dvr",
+      "payload": "07AD7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_dvr",
+      "payload": "07AD7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_vcr3",
+      "payload": "07ACE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_vaux",
+      "payload": "07AD8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_vaux_dock",
+      "payload": "07AD8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_xm",
+      "payload": "07AB8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_bd_hd_dvd",
+      "payload": "07ACE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_input_net_usb",
+      "payload": "0F7F0140BF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_phono",
+      "payload": "07AF1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_cd",
+      "payload": "07AF2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_tuner",
+      "payload": "07AF3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_md_tape",
+      "payload": "07AF4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_cdr",
+      "payload": "07AF5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_dtv",
+      "payload": "07AF6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_dtv_ld",
+      "payload": "07AF6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_cbl_sat",
+      "payload": "07AF7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_sat",
+      "payload": "07AF8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_vcr",
+      "payload": "07AF9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_vcr1",
+      "payload": "07AF9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_vcr2",
+      "payload": "07AFA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_dvr",
+      "payload": "07AFB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_dvd",
+      "payload": "07AFC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_vaux",
+      "payload": "07AF0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_vaux_dock",
+      "payload": "07AF0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_xm",
+      "payload": "07AB9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_bd_hd_dvd",
+      "payload": "07AFB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_input_net_usb",
+      "payload": "0F7F0141BE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_input_on",
+      "payload": "07EA4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_input_off",
+      "payload": "07EA5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pure_direct_on",
+      "payload": "07E80",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pure_direct_off",
+      "payload": "07E82",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pure_direct_on_rx_v1600",
+      "payload": "07E80",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pure_direct_off_rx_v1600",
+      "payload": "07E82",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pure_direct_on_rx_v2500",
+      "payload": "07E82",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pure_direct_off_rx_v2500",
+      "payload": "07E83",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_auto",
+      "payload": "07EA6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_dd_rf",
+      "payload": "07EA7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_dts",
+      "payload": "07EA8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_digital",
+      "payload": "07EA9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_coax_opt",
+      "payload": "07EA9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_analog",
+      "payload": "07EAA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_hdmi",
+      "payload": "07EDA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_mode_auto",
+      "payload": "07EDB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_mode_dts",
+      "payload": "07EA8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_mode_aac",
+      "payload": "07E3B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_enable",
+      "payload": "20000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_disable",
+      "payload": "20001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_realtime",
+      "payload": "20100",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_50ms",
+      "payload": "20101",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_100ms",
+      "payload": "20102",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_150ms",
+      "payload": "20103",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_200ms",
+      "payload": "20104",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_250ms",
+      "payload": "20105",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_300ms",
+      "payload": "20106",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_350ms",
+      "payload": "20107",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "report_delay_400ms",
+      "payload": "20108",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "osd_message_start",
+      "payload": "21000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_tuner_frequency",
+      "payload": "22000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_main_volume",
+      "payload": "22001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_zone2_volume",
+      "payload": "22002",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_main_input",
+      "payload": "22003",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_zone2_input",
+      "payload": "22004",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_zone3_volume",
+      "payload": "22005",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "text_request_zone3_input",
+      "payload": "22006",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "firmware_version_request",
+      "payload": "22F00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_level_normal",
+      "payload": "23300",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "mute_type_full",
+      "payload": "23800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "mute_type_20db",
+      "payload": "23801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_amplifier_ext",
+      "payload": "23E00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_amplifier_speaker1",
+      "payload": "23E01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_amplifier_speaker2",
+      "payload": "23E02",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_amplifier_both",
+      "payload": "23E03",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_amplifier_ext",
+      "payload": "23F00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_amplifier_speaker1",
+      "payload": "23F01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_amplifier_speaker2",
+      "payload": "23F02",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_amplifier_both",
+      "payload": "23F03",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_mode_auto",
+      "payload": "26000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "input_mode_last",
+      "payload": "26001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_set_auto",
+      "payload": "26000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "audio_select_set_last",
+      "payload": "26001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_set_auto",
+      "payload": "25C00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_set_last",
+      "payload": "25C01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "adaptive_dsp_level_auto",
+      "payload": "25D00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "adaptive_dsp_level_off",
+      "payload": "25D01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_mode_set_auto",
+      "payload": "25F00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_mode_set_last",
+      "payload": "25F01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dimmer_minus_4",
+      "payload": "26100",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dimmer_minus_3",
+      "payload": "26101",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dimmer_minus_2",
+      "payload": "26102",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dimmer_minus_1",
+      "payload": "26103",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dimmer_0",
+      "payload": "26104",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "gray_back_off",
+      "payload": "26300",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "gray_back_auto",
+      "payload": "26301",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dynamic_range_speaker_max",
+      "payload": "26400",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dynamic_range_speaker_std",
+      "payload": "26401",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dynamic_range_speaker_min",
+      "payload": "26402",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dynamic_range_headphone_max",
+      "payload": "26500",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dynamic_range_headphone_std",
+      "payload": "26501",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dynamic_range_headphone_min",
+      "payload": "26502",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_type1",
+      "payload": "25800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_yes",
+      "payload": "25800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_type2",
+      "payload": "25801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_type3",
+      "payload": "25802",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_gray_x500",
+      "payload": "25803",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_none_x500",
+      "payload": "25804",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_gray",
+      "payload": "2580E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "wallpaper_none",
+      "payload": "2580F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_auto_audio_delay_off",
+      "payload": "25600",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_auto_audio_delay_on",
+      "payload": "25601",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dsp_3d_off",
+      "payload": "25700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dsp_3d_on",
+      "payload": "25701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_auto_lipsync_auto",
+      "payload": "25900",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_auto_lipsync_off",
+      "payload": "25901",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_out_variable",
+      "payload": "26600",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_out_fixed",
+      "payload": "26601",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_mode_1",
+      "payload": "26700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_mode_2",
+      "payload": "26701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "fl_scroll_continue",
+      "payload": "26700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "fl_scroll_once",
+      "payload": "26701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "memory_guard_off",
+      "payload": "26800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "memory_guard_on",
+      "payload": "26801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "video_conversion_off",
+      "payload": "26900",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "video_conversion_on",
+      "payload": "26901",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "component_osd_off",
+      "payload": "26A00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "component_osd_on",
+      "payload": "26A01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_out_variable",
+      "payload": "26B00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_out_fixed",
+      "payload": "26B01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone_osd_off",
+      "payload": "26C00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone_osd_zone2",
+      "payload": "26C01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone_osd_zone2_zone3",
+      "payload": "26C02",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "adaptive_drc_auto",
+      "payload": "26D00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "adaptive_drc_last",
+      "payload": "26D01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "language_english",
+      "payload": "26F00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "language_japanese",
+      "payload": "26F01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_off",
+      "payload": "26F00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_last",
+      "payload": "26F01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_dvd",
+      "payload": "26F05",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_dtv",
+      "payload": "26F06",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_dtv_cbl",
+      "payload": "26F06",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_cbl_sat",
+      "payload": "26F07",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_vcr",
+      "payload": "26F09",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_vcr1",
+      "payload": "26F09",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_vcr2_dvr",
+      "payload": "26F0A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_dvr",
+      "payload": "26F0A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_vaux",
+      "payload": "26F0C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_bgv_bd_hd_dvd",
+      "payload": "26F0F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_center_large",
+      "payload": "27000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_center_small",
+      "payload": "27001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_center_none",
+      "payload": "27002",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_front_large",
+      "payload": "27100",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_front_small",
+      "payload": "27101",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_large",
+      "payload": "27200",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_small",
+      "payload": "27201",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_none",
+      "payload": "27202",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_back_large_x2",
+      "payload": "27300",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_back_large_x1",
+      "payload": "27301",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_back_small_x2",
+      "payload": "27302",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_back_small_x1",
+      "payload": "27303",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_surround_back_none",
+      "payload": "27304",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_presence_yes",
+      "payload": "27400",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_presence_none",
+      "payload": "27401",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_bass_out_subwoofer",
+      "payload": "27500",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_bass_out_front",
+      "payload": "27501",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_bass_out_both",
+      "payload": "27502",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_phase_normal",
+      "payload": "27600",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_phase_reverse",
+      "payload": "27610",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_config_reverse_x500",
+      "payload": "27601",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_config_none_x500",
+      "payload": "27602",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer2_lr",
+      "payload": "27700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer2_front_rear",
+      "payload": "27701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer2_none",
+      "payload": "27702",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_center_to_center",
+      "payload": "27800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_center_to_main",
+      "payload": "27801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_subwoofer_to_subwoofer",
+      "payload": "27900",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_subwoofer_to_main",
+      "payload": "27901",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_surround_to_surround",
+      "payload": "27A00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_surround_to_main",
+      "payload": "27A01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_6ch",
+      "payload": "27B00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_cd_x500",
+      "payload": "27B01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_cd",
+      "payload": "27B02",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_cdr",
+      "payload": "27B03",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_md_tape",
+      "payload": "27B04",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_dvd",
+      "payload": "27B05",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_dtv",
+      "payload": "27B06",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_dtv_cbl",
+      "payload": "27B06",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_cbl_sat",
+      "payload": "27B07",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_vcr",
+      "payload": "27B09",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_vcr1",
+      "payload": "27B09",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_vcr2_dvr",
+      "payload": "27B0A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_dvr",
+      "payload": "27B0A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_vaux",
+      "payload": "27B0C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "multi_ch_select_8ch_bd_hd_dvd",
+      "payload": "27B0F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pr_sb_priority_presence",
+      "payload": "27D00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "pr_sb_priority_surround_back",
+      "payload": "27D01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_40hz",
+      "payload": "27E00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_60hz",
+      "payload": "27E01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_80hz",
+      "payload": "27E02",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_90hz",
+      "payload": "27E03",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_100hz",
+      "payload": "27E04",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_110hz",
+      "payload": "27E05",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_120hz",
+      "payload": "27E06",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_160hz",
+      "payload": "27E07",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "subwoofer_crossover_200hz",
+      "payload": "27E08",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "test_tone_off",
+      "payload": "28000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "test_tone_on",
+      "payload": "28001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "test_tone_dolby_x500",
+      "payload": "28001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "test_tone_dsp_x500",
+      "payload": "28002",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "component_ip_off",
+      "payload": "28500",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "component_ip_on",
+      "payload": "28501",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_ip_off",
+      "payload": "28600",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_ip_on",
+      "payload": "28601",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_upscaling_through",
+      "payload": "28700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_upscaling_480p_576p",
+      "payload": "28701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_upscaling_1080i",
+      "payload": "28702",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_upscaling_720p",
+      "payload": "28703",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_upscaling_1080p",
+      "payload": "28704",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_aspect_through",
+      "payload": "28800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_aspect_16_9_normal",
+      "payload": "28801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_aspect_smart_zoom",
+      "payload": "28802",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "thx_sb_speaker_distance_under_1ft",
+      "payload": "28A00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "thx_sb_speaker_distance_1_4ft",
+      "payload": "28A01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "thx_sb_speaker_distance_over_4ft",
+      "payload": "28A02",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_extended_off",
+      "payload": "28B00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_cinema_low",
+      "payload": "28B10",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_cinema_mid",
+      "payload": "28B11",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_cinema_high",
+      "payload": "28B12",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_music_low",
+      "payload": "28B20",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_music_mid",
+      "payload": "28B21",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_music_high",
+      "payload": "28B22",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_support_audio_receiver",
+      "payload": "28F00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "hdmi_support_audio_other",
+      "payload": "28F01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "on_screen_off",
+      "payload": "29300",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "on_screen_10sec",
+      "payload": "29301",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "on_screen_30sec",
+      "payload": "29302",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "on_screen_always",
+      "payload": "29303",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_display_release",
+      "payload": "29500",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_display_hold",
+      "payload": "29501",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_charge_standby_off",
+      "payload": "29600",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_charge_standby_auto",
+      "payload": "29601",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_repeat_off",
+      "payload": "29700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_repeat_one",
+      "payload": "29701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_repeat_all",
+      "payload": "29702",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_shuffle_off",
+      "payload": "29800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_shuffle_songs",
+      "payload": "29801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ipod_shuffle_albums",
+      "payload": "29802",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_repeat_off",
+      "payload": "29900",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_repeat_single",
+      "payload": "29901",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_repeat_all",
+      "payload": "29902",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_shuffle_off",
+      "payload": "29A00",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_shuffle_on",
+      "payload": "29A01",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tone_control_bypass_x500",
+      "payload": "2A600",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tone_control_on_x500",
+      "payload": "2A601",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "eq_select_auto_peq",
+      "payload": "2A700",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "eq_select_geq",
+      "payload": "2A701",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "eq_select_off",
+      "payload": "2A702",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tone_control_auto_bypass_auto",
+      "payload": "2A800",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tone_control_auto_bypass_off",
+      "payload": "2A801",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "advanced_setup_off_x500",
+      "payload": "2B000",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "advanced_setup_on_x500",
+      "payload": "2B001",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "remote_control_id_1_x500",
+      "payload": "2B100",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "remote_control_id_2_x500",
+      "payload": "2B101",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "fan_control_auto_x500",
+      "payload": "2B200",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "fan_control_continuous_x500",
+      "payload": "2B201",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_impedance_8ohm_x500",
+      "payload": "2B300",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_impedance_6ohm_x500",
+      "payload": "2B301",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_setup_0_x500",
+      "payload": "2B400",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_setup_1_x500",
+      "payload": "2B401",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_zone2",
+      "payload": "200500000",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_tuner",
+      "payload": "200500001",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_video",
+      "payload": "200500002",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_effect_channels",
+      "payload": "200500003",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_digital_format",
+      "payload": "200500004",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_dc_trigger",
+      "payload": "200500005",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_preset",
+      "payload": "200500006",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_zone3",
+      "payload": "200500007",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_ilink",
+      "payload": "200500008",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_hdmi",
+      "payload": "200500009",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_system_xm",
+      "payload": "20050000A",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_model_name",
+      "payload": "20050000F",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_speaker_out",
+      "payload": "200500100",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_audio_analog",
+      "payload": "200500101",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_audio_optical",
+      "payload": "200500102",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_audio_coaxial",
+      "payload": "200500103",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_audio_ddrf",
+      "payload": "200500104",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_video_composite_s",
+      "payload": "200500105",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_video_component",
+      "payload": "200500106",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_audio_output_analog",
+      "payload": "200500107",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_audio_output_optical",
+      "payload": "200500108",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_input_video_output_composite_s",
+      "payload": "200500109",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_dsp_program",
+      "payload": "200500200",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_dsp_user_parameters",
+      "payload": "200500201",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_dsp_maker_parameters",
+      "payload": "200500202",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_antenna",
+      "payload": "200500300",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_current_channel_name",
+      "payload": "2006003100",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history1_channel_name",
+      "payload": "2006003101",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history2_channel_name",
+      "payload": "2006003102",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_current_category_name",
+      "payload": "2006003200",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history1_category_name",
+      "payload": "2006003201",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history2_category_name",
+      "payload": "2006003202",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_current_artist_name",
+      "payload": "2006003300",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history1_artist_name",
+      "payload": "2006003301",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history2_artist_name",
+      "payload": "2006003302",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_current_song_name",
+      "payload": "2006003400",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history1_song_name",
+      "payload": "2006003401",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "ext_read_xm_history2_song_name",
+      "payload": "2006003402",
+      "frame": "DC4",
+      "response": true
+    },
+    {
+      "name": "osd_off",
+      "payload": "07EB0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "osd_short",
+      "payload": "07EB1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "osd_on",
+      "payload": "07EB1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "osd_full",
+      "payload": "07EB2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "short_message_off",
+      "payload": "07EB0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "short_message_on",
+      "payload": "07EB1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "short_message_full",
+      "payload": "07EB2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "sleep_off",
+      "payload": "07EB3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "sleep_120",
+      "payload": "07EB4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "sleep_90",
+      "payload": "07EB5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "sleep_60",
+      "payload": "07EB6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "sleep_30",
+      "payload": "07EB7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_ex_es",
+      "payload": "07EB8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_off",
+      "payload": "07EB9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_auto",
+      "payload": "07E7C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_discrete",
+      "payload": "07E7D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_ex",
+      "payload": "07EDC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_pl2x_movie",
+      "payload": "07EDD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "extended_surround_pl2x_music",
+      "payload": "07EDE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_off",
+      "payload": "07E9C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_cinema",
+      "payload": "07E9B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "night_mode_music",
+      "payload": "07ECF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "effect_on",
+      "payload": "07E27",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "straight",
+      "payload": "07EE0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_straight",
+      "payload": "07EE0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_hall_a",
+      "payload": "07EE1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_munich",
+      "payload": "07EE1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_hall_b",
+      "payload": "07EE2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_hall_c",
+      "payload": "07EE3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_hall_usa",
+      "payload": "07EE4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_hall_e",
+      "payload": "07EE5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_vienna",
+      "payload": "07EE5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_live_concert",
+      "payload": "07EE6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_amsterdam",
+      "payload": "07EE6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_tokyo",
+      "payload": "07EE7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_freiburg",
+      "payload": "07EE8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_royaumont",
+      "payload": "07EE9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_village_gate",
+      "payload": "07EEA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_village_vanguard",
+      "payload": "07EEB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_the_bottom_line",
+      "payload": "07EEC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_the_roxy_theatre",
+      "payload": "07EED",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_the_roxy_theater",
+      "payload": "07EED",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_warehouse_loft",
+      "payload": "07EEE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_arena",
+      "payload": "07EEF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_chamber",
+      "payload": "07EAF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_cellar_club",
+      "payload": "07ECD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_disco",
+      "payload": "07EF0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_party",
+      "payload": "07EF1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_game",
+      "payload": "07EF2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_action_game",
+      "payload": "07EF2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_7ch_stereo",
+      "payload": "07EFF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_2ch_stereo",
+      "payload": "07EC0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_2ch_direct_stereo",
+      "payload": "07EC1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_pop_rock",
+      "payload": "07EF3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_music_video",
+      "payload": "07EF3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_dj",
+      "payload": "07EF4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_classical_opera",
+      "payload": "07EF5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_recital_opera",
+      "payload": "07EF5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_pavillion",
+      "payload": "07EF6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_mono_movie",
+      "payload": "07EF7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_variety_sports",
+      "payload": "07EF8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_sports",
+      "payload": "07EF8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_spectacle",
+      "payload": "07EF9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_sci_fi",
+      "payload": "07EFA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_adventure",
+      "payload": "07EFB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_general",
+      "payload": "07EFC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_drama",
+      "payload": "07EFC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_normal",
+      "payload": "07EFD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_surround_decode",
+      "payload": "07EFD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_enhanced",
+      "payload": "07EFE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_standard",
+      "payload": "07EFE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_thx_cinema",
+      "payload": "07EC2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_thx_ultra2_cinema",
+      "payload": "07EC2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_thx_music",
+      "payload": "07EC3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_plii_game",
+      "payload": "07EC7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_thx_ultra2_cinema_pl2",
+      "payload": "07EC7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_thx_game",
+      "payload": "07EC8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_thx_ultra2_cinema_neo6",
+      "payload": "07EC8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "program_roleplaying_game",
+      "payload": "07ECE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "music_enhancer_on",
+      "payload": "07ED8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "music_enhancer_off",
+      "payload": "07ED9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "enhancer_7ch",
+      "payload": "0F7E81146B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_page_a",
+      "payload": "07AE0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_page_b",
+      "payload": "07AE1",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_page_c",
+      "payload": "07AE2",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_page_d",
+      "payload": "07AE3",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_page_e",
+      "payload": "07AE4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_1",
+      "payload": "07AE5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_2",
+      "payload": "07AE6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_3",
+      "payload": "07AE7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_4",
+      "payload": "07AE8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_5",
+      "payload": "07AE9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_6",
+      "payload": "07AEA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_7",
+      "payload": "07AEB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_preset_8",
+      "payload": "07AEC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_band_fm",
+      "payload": "07EBC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_band_am",
+      "payload": "07EBD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_auto_up",
+      "payload": "07EBE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "tuner_auto_down",
+      "payload": "07EBF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_a_on",
+      "payload": "07EAB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_a_off",
+      "payload": "07EAC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_b_on",
+      "payload": "07EAD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_b_off",
+      "payload": "07EAE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_save_1",
+      "payload": "07E2B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_save_2",
+      "payload": "07E2C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_save_3",
+      "payload": "07E2D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_save_4",
+      "payload": "07E2E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_save_5",
+      "payload": "07E2F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_save_6",
+      "payload": "07E30",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_load_1",
+      "payload": "07E35",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_load_2",
+      "payload": "07E36",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_load_3",
+      "payload": "07E37",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_load_4",
+      "payload": "07E38",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_load_5",
+      "payload": "07E39",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_load_6",
+      "payload": "07E3A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_memory_a",
+      "payload": "07E2B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_memory_b",
+      "payload": "07E2C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_memory_c",
+      "payload": "07E2D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_memory_d",
+      "payload": "07E2E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_memory_e",
+      "payload": "07E2F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_memory_f",
+      "payload": "07E20",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_recall_a",
+      "payload": "07E35",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_recall_b",
+      "payload": "07E36",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_recall_c",
+      "payload": "07E37",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_recall_d",
+      "payload": "07E38",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_recall_e",
+      "payload": "07E39",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_preset_recall_f",
+      "payload": "07E3A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_save_a",
+      "payload": "07E6B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_save_b",
+      "payload": "07E6C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_save_c",
+      "payload": "07E6D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_save_d",
+      "payload": "07E6E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_save_e",
+      "payload": "07E6F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_save_f",
+      "payload": "07E60",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_load_a",
+      "payload": "07E75",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_load_b",
+      "payload": "07E76",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_load_c",
+      "payload": "07E77",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_load_d",
+      "payload": "07E78",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_load_e",
+      "payload": "07E79",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "home_volume_memory_load_f",
+      "payload": "07E7A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_save_1",
+      "payload": "07E6B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_save_2",
+      "payload": "07E6C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_save_3",
+      "payload": "07E6D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_save_4",
+      "payload": "07E6E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_save_5",
+      "payload": "07E6F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_save_6",
+      "payload": "07E70",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_load_1",
+      "payload": "07E75",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_load_2",
+      "payload": "07E76",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_load_3",
+      "payload": "07E77",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_load_4",
+      "payload": "07E78",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_load_5",
+      "payload": "07E79",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "main_volume_memory_load_6",
+      "payload": "07E7A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_save_1",
+      "payload": "07E87",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_save_2",
+      "payload": "07E88",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_save_3",
+      "payload": "07E89",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_save_4",
+      "payload": "07E8A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_save_5",
+      "payload": "07E8B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_save_6",
+      "payload": "07E8C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_load_1",
+      "payload": "07E8D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_load_2",
+      "payload": "07E8E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_load_3",
+      "payload": "07E8F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_load_4",
+      "payload": "07E90",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_load_5",
+      "payload": "07E91",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_volume_memory_load_6",
+      "payload": "07E92",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_save_1",
+      "payload": "07E20",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_save_2",
+      "payload": "07E21",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_save_3",
+      "payload": "07E22",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_save_4",
+      "payload": "07E23",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_save_5",
+      "payload": "07E24",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_save_6",
+      "payload": "07E25",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_load_1",
+      "payload": "07E60",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_load_2",
+      "payload": "07E61",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_load_3",
+      "payload": "07E62",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_load_4",
+      "payload": "07E63",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_load_5",
+      "payload": "07E64",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_volume_memory_load_6",
+      "payload": "07E65",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_balance_left",
+      "payload": "07ED4",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_balance_right",
+      "payload": "07ED5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_balance_left",
+      "payload": "07ED6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_balance_right",
+      "payload": "07ED7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_control_main",
+      "payload": "07E32",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_control_zone2",
+      "payload": "07E33",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_control_zone3",
+      "payload": "07E31",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_control_all",
+      "payload": "07E34",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_main_high",
+      "payload": "07E73",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_main_low",
+      "payload": "07E74",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_zone2_high",
+      "payload": "07E71",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_zone2_low",
+      "payload": "07E72",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_zone3_high",
+      "payload": "07E83",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger1_zone3_low",
+      "payload": "07E84",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_control_main",
+      "payload": "07E96",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_control_zone2",
+      "payload": "07E97",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_control_zone3",
+      "payload": "07E9F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_control_all",
+      "payload": "07E98",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_main_high",
+      "payload": "07E3E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_main_low",
+      "payload": "07E3F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_zone2_high",
+      "payload": "07E3C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_zone2_low",
+      "payload": "07E3D",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_zone3_high",
+      "payload": "07E85",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "trigger2_zone3_low",
+      "payload": "07E86",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dual_mono_main",
+      "payload": "07E93",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dual_mono_sub",
+      "payload": "07E94",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "dual_mono_all",
+      "payload": "07E95",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_b_assignment_main",
+      "payload": "07E28",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_b_assignment_zone_b",
+      "payload": "07E29",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_b_assignment_zone1",
+      "payload": "07E28",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "speaker_b_assignment_zone2",
+      "payload": "07E29",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_amp_internal",
+      "payload": "07E99",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_amp_external",
+      "payload": "07E9A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_speaker_out_on",
+      "payload": "07E99",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_speaker_out_off",
+      "payload": "07E9A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_pl2x_movie",
+      "payload": "07E67",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_pl2x_music",
+      "payload": "07E68",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_neo6_cinema",
+      "payload": "07E69",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_neo6_music",
+      "payload": "07E6A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_pl2x_game",
+      "payload": "07EC7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_pro_logic",
+      "payload": "07EC9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_cs2_cinema",
+      "payload": "07ECA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_cs2_music",
+      "payload": "07ECB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "decoder_2ch_neural_surround",
+      "payload": "07ECC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_0",
+      "payload": "07A60",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_1",
+      "payload": "07A61",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_2",
+      "payload": "07A62",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_3",
+      "payload": "07A63",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_4",
+      "payload": "07A64",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_5",
+      "payload": "07A65",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_6",
+      "payload": "07A66",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_7",
+      "payload": "07A67",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_8",
+      "payload": "07A68",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_digit_9",
+      "payload": "07A69",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_up",
+      "payload": "07A6A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_down",
+      "payload": "07A6B",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_category_up",
+      "payload": "07A6C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_category_down",
+      "payload": "07A6E",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_display_hold_toggle",
+      "payload": "07A6F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_history_next",
+      "payload": "07A70",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_memory",
+      "payload": "07A71",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_search_all_channel",
+      "payload": "07AB5",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_search_category",
+      "payload": "07AB6",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_search_preset",
+      "payload": "07AB7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_page_a",
+      "payload": "07ABA",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_page_b",
+      "payload": "07ABB",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_page_c",
+      "payload": "07ABC",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_page_d",
+      "payload": "07ABD",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_preset_page_e",
+      "payload": "07ABE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "xm_enter",
+      "payload": "07ABF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_bass_up",
+      "payload": "07A73",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_bass_down",
+      "payload": "07A74",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_treble_up",
+      "payload": "07A75",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_treble_down",
+      "payload": "07A76",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_bass_up",
+      "payload": "07A77",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_bass_down",
+      "payload": "07A78",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_treble_up",
+      "payload": "07A79",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_treble_down",
+      "payload": "07A7A",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "gui_top_menu",
+      "payload": "07AA0",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "gui_enter",
+      "payload": "07ADE",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "gui_exit",
+      "payload": "07AA1",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "gui_cursor_up",
+      "payload": "07A9D",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "gui_cursor_down",
+      "payload": "07A9C",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "gui_cursor_right",
+      "payload": "07A9E",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "gui_cursor_left",
+      "payload": "07A9F",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "main_source_display_on",
+      "payload": "07ED0",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "main_source_display_off",
+      "payload": "07ED1",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "zone2_source_display_on",
+      "payload": "07ED2",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "zone2_source_display_off",
+      "payload": "07ED3",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_menu",
+      "payload": "0F7F010FF0",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_enter",
+      "payload": "0F7F0111EE",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_display",
+      "payload": "0F7F0115EA",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_cursor_up",
+      "payload": "0F7F010EF1",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_cursor_down",
+      "payload": "0F7F0114EB",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_cursor_right",
+      "payload": "0F7F0112ED",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_cursor_left",
+      "payload": "0F7F0110EF",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_play",
+      "payload": "0F7F011EE1",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_stop",
+      "payload": "0F7F011DE2",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_pause",
+      "payload": "0F7F011AE5",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_skip_next",
+      "payload": "0F7F011CE3",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "ipod_skip_previous",
+      "payload": "0F7F011BE4",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_input",
+      "payload": "0F7F013FC0",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone2_net_usb_input",
+      "payload": "0F7F0140BF",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "zone3_net_usb_input",
+      "payload": "0F7F0141BE",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_pc_mcx",
+      "payload": "0F7F0136C9",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_net_radio",
+      "payload": "0F7F0137C8",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_usb",
+      "payload": "0F7F0138C7",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "net_usb_menu",
+      "payload": "0F7F012FD0",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_enter",
+      "payload": "0F7F0131CE",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_display",
+      "payload": "0F7F0135CA",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_cursor_up",
+      "payload": "0F7F012ED1",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_cursor_down",
+      "payload": "0F7F0134CB",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_cursor_right",
+      "payload": "0F7F0132CD",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_cursor_left",
+      "payload": "0F7F0130CF",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_play",
+      "payload": "0F7F013EC1",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_stop",
+      "payload": "0F7F013DC2",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_skip_next",
+      "payload": "0F7F013CC3",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "net_usb_skip_previous",
+      "payload": "0F7F013BC4",
+      "frame": "STX",
+      "response": false
+    },
+    {
+      "name": "system_memory_play",
+      "payload": "0F7A85007F",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_stop",
+      "payload": "0F7A85037C",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_skip_next",
+      "payload": "0F7A850679",
+      "frame": "STX",
+      "response": true
+    },
+    {
+      "name": "system_memory_skip_previous",
+      "payload": "0F7A850976",
+      "frame": "STX",
+      "response": true
+    }
+  ]
+}

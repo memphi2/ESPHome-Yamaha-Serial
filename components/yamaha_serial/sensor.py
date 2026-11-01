@@ -23,6 +23,13 @@ CONF_PARSE_ERRORS = "parse_errors"
 CONF_TIMEOUTS = "timeouts"
 CONF_QUEUE_DROPS = "queue_drops"
 
+
+def diagnostic_schema(**kwargs):
+    return sensor.sensor_schema(**kwargs).extend(
+        {cv.Optional("disabled_by_default", default=True): cv.boolean}
+    )
+
+
 CONFIG_SCHEMA = YAMAHA_SERIAL_COMPONENT_SCHEMA.extend(
     {
         cv.Optional(CONF_VOLUME_DB): sensor.sensor_schema(
@@ -43,40 +50,34 @@ CONFIG_SCHEMA = YAMAHA_SERIAL_COMPONENT_SCHEMA.extend(
             state_class=STATE_CLASS_MEASUREMENT,
             icon="mdi:sine-wave",
         ),
-        cv.Optional(CONF_LAST_RESPONSE_AGE): sensor.sensor_schema(
+        cv.Optional(CONF_LAST_RESPONSE_AGE): diagnostic_schema(
             unit_of_measurement=UNIT_MILLISECOND,
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:timer-outline",
         ),
-        cv.Optional(CONF_COMMANDS_SENT): sensor.sensor_schema(
+        cv.Optional(CONF_COMMANDS_SENT): diagnostic_schema(
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:send",
         ),
-        cv.Optional(CONF_RESPONSES_RECEIVED): sensor.sensor_schema(
+        cv.Optional(CONF_RESPONSES_RECEIVED): diagnostic_schema(
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:download",
         ),
-        cv.Optional(CONF_PARSE_ERRORS): sensor.sensor_schema(
+        cv.Optional(CONF_PARSE_ERRORS): diagnostic_schema(
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:alert-circle-outline",
         ),
-        cv.Optional(CONF_TIMEOUTS): sensor.sensor_schema(
+        cv.Optional(CONF_TIMEOUTS): diagnostic_schema(
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:timer-off-outline",
         ),
-        cv.Optional(CONF_QUEUE_DROPS): sensor.sensor_schema(
+        cv.Optional(CONF_QUEUE_DROPS): diagnostic_schema(
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:delete-alert-outline",
         ),
