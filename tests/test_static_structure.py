@@ -32,6 +32,7 @@ EXPECTED_PATHS = [
     "examples/yamaha_rx_v_basic.yaml",
     "examples/yamaha_rx_v_full.yaml",
     "examples/yamaha_rx_vx500.yaml",
+    "examples/yamaha_rx_v1900.yaml",
     "examples/home_assistant_companion.yaml",
     "examples/secrets.example.yaml",
     "docs/protocol.md",

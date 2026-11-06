@@ -4,6 +4,72 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `rx_v1900` and `rx_v1900_extended` receiver profiles. `auto` selects the
+  extended profile when the receiver reports DC2 model ID `R0240` (RX-V1900).
+- `examples/yamaha_rx_v1900.yaml`, a main-zone RX-V1900 example (media player,
+  input, program, audio select, Pure Direct, surround decoder and tuner
+  controls, with status sensors; OTA requires encryption). CI also validates
+  the `rx_v1900` and `rx_v1900_extended` profile variants.
+- `surround_decoder` select for the RX-V1900's 2ch Pro Logic / PLII / Neo:6
+  decoder used by Surround Decode (report `6E`; direct commands for all six,
+  including Pro Logic `07EC9`, verified on a G/E unit). Selecting a decoder
+  always selects Surround Decode first. The setting applies to 2-channel
+  sources; on a multichannel source the receiver stores and reports it but
+  decodes the source format. A decoder command with no reply sets `last_error`
+  but does not mark the receiver unavailable. Only the RX-V1900 profile has it (new `surround_decoder`
+  capability): the x700/x800 manuals document a different decoder table, and the
+  regional modes (CS II on U/J models, Neural-THX on U/C models) are untested
+  and not included.
+
+### Fixed
+- DC2 configuration input decoding is now per profile: RX-Vx500/RX-Vx600 keep the
+  single-nibble input ID, while RX-V1900 reads the two-nibble ID so startup
+  reports the correct input instead of PHONO.
+- RX-Vx700, RX-Vx800 and RX-V1900 profiles decode playback format and sampling
+  rate reports with the RX-Vx700 RS-232C tables and the full report byte (for
+  example `04`/`09` is now Dolby Digital at 48 kHz, not "Dolby Digital 2.0" at
+  176.4 kHz). RX-Vx500/RX-Vx600 are unchanged.
+- RX-V1900 reports Straight Enhancer as `44` and 7ch Enhancer as `45`; the
+  program select now follows both, and 7ch Enhancer is selected with the
+  remote-code form `0F7E81146B`.
+- RX-V1900 input map checked on hardware: a single `MD/CD-R` input (`03`, key
+  `cdr`) replaces the separate CD-R and MD/TAPE entries, and BD/HD DVD reports
+  `11` in the main zone (`0F` in zone 2).
+- On RX-V1900 extended, more entities now get a value at startup instead of
+  showing unknown: zone 2 input, mute and volume, Extended Surround, tuner
+  preset page, preset and band, and playback format and sampling rate. They're
+  read from the DC2 configuration reply, using offsets checked against real
+  captures. The RX-V1600 night-mode position is no longer read for the RX-V1900,
+  because it holds other data there.
+- The RX-V1900 has its own DSP program list, checked on hardware and in
+  front-panel order. It drops Disco, Game and the THX programs, which the
+  receiver doesn't have and which reverted when selected.
+- The RX-V1900 decodes the tuner band report (`35`) as `00` AM / `01` FM, as
+  measured on a G/E unit (new `tuner_band_fm_is_1` capability). Previously the
+  band showed the wrong value and band changes from Home Assistant were never
+  confirmed, so the select reverted. RX-Vx500 to RX-Vx800 keep `00` = FM, as
+  their manuals specify.
+- The RX-V1900 profile rejects Speaker A/B relay commands before sending them
+  (new `supports_speaker_relays` capability): the receiver has no Speaker A/B
+  and never answers `07EAB`-`07EAE`, so they timed out and could mark it
+  unavailable.
+- RX-V1900 DOCK is selectable in both zones (`0F7F014AB5` / `0F7F014BB4`, the
+  remote-code form) and follows zone 2, where it reports `08`.
+- RX-V1900 System Memory is numbered 1-6, and recalling a memory from the remote
+  (report `30`) now updates the System Memory select. The scene select takes its
+  options from the active profile; other profiles keep A-F.
+- DC4 setup writes acknowledged with a bare status and no value echo (RX-V1900
+  bass/treble) are now accepted, so they no longer time out, retry and log
+  "Tone-control payload shorter than minimum length", and the value is read
+  back straight away.
+- The RX-V1900 profile rejects the Auto/DTS/AAC decoder mode commands, which the
+  receiver ignores.
+- The RX-V1900 profile has no sleep timer control (new `sleep_control`
+  capability, still on for the other profiles, where it is untested). Its serial
+  sleep commands drive "System Sleep", whose Off is never reported, so the
+  select showed the wrong state; use a Home Assistant automation instead.
+
 ## [0.2.4] - 2026-11-01
 
 ### Fixed

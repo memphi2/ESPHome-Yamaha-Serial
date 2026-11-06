@@ -8,8 +8,8 @@ This project provides a native ESPHome external component for Yamaha RS-232 rece
 
 - Current status: `beta`
 - LTS maintenance baseline: **11.2026** (`0.2.4`), see [SUPPORT.md](SUPPORT.md).
-- Focus: RX-Vx500 / RX-Vx600 / RX-Vx700 / RX-Vx800 RS-232 command families
-- Profile architecture: `auto` + standard/extended profiles for RX-Vx500, RX-Vx600, RX-Vx700, and RX-Vx800 families
+- Focus: RX-Vx500 / RX-Vx600 / RX-Vx700 / RX-Vx800 / RX-V1900 RS-232 command families
+- Profile architecture: `auto` + standard/extended profiles for RX-Vx500, RX-Vx600, RX-Vx700, RX-Vx800, and RX-V1900
 - Hardware validation: still required on multiple receiver models
 
 See [docs/supported_models.md](docs/supported_models.md).
@@ -75,6 +75,10 @@ See [docs/home_assistant_companion.md](docs/home_assistant_companion.md) and
 
 See [examples/yamaha_rx_vx500.yaml](examples/yamaha_rx_vx500.yaml) for RX-V1500/RX-V2500-style receivers using the explicit `rx_vx500_extended` profile.
 
+## RX-V1900 example
+
+See [examples/yamaha_rx_v1900.yaml](examples/yamaha_rx_v1900.yaml) for the RX-V1900 using the `rx_v1900_extended` profile. It is a main-zone example: the media player, input, program, audio select, Pure Direct, surround decoder and tuner controls, plus Refresh and read-only status sensors (playback format, sampling rate, availability and hidden diagnostics). It was tested on a G/E (UK/Europe) unit. Zone 2, System Memory and the setup entities work too; add them from [examples/yamaha_rx_v_full.yaml](examples/yamaha_rx_v_full.yaml). It has no `inputs:` block, because the profile already carries the RX-V1900 input labels. The RX-V1900 has no Speaker A/B, fan or night mode, and the profile has no sleep timer control. Set **RS-232C STANDBY** to YES in the receiver's advanced setup so it can be controlled from standby.
+
 ## Core configuration
 
 ```yaml
@@ -114,7 +118,7 @@ media_player:
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `model` | string | `RX-Vx500` | Friendly model hint for diagnostics/logging. |
-| `receiver_profile` | `auto` \| `rx_vx500` \| `rx_vx500_extended` \| `rx_vx600` \| `rx_vx600_extended` \| `rx_vx700` \| `rx_vx700_extended` \| `rx_vx800` \| `rx_vx800_extended` | `auto` | Selects receiver-specific mapping/capability profile. Explicit standard profiles keep DC4 setup entities disabled; `auto` starts from the model hint and reapplies the matching extended profile when the receiver reports its real model. |
+| `receiver_profile` | `auto` \| `rx_vx500` \| `rx_vx500_extended` \| `rx_vx600` \| `rx_vx600_extended` \| `rx_vx700` \| `rx_vx700_extended` \| `rx_vx800` \| `rx_vx800_extended` \| `rx_v1900` \| `rx_v1900_extended` | `auto` | Selects receiver-specific mapping/capability profile. Explicit standard profiles keep DC4 setup entities disabled; `auto` starts from the model hint and reapplies the matching extended profile when the receiver reports its real model. |
 | `poll_interval` | time \| `never` \| `off` | `never` | Optional periodic status refresh interval. `never` uses startup sync plus Yamaha report frames only. |
 | `command_timeout` | time | `1500ms` | Timeout for in-flight command responses. |
 | `max_retries` | int | `2` | Maximum retries for reads and recognized idempotent setters. Relative/toggle/unknown writes are never retried. |
@@ -217,6 +221,8 @@ Call it from Home Assistant with a payload such as `{"command": "power_on"}`,
 | `rx_vx700_extended` | RX-V1700, RX-V2700 | Extended x700 profile with x700 input/program map and DC4 raw/setup transport enabled. |
 | `rx_vx800` | never by `auto` | Standard x800 input/program map; DC4 setup entities disabled. |
 | `rx_vx800_extended` | RX-V1800, RX-V3800 | Extended x800 profile with x800 input/program map and DC4 raw/setup transport enabled. |
+| `rx_v1900` | never by `auto` | Standard RX-V1900 input and program maps; DC4 setup entities and DC2 offset decode disabled. |
+| `rx_v1900_extended` | RX-V1900 | Extended RX-V1900 profile with DC4 raw/setup transport and DC2 offset decode (two-nibble input ID). |
 
 With `receiver_profile: auto`, the component uses `model` as a startup hint and
 then reselects the matching extended profile after a DC2/DC4 model response.
