@@ -41,11 +41,14 @@ void YamahaSerialComponent::parse_stx_frame_(const std::vector<uint8_t> &frame) 
   const uint8_t data = static_cast<uint8_t>((data_hi << 4) | data_lo);
 
   switch (cmd) {
+    // x700+ format/sampling tables use the full byte (e.g. 0x10 DSD, 0xFE/0xFF); older ones the low nibble.
     case 0x10:
-      this->publish_playback_format_by_report_(static_cast<uint8_t>(data_lo));
+      this->publish_playback_format_by_report_(
+          this->profile_caps_.x700_protocol ? data : static_cast<uint8_t>(data_lo));
       break;
     case 0x11:
-      this->publish_sampling_rate_by_report_(static_cast<uint8_t>(data_lo));
+      this->publish_sampling_rate_by_report_(
+          this->profile_caps_.x700_protocol ? data : static_cast<uint8_t>(data_lo));
       break;
     case 0x20: {
       bool main_on = this->main_power_on_;
@@ -149,6 +152,16 @@ void YamahaSerialComponent::parse_stx_frame_(const std::vector<uint8_t> &frame) 
     case 0x5E:
       this->publish_decoder_mode_by_report_(static_cast<uint8_t>(data & 0xF0));
       break;
+    case 0x30:
+      // System Memory recall, 1-based (x700/x800 manuals; verified on RX-V1900).
+      if (this->profile_caps_.x700_protocol && this->profile_caps_.supports_scene)
+        this->publish_scene_by_report_(data);
+      break;
+    case 0x6E:
+      // RX-V1900 2ch surround decoder (x700/x800 use a different decoder table).
+      if (this->profile_caps_.surround_decoder)
+        this->publish_surround_decoder_by_report_(data);
+      break;
     case 0x8B:
       this->publish_night_mode_by_report_(static_cast<uint8_t>(data_hi), static_cast<uint8_t>(data_lo));
       break;
@@ -231,11 +244,21 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
     }
   }
 
-  // RX-V1600/RX-Vx600 extended layout decode.
+  // Extended DC2 CONFIG layout (RX-V1600 offsets; frame[20] onward verified on RX-V1900).
   if (this->profile_caps_.decode_dc2_layout && frame.size() > 138) {
-    const int8_t input = hex_nibble_(frame[18]);
-    if (input >= 0) {
-      this->publish_input_by_report_(static_cast<uint8_t>(input), false);
+    if (this->profile_caps_.x700_protocol) {
+      // x700+ (verified on RX-V1900): input ID is one hex byte across frame[18..19], e.g. 0x12 DOCK.
+      const int8_t input_hi = hex_nibble_(frame[18]);
+      const int8_t input_lo = hex_nibble_(frame[19]);
+      if (input_hi >= 0 && input_lo >= 0) {
+        this->publish_input_by_report_(static_cast<uint8_t>((input_hi << 4) | input_lo), false);
+      }
+    } else {
+      // x500/x600: single nibble at frame[18]; frame[19] is not part of the ID.
+      const int8_t input = hex_nibble_(frame[18]);
+      if (input >= 0) {
+        this->publish_input_by_report_(static_cast<uint8_t>(input), false);
+      }
     }
 
     const int8_t audio_select = hex_nibble_(frame[20]);
@@ -261,10 +284,13 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
       this->publish_program_by_report_(static_cast<uint8_t>((program_hi << 4) | program_lo));
     }
 
-    const int8_t night_hi = hex_nibble_(frame[36]);
-    const int8_t night_lo = hex_nibble_(frame[37]);
-    if (night_hi >= 0 && night_lo >= 0) {
-      this->publish_night_mode_by_report_(static_cast<uint8_t>(night_hi), static_cast<uint8_t>(night_lo));
+    // RX-V1600 night-mode offset; in the x700 layout these bytes (DT27-28) hold something else.
+    if (!this->profile_caps_.x700_protocol) {
+      const int8_t night_hi = hex_nibble_(frame[36]);
+      const int8_t night_lo = hex_nibble_(frame[37]);
+      if (night_hi >= 0 && night_lo >= 0) {
+        this->publish_night_mode_by_report_(static_cast<uint8_t>(night_hi), static_cast<uint8_t>(night_lo));
+      }
     }
 
     const int8_t dimmer = hex_nibble_(frame[94]);
@@ -286,6 +312,36 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
       if (this->pure_direct_switch_ != nullptr) {
         this->pure_direct_switch_->publish_state(this->pure_direct_on_);
       }
+    }
+
+    // x700 layout (DTn = frame[9 + n]); offsets and values verified against RX-V1900 captures.
+    // Values use the same encoding as the matching STX reports, so reuse their publishers.
+    if (this->profile_caps_.x700_protocol) {
+      auto byte_at = [&frame](size_t pos) -> int {
+        const int8_t hi = hex_nibble_(frame[pos]);
+        const int8_t lo = hex_nibble_(frame[pos + 1]);
+        return hi >= 0 && lo >= 0 ? (hi << 4) | lo : -1;
+      };
+      if (const int8_t v = hex_nibble_(frame[22]); v >= 0)  // DT13 zone 2 input (one nibble)
+        this->publish_input_by_report_(static_cast<uint8_t>(v), true);
+      if (const int8_t v = hex_nibble_(frame[23]); v >= 0)  // DT14 zone 2 mute
+        this->publish_zone2_mute_state_(v == 1);
+      if (const int v = byte_at(26); v >= 0)  // DT17-18 zone 2 volume
+        this->publish_volume_db_(volume_raw_to_db_(static_cast<uint8_t>(v)), true);
+      if (const int8_t v = hex_nibble_(frame[31]); v >= 0)  // DT22 extended surround
+        this->publish_extended_surround_by_report_(static_cast<uint8_t>(v));
+      if (const int8_t v = hex_nibble_(frame[33]); v >= 0)  // DT24 sleep timer
+        this->publish_sleep_timer_by_report_(static_cast<uint8_t>(v));
+      if (const int8_t v = hex_nibble_(frame[34]); v >= 0)  // DT25 tuner preset page
+        this->publish_tuner_preset_page_by_report_(static_cast<uint8_t>(v));
+      if (const int8_t v = hex_nibble_(frame[35]); v >= 0)  // DT26 tuner preset
+        this->publish_tuner_preset_by_report_(static_cast<uint8_t>(v));
+      if (const int v = byte_at(40); v >= 0)  // DT31-32 playback format
+        this->publish_playback_format_by_report_(static_cast<uint8_t>(v));
+      if (const int v = byte_at(42); v >= 0)  // DT33-34 sampling rate
+        this->publish_sampling_rate_by_report_(static_cast<uint8_t>(v));
+      if (const int8_t v = hex_nibble_(frame[46]); v >= 0)  // DT37 tuner band
+        this->publish_tuner_band_by_report_(static_cast<uint8_t>(v));
     }
   }
 
@@ -361,6 +417,9 @@ void YamahaSerialComponent::parse_dc4_extended_payload_(std::string_view payload
   }
 
   const std::string_view command_data = data.substr(4);
+  if (command_data.empty()) {
+    return;  // Bare status acknowledgement of a write (RX-V1900); the follow-up poll reads the value.
+  }
   if (command_id == "000") {
     if (!command_data.empty() && command_data[0] == 'F') {
       const std::string model = trim_(std::string(command_data.substr(1)));

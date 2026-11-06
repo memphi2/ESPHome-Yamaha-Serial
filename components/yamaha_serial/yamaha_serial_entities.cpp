@@ -65,6 +65,22 @@ static const SamplingRateInfo SAMPLING_RATE_REPORTS[] = {
     {0x6, "96kHz", 96000.0f},     {0x7, "Unknown", NAN},        {0x8, "128.0kHz", 128000.0f},
     {0x9, "176.4kHz", 176400.0f}, {0xA, "192.0kHz", 192000.0f}, {0xB, "48kHz (DTS 96/24)", 48000.0f},
 };
+// RX-Vx700 RS-232C spec, report 0x10 (Format) / 0x11 (Sampling); full RDAT byte.
+static const ReportLabel PLAYBACK_FORMAT_REPORTS_X700[] = {
+    {0x00, "Analog"},     {0x01, "PCM"},     {0x02, "DSD"},          {0x03, "Digital"},
+    {0x04, "Dolby Digital"}, {0x05, "DTS"},  {0x06, "AAC"},          {0x07, "DTS-HD"},
+    {0x08, "DTS-HD Master Audio"}, {0x09, "Dolby Digital Plus"}, {0x0A, "Dolby TrueHD"},
+    {0x0B, "WMA"},        {0x0C, "MP3"},     {0xFE, "Unknown"},      {0xFF, "None"},
+};
+static const SamplingRateInfo SAMPLING_RATE_REPORTS_X700[] = {
+    {0x00, "Analog", 0.0f},         {0x01, "8kHz", 8000.0f},       {0x02, "11.025kHz", 11025.0f},
+    {0x03, "12kHz", 12000.0f},      {0x04, "16kHz", 16000.0f},     {0x05, "22.05kHz", 22050.0f},
+    {0x06, "24kHz", 24000.0f},      {0x07, "32kHz", 32000.0f},     {0x08, "44.1kHz", 44100.0f},
+    {0x09, "48kHz", 48000.0f},      {0x0A, "64kHz", 64000.0f},     {0x0B, "88.2kHz", 88200.0f},
+    {0x0C, "96kHz", 96000.0f},      {0x0D, "128.0kHz", 128000.0f}, {0x0E, "176.4kHz", 176400.0f},
+    {0x0F, "192.0kHz", 192000.0f},  {0x10, "2.8MHz (DSD)", 2822400.0f},
+    {0xFE, "Unknown", NAN},         {0xFF, "None", NAN},
+};
 void YamahaSwitch::write_state(bool state) {
   if (this->parent_ == nullptr) {
     return;
@@ -224,6 +240,9 @@ void YamahaSelect::control(const std::string &value) {
       break;
     case SelectFunction::ZONE2_AMP:
       this->parent_->command_zone2_amp(value);
+      break;
+    case SelectFunction::SURROUND_DECODER:
+      this->parent_->command_surround_decoder(value);
       break;
   }
 }
@@ -573,6 +592,9 @@ void YamahaSerialComponent::publish_tuner_preset_page_by_report_(uint8_t report_
 }
 
 void YamahaSerialComponent::publish_tuner_band_by_report_(uint8_t report_id) {
+  // TUNER_BAND_REPORTS is 00 = FM, 01 = AM (x500-x800 manuals); the RX-V1900 reports the reverse.
+  if (this->profile_caps_.tuner_band_fm_is_1 && report_id <= 1)
+    report_id ^= 1;
   const char *label = lookup_label_(TUNER_BAND_REPORTS, std::size(TUNER_BAND_REPORTS), report_id);
   if (label == nullptr) {
     return;
@@ -584,6 +606,9 @@ void YamahaSerialComponent::publish_tuner_band_by_report_(uint8_t report_id) {
 }
 
 void YamahaSerialComponent::publish_sleep_timer_by_report_(uint8_t report_id) {
+  if (!this->profile_caps_.sleep_control) {
+    return;
+  }
   const char *label = lookup_label_(SLEEP_TIMER_REPORTS, std::size(SLEEP_TIMER_REPORTS), report_id);
   if (label == nullptr) {
     return;
@@ -640,8 +665,34 @@ void YamahaSerialComponent::publish_zone2_amp_by_report_(uint8_t report_id) {
   }
 }
 
+void YamahaSerialComponent::publish_scene_by_report_(uint8_t report_id) {
+  // System Memory recall reports are 1-based.
+  if (report_id == 0 || report_id > this->scenes_.size()) {
+    return;
+  }
+  this->scene_label_ = this->scenes_[report_id - 1].label;
+  if (this->scene_select_ != nullptr && this->scene_select_->has_option(this->scene_label_)) {
+    this->scene_select_->publish_state(this->scene_label_);
+  }
+}
+
+void YamahaSerialComponent::publish_surround_decoder_by_report_(uint8_t report_id) {
+  const char *label = lookup_label_(SURROUND_DECODER_REPORTS, std::size(SURROUND_DECODER_REPORTS), report_id);
+  if (label == nullptr) {
+    return;
+  }
+  this->surround_decoder_label_ = label;
+  if (this->surround_decoder_select_ != nullptr &&
+      this->surround_decoder_select_->has_option(this->surround_decoder_label_)) {
+    this->surround_decoder_select_->publish_state(this->surround_decoder_label_);
+  }
+}
+
 void YamahaSerialComponent::publish_playback_format_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(PLAYBACK_FORMAT_REPORTS, std::size(PLAYBACK_FORMAT_REPORTS), report_id);
+  const char *label =
+      this->profile_caps_.x700_protocol
+          ? lookup_label_(PLAYBACK_FORMAT_REPORTS_X700, std::size(PLAYBACK_FORMAT_REPORTS_X700), report_id)
+          : lookup_label_(PLAYBACK_FORMAT_REPORTS, std::size(PLAYBACK_FORMAT_REPORTS), report_id);
   if (label == nullptr) {
     return;
   }
@@ -653,7 +704,9 @@ void YamahaSerialComponent::publish_playback_format_by_report_(uint8_t report_id
 
 void YamahaSerialComponent::publish_sampling_rate_by_report_(uint8_t report_id) {
   const SamplingRateInfo *info =
-      lookup_sampling_rate_(SAMPLING_RATE_REPORTS, std::size(SAMPLING_RATE_REPORTS), report_id);
+      this->profile_caps_.x700_protocol
+          ? lookup_sampling_rate_(SAMPLING_RATE_REPORTS_X700, std::size(SAMPLING_RATE_REPORTS_X700), report_id)
+          : lookup_sampling_rate_(SAMPLING_RATE_REPORTS, std::size(SAMPLING_RATE_REPORTS), report_id);
   if (info == nullptr) {
     return;
   }

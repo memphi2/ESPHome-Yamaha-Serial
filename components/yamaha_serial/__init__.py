@@ -79,6 +79,8 @@ RECEIVER_PROFILES = [
     "rx_vx700_extended",
     "rx_vx800",
     "rx_vx800_extended",
+    "rx_v1900",
+    "rx_v1900_extended",
 ]
 
 POLL_INTERVAL_SCHEMA = cv.Any(

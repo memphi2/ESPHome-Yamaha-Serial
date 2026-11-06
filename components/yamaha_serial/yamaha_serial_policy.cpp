@@ -75,6 +75,20 @@ void YamahaSerialComponent::configure_command_policy_(QueuedCommand &command) co
     } else if (payload.size() == 5 && payload.substr(0, 3) == "28B") {
       if (const auto value = parse_hex_(payload.substr(3)); value.has_value())
         report(0x8B, *value, 0xFF);
+    } else if (payload == "07EBC" || payload == "07EBD") {
+      // Tuner band FM / AM. x500-x800 report FM as 00 (manuals); the RX-V1900 as 01.
+      const bool fm = payload == "07EBC";
+      report(0x35, fm == this->profile_caps_.tuner_band_fm_is_1 ? 1 : 0, 0xFF);
+    } else if (this->profile_caps_.surround_decoder &&
+               (payload == "07EC9" || payload == "07E67" || payload == "07E68" || payload == "07EC7" ||
+                payload == "07E69" || payload == "07E6A")) {
+      // RX-V1900 2ch surround decoder (report 0x6E). A multichannel source ignores it even
+      // in Surround Decode, so silence is expected: never retried, not a lost connection.
+      const uint8_t value = payload == "07EC9" ? 0 : payload == "07E67" ? 1 : payload == "07E68" ? 2
+                            : payload == "07EC7" ? 3 : payload == "07E69" ? 4 : 5;
+      report(0x6E, value, 0xFF);
+      retry_safe = false;
+      command.silence_ok = true;
     } else if (payload == "2B200" || payload == "2B201") {
       report(0xB2, payload.back() - '0', 0xFF);
     } else if (payload.size() == 5 && payload.substr(0, 4) == "2610") {
@@ -107,7 +121,7 @@ void YamahaSerialComponent::configure_command_policy_(QueuedCommand &command) co
       static const Rule rules[] = {
           {"07EA6", 0x22, 0, 0xFF},    {"07EA9", 0x22, 3, 0xFF},    {"07EAA", 0x22, 4, 0xFE}, {"07EDA", 0x22, 8, 0xFF},
           {"07EAB", 0x2E, 1, 0xFF},    {"07EAC", 0x2E, 0, 0xFF},    {"07EAD", 0x2F, 1, 0xFF}, {"07EAE", 0x2F, 0, 0xFF},
-          {"07EBC", 0x35, 0, 0xFF},    {"07EBD", 0x35, 1, 0xFF},    {"07EB3", 0x2C, 4, 0xFF}, {"07EB4", 0x2C, 0, 0xFF},
+          {"07EB3", 0x2C, 4, 0xFF}, {"07EB4", 0x2C, 0, 0xFF},
           {"07EB5", 0x2C, 1, 0xFF},    {"07EB6", 0x2C, 2, 0xFF},    {"07EB7", 0x2C, 3, 0xFF}, {"07EDB", 0x5E, 0, 0xF0},
           {"07EA8", 0x5E, 0x10, 0xF0}, {"07E3B", 0x5E, 0x20, 0xF0}, {"07EB8", 0x2D, 0, 0},    {"07EB9", 0x2D, 0, 0xFF},
           {"07E7C", 0x2D, 3, 0xFF},    {"07EDC", 0x2D, 4, 0xFF},    {"07EDD", 0x2D, 5, 0xFF}, {"07EDE", 0x2D, 6, 0xFF},
@@ -152,6 +166,10 @@ bool YamahaSerialComponent::response_matches_(const QueuedCommand &command, cons
       return false;
     if (payload[7] != '0')
       return true;  // A matching rejection is final, not success.
+    // RX-V1900 acknowledges a write with the status alone ("04" + ID + '0'), no value echo.
+    if (command.payload.size() > 7 && command.payload[7] == '1' && payload.size() == 10 &&
+        payload.substr(2, 2) == "04")
+      return true;
     return payload.size() >= 10U + command.selector_length &&
            payload.substr(8, command.selector_length) ==
                std::string_view(command.payload).substr(8, command.selector_length);

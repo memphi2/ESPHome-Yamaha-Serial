@@ -192,6 +192,32 @@
         "2": "Internal",
         "3": "Internal"
       }
+    },
+    "surround_decoder": {
+      "options": [
+        "Pro Logic",
+        "PLII Movie",
+        "PLII Music",
+        "PLII Game",
+        "Neo:6 Cinema",
+        "Neo:6 Music"
+      ],
+      "commands": {
+        "pro_logic": "07EC9",
+        "plii_movie": "07E67",
+        "plii_music": "07E68",
+        "plii_game": "07EC7",
+        "neo_6_cinema": "07E69",
+        "neo_6_music": "07E6A"
+      },
+      "reports": {
+        "0": "Pro Logic",
+        "1": "PLII Movie",
+        "2": "PLII Music",
+        "3": "PLII Game",
+        "4": "Neo:6 Cinema",
+        "5": "Neo:6 Music"
+      }
     }
   }
 }
