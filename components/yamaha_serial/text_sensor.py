@@ -13,6 +13,9 @@ CONF_ZONE2_INPUT_SOURCE = "zone2_input_source"
 CONF_PROGRAM = "program"
 CONF_PLAYBACK_FORMAT = "playback_format"
 CONF_SAMPLING_RATE = "sampling_rate"
+CONF_INPUT_CHANNELS = "input_channels"
+CONF_BIT_RATE = "bit_rate"
+CONF_SIGNAL_FLAGS = "signal_flags"
 CONF_MAIN_VOLUME_TEXT = "main_volume_text"
 CONF_AUDIO_SELECT_STATE = "audio_select_state"
 CONF_NIGHT_MODE_STATE = "night_mode_state"
@@ -46,6 +49,17 @@ CONFIG_SCHEMA = YAMAHA_SERIAL_COMPONENT_SCHEMA.extend(
         ),
         cv.Optional(CONF_SAMPLING_RATE): text_sensor.text_sensor_schema(
             icon="mdi:waveform",
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_INPUT_CHANNELS): text_sensor.text_sensor_schema(
+            icon="mdi:surround-sound"
+        ),
+        cv.Optional(CONF_BIT_RATE): text_sensor.text_sensor_schema(
+            icon="mdi:speedometer",
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_SIGNAL_FLAGS): text_sensor.text_sensor_schema(
+            icon="mdi:flag-outline",
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_MAIN_VOLUME_TEXT): text_sensor.text_sensor_schema(
@@ -103,6 +117,18 @@ async def to_code(config):
     if conf := config.get(CONF_SAMPLING_RATE):
         var = await text_sensor.new_text_sensor(conf)
         cg.add(paren.set_sampling_rate_text_sensor(var))
+
+    if conf := config.get(CONF_INPUT_CHANNELS):
+        var = await text_sensor.new_text_sensor(conf)
+        cg.add(paren.set_input_channels_text_sensor(var))
+
+    if conf := config.get(CONF_BIT_RATE):
+        var = await text_sensor.new_text_sensor(conf)
+        cg.add(paren.set_bit_rate_text_sensor(var))
+
+    if conf := config.get(CONF_SIGNAL_FLAGS):
+        var = await text_sensor.new_text_sensor(conf)
+        cg.add(paren.set_signal_flags_text_sensor(var))
 
     if conf := config.get(CONF_MAIN_VOLUME_TEXT):
         var = await text_sensor.new_text_sensor(conf)

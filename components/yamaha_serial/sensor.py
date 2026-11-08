@@ -16,6 +16,7 @@ DEPENDENCIES = ["yamaha_serial"]
 CONF_VOLUME_DB = "volume_db"
 CONF_ZONE2_VOLUME_DB = "zone2_volume_db"
 CONF_SAMPLING_RATE = "sampling_rate"
+CONF_DIALOGUE_NORMALIZATION = "dialogue_normalization"
 CONF_LAST_RESPONSE_AGE = "last_response_age"
 CONF_COMMANDS_SENT = "commands_sent"
 CONF_RESPONSES_RECEIVED = "responses_received"
@@ -49,6 +50,12 @@ CONFIG_SCHEMA = YAMAHA_SERIAL_COMPONENT_SCHEMA.extend(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
             icon="mdi:sine-wave",
+        ),
+        cv.Optional(CONF_DIALOGUE_NORMALIZATION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_DECIBEL,
+            accuracy_decimals=0,
+            icon="mdi:account-voice",
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_LAST_RESPONSE_AGE): diagnostic_schema(
             unit_of_measurement=UNIT_MILLISECOND,
@@ -99,6 +106,10 @@ async def to_code(config):
     if conf := config.get(CONF_SAMPLING_RATE):
         var = await sensor.new_sensor(conf)
         cg.add(paren.set_sampling_rate_sensor(var))
+
+    if conf := config.get(CONF_DIALOGUE_NORMALIZATION):
+        var = await sensor.new_sensor(conf)
+        cg.add(paren.set_dialogue_normalization_sensor(var))
 
     if conf := config.get(CONF_LAST_RESPONSE_AGE):
         var = await sensor.new_sensor(conf)

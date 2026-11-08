@@ -214,6 +214,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_volume_db_sensor(sensor::Sensor *obj) { this->volume_db_sensor_ = obj; }
   void set_zone2_volume_db_sensor(sensor::Sensor *obj) { this->zone2_volume_db_sensor_ = obj; }
   void set_sampling_rate_sensor(sensor::Sensor *obj) { this->sampling_rate_sensor_ = obj; }
+  void set_dialogue_normalization_sensor(sensor::Sensor *obj) { this->dialogue_normalization_sensor_ = obj; }
   void set_last_response_age_sensor(sensor::Sensor *obj) { this->last_response_age_sensor_ = obj; }
   void set_commands_sent_sensor(sensor::Sensor *obj) { this->commands_sent_sensor_ = obj; }
   void set_responses_received_sensor(sensor::Sensor *obj) { this->responses_received_sensor_ = obj; }
@@ -227,6 +228,9 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_program_text_sensor(text_sensor::TextSensor *obj) { this->program_text_sensor_ = obj; }
   void set_playback_format_text_sensor(text_sensor::TextSensor *obj) { this->playback_format_text_sensor_ = obj; }
   void set_sampling_rate_text_sensor(text_sensor::TextSensor *obj) { this->sampling_rate_text_sensor_ = obj; }
+  void set_input_channels_text_sensor(text_sensor::TextSensor *obj) { this->input_channels_text_sensor_ = obj; }
+  void set_bit_rate_text_sensor(text_sensor::TextSensor *obj) { this->bit_rate_text_sensor_ = obj; }
+  void set_signal_flags_text_sensor(text_sensor::TextSensor *obj) { this->signal_flags_text_sensor_ = obj; }
   void set_main_volume_text_sensor(text_sensor::TextSensor *obj) { this->main_volume_text_sensor_ = obj; }
   void set_audio_select_text_sensor(text_sensor::TextSensor *obj) { this->audio_select_text_sensor_ = obj; }
   void set_night_mode_text_sensor(text_sensor::TextSensor *obj) { this->night_mode_text_sensor_ = obj; }
@@ -487,6 +491,11 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void publish_surround_decoder_by_report_(uint8_t report_id);
   void publish_playback_format_by_report_(uint8_t report_id);
   void publish_sampling_rate_by_report_(uint8_t report_id);
+  // x700+ source information reports 0x12-0x16 (RX-Vx700 RS-232C, Playback Status Reports).
+  void publish_input_channels_();
+  void publish_bit_rate_by_report_(uint8_t report_id);
+  void publish_dialogue_normalization_by_report_(uint8_t report_id);
+  void publish_signal_flags_by_report_(uint8_t flags);
   void queue_extended_poll_commands_();
   void sync_media_player_state_();
   void check_availability_();
@@ -575,6 +584,12 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   std::string playback_format_{"unknown"};
   std::string sampling_rate_{"unknown"};
   float sampling_rate_hz_{NAN};
+  uint8_t channel_layout_{0xFF};  // Report 0x12 Channel Front/Rear.
+  uint8_t channel_lfe_{0xFF};     // Report 0x13 Channel LFE (0x00 = .1).
+  std::string input_channels_{"unknown"};
+  std::string bit_rate_{"unknown"};
+  float dialogue_normalization_db_{NAN};
+  std::string signal_flags_{"unknown"};
   std::string main_volume_text_{""};
   std::string scene_label_{"unknown"};
   bool available_{false};
@@ -633,6 +648,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   sensor::Sensor *volume_db_sensor_{nullptr};
   sensor::Sensor *zone2_volume_db_sensor_{nullptr};
   sensor::Sensor *sampling_rate_sensor_{nullptr};
+  sensor::Sensor *dialogue_normalization_sensor_{nullptr};
   sensor::Sensor *last_response_age_sensor_{nullptr};
   sensor::Sensor *commands_sent_sensor_{nullptr};
   sensor::Sensor *responses_received_sensor_{nullptr};
@@ -646,6 +662,9 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   text_sensor::TextSensor *program_text_sensor_{nullptr};
   text_sensor::TextSensor *playback_format_text_sensor_{nullptr};
   text_sensor::TextSensor *sampling_rate_text_sensor_{nullptr};
+  text_sensor::TextSensor *input_channels_text_sensor_{nullptr};
+  text_sensor::TextSensor *bit_rate_text_sensor_{nullptr};
+  text_sensor::TextSensor *signal_flags_text_sensor_{nullptr};
   text_sensor::TextSensor *main_volume_text_sensor_{nullptr};
   text_sensor::TextSensor *audio_select_text_sensor_{nullptr};
   text_sensor::TextSensor *night_mode_text_sensor_{nullptr};

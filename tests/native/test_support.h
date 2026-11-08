@@ -56,6 +56,10 @@ class Receiver : public yamaha_serial::YamahaSerialComponent {
   using YamahaSerialComponent::program_label_;
   using YamahaSerialComponent::playback_format_;
   using YamahaSerialComponent::sampling_rate_hz_;
+  using YamahaSerialComponent::input_channels_;
+  using YamahaSerialComponent::bit_rate_;
+  using YamahaSerialComponent::dialogue_normalization_db_;
+  using YamahaSerialComponent::signal_flags_;
   using YamahaSerialComponent::scene_label_;
   using YamahaSerialComponent::surround_decoder_label_;
   using YamahaSerialComponent::bass_percent_;

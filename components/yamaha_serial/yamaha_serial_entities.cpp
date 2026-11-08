@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstdarg>
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
@@ -701,6 +702,98 @@ void YamahaSerialComponent::publish_sampling_rate_by_report_(uint8_t report_id) 
   this->sampling_rate_hz_ = info.hz;
   if (this->sampling_rate_sensor_ != nullptr) {
     this->sampling_rate_sensor_->publish_state(this->sampling_rate_hz_);
+  }
+}
+
+// Report 0x12 Channel Front/Rear codes 0x01-0x0B as front/rear speaker counts.
+static const uint8_t CHANNEL_FRONT[] YAMAHA_SERIAL_FLASH_TABLE = {1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3};
+static const uint8_t CHANNEL_REAR[] YAMAHA_SERIAL_FLASH_TABLE = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4};
+// Report 0x14 Bit Rate codes 0x00-0x23, in tenths of kbps (0x1D is 1411.2 kbps).
+static const uint16_t BIT_RATE_TENTHS_KBPS[] YAMAHA_SERIAL_FLASH_TABLE = {
+    320,   400,   480,   560,   640,   720,   800,   960,   1120,  1280,  1440,  1600,
+    1920,  2240,  2560,  2880,  3200,  3840,  4480,  5120,  5760,  6400,  7680,  9600,
+    10240, 11520, 12800, 13440, 14080, 14112, 14720, 15360, 19200, 20480, 30720, 38400,
+};
+// Report 0x16 Flag bits 0-6 (bit 7 is "don't care").
+static const char SIGNAL_FLAG_NAMES[][20] YAMAHA_SERIAL_FLASH_TABLE = {
+    "DD Karaoke", "DD 6.1", "DTS-ES Matrix 6.1", "DTS-ES Discrete 6.1", "DTS 96/24", "Pre-emphasis", "DPL Encoded",
+};
+
+// snprintf() with the format string in flash.
+static void flash_format_(char *buffer, size_t size, const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  flash_vsnprintf(buffer, size, format, args);
+  va_end(args);
+}
+
+void YamahaSerialComponent::publish_input_channels_() {
+  const uint8_t layout = this->channel_layout_;
+  const bool lfe = this->channel_lfe_ == 0x00;
+  char buf[24];
+  if (layout == 0x00) {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("1+1"));  // Dual mono.
+  } else if (layout <= std::size(CHANNEL_FRONT)) {
+    const unsigned front = flash_read(CHANNEL_FRONT[layout - 1]);
+    const unsigned rear = flash_read(CHANNEL_REAR[layout - 1]);
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("%u.%u (%u/%u%s)"), front + rear, lfe ? 1u : 0u, front, rear,
+                  lfe ? ".1" : "");
+  } else if (layout == 0x0C) {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("Multichannel"));
+  } else {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("Unknown"));
+  }
+  this->input_channels_ = buf;
+  if (this->input_channels_text_sensor_ != nullptr) {
+    this->input_channels_text_sensor_->publish_state(this->input_channels_);
+  }
+}
+
+void YamahaSerialComponent::publish_bit_rate_by_report_(uint8_t report_id) {
+  char buf[20];
+  if (report_id < std::size(BIT_RATE_TENTHS_KBPS)) {
+    const unsigned tenths = flash_read(BIT_RATE_TENTHS_KBPS[report_id]);
+    if (tenths % 10 == 0) {
+      flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("%u kbps"), tenths / 10);
+    } else {
+      flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("%u.%u kbps"), tenths / 10, tenths % 10);
+    }
+  } else if (report_id == 0x24) {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("Open"));
+  } else if (report_id == 0x25) {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("Variable"));
+  } else if (report_id == 0x26) {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("Lossless"));
+  } else {
+    flash_format_(buf, sizeof(buf), YAMAHA_SERIAL_PSTR("Unknown"));
+  }
+  this->bit_rate_ = buf;
+  if (this->bit_rate_text_sensor_ != nullptr) {
+    this->bit_rate_text_sensor_->publish_state(this->bit_rate_);
+  }
+}
+
+void YamahaSerialComponent::publish_dialogue_normalization_by_report_(uint8_t report_id) {
+  // 0x00-0x1F = -31 dB to 0 dB; anything else (0xFF) is "---".
+  this->dialogue_normalization_db_ = report_id <= 0x1F ? static_cast<float>(report_id) - 31.0f : NAN;
+  if (this->dialogue_normalization_sensor_ != nullptr) {
+    this->dialogue_normalization_sensor_->publish_state(this->dialogue_normalization_db_);
+  }
+}
+
+void YamahaSerialComponent::publish_signal_flags_by_report_(uint8_t flags) {
+  std::string label;
+  for (size_t bit = 0; bit < std::size(SIGNAL_FLAG_NAMES); bit++) {
+    if (flags & (1u << bit)) {
+      if (!label.empty()) {
+        label += ", ";
+      }
+      label += flash_string(SIGNAL_FLAG_NAMES[bit]);
+    }
+  }
+  this->signal_flags_ = label.empty() ? flash_string(YAMAHA_SERIAL_PSTR("None")) : label;
+  if (this->signal_flags_text_sensor_ != nullptr) {
+    this->signal_flags_text_sensor_->publish_state(this->signal_flags_);
   }
 }
 

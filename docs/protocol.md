@@ -438,7 +438,12 @@ input map:
   | Tuner preset | DT26 | 35 |
   | Playback format | DT31-32 | 40-41 |
   | Sampling rate | DT33-34 | 42-43 |
+  | Channel Front/Rear (one nibble, `F` = ---) | DT35 | 44 |
   | Tuner band | DT37 | 46 |
+  | Channel LFE (one nibble, `0` = .1, `F` = ---) | DT38 | 47 |
+  | Bit rate | DT145-146 | 154-155 |
+  | Dialogue normalization | DT147-148 | 156-157 |
+  | Signal flags | DT172-173 | 181-182 |
   | Sleep, remote timer (not used, see below) | DT186 | 195 |
 
   Each value uses the same encoding as the matching STX report.
@@ -460,6 +465,22 @@ input map:
   Disco, Game or THX programs, so its profile leaves them out.
 - Playback format (`10`) and sampling rate (`11`) reports use the RX-Vx700 tables
   with the full report byte; this also applies to the x700 and x800 profiles.
+- Source information reports (system type `3`), sent with every signal change and
+  decoded for all x700+ profiles from the RX-Vx700 Playback Status Reports table:
+
+  | Report | Item | Values | Entity |
+  |---|---|---|---|
+  | `12` | Channel Front/Rear | `00` 1+1, `01` 1/0, `02` 2/0, `03` 3/0, `04` 2/1, `05` 3/1, `06` 2/2, `07` 3/2, `08` 2/3, `09` 3/3, `0A` 2/4, `0B` 3/4, `0C` MLT, `0F` --- | `input_channels` |
+  | `13` | Channel LFE | `00` 0.1, `FF` --- | `input_channels` |
+  | `14` | Bit rate | `00`-`23` 32 to 3840 kbps, `24` Open, `25` Variable, `26` Lossless, `FF` --- | `bit_rate` |
+  | `15` | Dialogue normalization | `00`-`1F` -31 dB to 0 dB, `FF` --- | `dialogue_normalization` |
+  | `16` | Flags (bits) | 0 DD Karaoke, 1 DD 6.1, 2 DTS-ES Matrix 6.1, 3 DTS-ES Discrete 6.1, 4 DTS 96/24, 5 Pre-emphasis, 6 DPL Encoded, 7 don't care | `signal_flags` |
+
+  `input_channels` combines `12` and `13`, for example `2.0 (2/0)` or
+  `5.1 (3/2.1)`. Checked on the RX-V1900: analog and PCM report `12 02`; Dolby
+  Digital and DTS 5.1 report `12 07` and `13 00`, with bit rates `14 15`
+  (640 kbps), `14 11` (384 kbps) and `14 1F` (1536 kbps). Without a signal the
+  receiver sends `12 0F` and `13`-`15 FF`. The flags have not been seen set yet.
 - The tuner band report (`35`) is `00` AM / `01` FM on this unit, the reverse of
   the x500-x800 manuals (`00` FM). Only the RX-V1900 profile uses the reversed
   mapping (`tuner_band_fm_is_1`). The `07EBC` (FM) and `07EBD` (AM) commands are
