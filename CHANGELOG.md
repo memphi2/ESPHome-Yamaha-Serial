@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-13
+
 ### Added
 - `rx_v1900` and `rx_v1900_extended` receiver profiles. `auto` selects the
   extended profile when the receiver reports DC2 model ID `R0240` (RX-V1900).

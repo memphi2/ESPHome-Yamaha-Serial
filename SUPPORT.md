@@ -3,7 +3,9 @@
 ## Supported Release Line
 
 - LTS maintenance baseline: **11.2026**, reviewed on **2026-11-01**.
-- `0.2.x`: active maintenance line; `0.2.4` is the current November maintenance release.
+- `0.3.x`: active maintenance line; `0.3.0` is the current release.
+- `0.2.x`: superseded; update to `0.3.0`, which keeps `0.2.4` configurations
+  working.
 - `0.1.x`: superseded; update to the current maintenance release.
 
 LTS names this project's maintenance snapshot, not an upstream ESPHome or
@@ -69,6 +71,10 @@ honestly:
 - Profile mappings for RX-Vx500, RX-Vx600, RX-Vx700 and RX-Vx800 families are
   derived from publicly known RS-232 behaviour and reimplementation, with
   partial hardware testing.
+- The RX-V1900 profile was tested on one RX-V1900 G/E (UK/Europe) unit, for the
+  controls listed in
+  [Supported Receivers](docs/supported_models.md#rx-v1900). Regional variants
+  (U/C/J) are untested.
 - Extended setup controls (bass, treble, speaker distances, dimmer) are
   implemented for RX-Vx600-style devices. The x700 and x800 profile maps need
   broader hardware validation.

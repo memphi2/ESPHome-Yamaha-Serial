@@ -2,8 +2,31 @@
 
 ## Migration
 
-These changes ship in `v0.2.4`. Review them when upgrading from `v0.2.3`
-or earlier.
+### Upgrading to 0.3.0
+
+Configurations from `v0.2.4` keep working: no option was renamed or removed.
+
+- `examples/yamaha_rx_vx500.yaml` is gone. Its configuration is in
+  [Supported Receivers](supported_models.md#rx-v1500-and-rx-v2500-rx-vx500),
+  now without the reset button and with raw commands off. If you use the
+  `yamaha_raw_command` API service, keep it in your own configuration with
+  `allow_raw_commands: true` and API encryption.
+- `receiver_reset` is a factory reset: the receiver deletes every user setting.
+  The full example now sets `disabled_by_default: true`, which only affects
+  newly added devices. If the button is enabled in Home Assistant and you do
+  not need it, remove it from your YAML.
+- RX-Vx700 and RX-Vx800 profiles decode playback format and sampling rate with
+  the RX-Vx700 tables, so their text changes, for example to Dolby Digital at
+  48 kHz instead of "Dolby Digital 2.0" at 176.4 kHz. Update automations that
+  match the old text.
+- An RX-V1900 gets its own profile. Set `model: "RX-V1900"`, keep
+  `receiver_profile: auto`, remove an `inputs:` block copied from the RX-V1600
+  examples, and set RS-232C STANDBY to YES; see
+  [RX-V1900](supported_models.md#rx-v1900).
+
+### Upgrading to 0.2.4
+
+Review these when upgrading from `v0.2.3` or earlier.
 
 - Raw actions, aliases and raw `play_media` shortcuts need
   `allow_raw_commands: true`. The full example opts in explicitly and uses an
