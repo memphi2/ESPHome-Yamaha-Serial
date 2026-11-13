@@ -6,8 +6,8 @@ These changes ship in `v0.2.4`. Review them when upgrading from `v0.2.3`
 or earlier.
 
 - Raw actions, aliases and raw `play_media` shortcuts need
-  `allow_raw_commands: true`. The full/x500 examples opt in explicitly and use
-  encrypted API connections; Basic leaves raw access off.
+  `allow_raw_commands: true`. The full example opts in explicitly and uses an
+  encrypted API connection; Basic leaves raw access off.
 - `volume.min/max/step` now govern typed volume steps and provide the defaults
   for volume numbers. Remove redundant number limits or keep them within the
   parent limits. Values must be finite half-dB increments, within -80..16.5 dB.

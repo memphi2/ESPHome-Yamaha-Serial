@@ -35,7 +35,7 @@ Supported frame start bytes:
 - `STX (0x02)` report/control responses
 - `DC1 (0x11)` ready/text responses
 - `DC2 (0x12)` configuration response
-- `DC3 (0x13)` reset
+- `DC3 (0x13)` factory reset
 - `DC4 (0x14)` extended protocol
 
 Frame end byte:
@@ -130,7 +130,7 @@ Primary commands in this port:
 | Any STX operation command | Standard RX-Vx600/Vx500 command not exposed as an entity | `yamaha_serial.raw_command` using `stx:<payload>` |
 | Any DC4 extended command | Extended command matrix | `yamaha_serial.raw_command` using `dc4:<payload>` |
 | `DC1 000` | ready/probe | `yamaha_serial.raw_command` using `dc1:000` |
-| `DC3 DEL DEL DEL` | receiver reset | `yamaha_serial.raw_command` using `dc3:reset` |
+| `DC3 DEL DEL DEL` | factory reset: recalls factory presets, deletes all user settings | `button.receiver_reset`, `yamaha_serial.raw_command` using `dc3:reset` |
 
 ### Symbolic raw command aliases
 

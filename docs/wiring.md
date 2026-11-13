@@ -1,32 +1,52 @@
 # RS-232 Wiring
 
-## Do not connect RS-232 directly to ESP GPIO
+## Do Not Connect RS-232 Directly to ESP GPIO
 
-Yamaha receiver serial ports use true RS-232 voltage levels.
-ESP8266/ESP32 UART pins are TTL-level only.
+Yamaha receiver serial ports use true RS-232 voltage levels. ESP8266 and ESP32
+UART pins are 3.3 V TTL only.
 
-Always use a proper RS-232 <-> TTL converter, for example:
-- MAX3232-based module (recommended for 3.3V logic)
-- known-good TTL-RS232 converter with correct voltage domain
+Always use an RS-232 <-> TTL converter, for example:
 
-## Minimum wiring
+- a MAX3232-based module (recommended for 3.3 V logic);
+- another known-good TTL-RS232 converter for the right voltage.
 
-Typical setup:
+## Minimum Wiring
+
 - ESP `TX` -> converter `TX TTL`
 - ESP `RX` -> converter `RX TTL`
 - ESP `GND` -> converter `GND`
 - Converter RS-232 side -> Yamaha DB9 serial port
 
-DB9 direction stays crossed end-to-end through the converter.
+The DB9 direction stays crossed end-to-end through the converter. If the
+receiver never answers, swap TX and RX first.
 
-## Handshake note
+## Pins in the Examples
 
-Yamaha docs describe hardware handshaking (`RTS/CTS`).
-If your converter/module requires handshake lines, wire or strap as needed.
-For RX-Vx600/RX-V1600 style setups this is often critical:
-- hold `CTS` high (many MAX3232 DB9 modules do this by bridging `RTS` and `CTS`)
-- if `CTS` is floating/low, receiver responses may stay completely silent
+| Example | Board | ESP TX | ESP RX | Note |
+|---|---|---|---|---|
+| [`yamaha_rx_v_basic.yaml`](../examples/yamaha_rx_v_basic.yaml) | ESP32 (`esp32dev`) | `GPIO17` | `GPIO16` | The logger stays on its default port. |
+| [`yamaha_rx_v_full.yaml`](../examples/yamaha_rx_v_full.yaml) | ESP8266 (`nodemcuv2`) | `GPIO1` | `GPIO3` | UART0: set `logger: baud_rate: 0` so log output does not collide with receiver traffic; logs still work over the API. |
 
-## Flashing note
+The serial settings are `9600` baud, 8 data bits, no parity, 1 stop bit, as in
+the examples' `uart:` block.
 
-On many boards, disconnect receiver TX/RX from ESP flashing UART during firmware upload if upload stability is affected.
+## Handshake
+
+Yamaha documents hardware handshaking (`RTS/CTS`). If your converter needs the
+handshake lines, wire or strap them. On RX-Vx600/RX-V1600 setups this is often
+critical:
+
+- hold `CTS` high; many MAX3232 DB9 modules do this by bridging `RTS` and `CTS`;
+- if `CTS` floats or is low, the receiver may stay completely silent.
+
+## Receiver Settings
+
+Some receivers only accept serial control in standby when an RS-232 standby
+option is enabled in the advanced setup. On the RX-V1900, set
+**ADVANCED SETUP > RS-232C STANDBY** to **YES**; the default is NO outside the
+US and Canada.
+
+## Flashing
+
+On many boards, disconnect the converter from the ESP's flashing UART while
+uploading firmware if the upload is unstable.

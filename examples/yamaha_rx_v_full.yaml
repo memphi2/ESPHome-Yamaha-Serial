@@ -107,8 +107,10 @@ button:
     yamaha_serial_id: yamaha
     refresh:
       name: Yamaha Refresh
+    # Factory reset: the receiver deletes every user setting. Enable it in HA only when needed.
     receiver_reset:
       name: Yamaha Receiver Reset
+      disabled_by_default: true
     tuner_auto_up:
       name: Yamaha Tuner Auto Up
     tuner_auto_down:

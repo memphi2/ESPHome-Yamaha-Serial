@@ -1,19 +1,26 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import pathlib
+import re
 
 import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
+# examples/ holds the RX-V1600 reference configurations; the other receivers'
+# configurations are overlays in docs/supported_models.md (see prepare_ci_configs).
 EXAMPLES = [
     ROOT / "examples/yamaha_rx_v_basic.yaml",
     ROOT / "examples/yamaha_rx_v_full.yaml",
-    ROOT / "examples/yamaha_rx_vx500.yaml",
-    ROOT / "examples/yamaha_rx_v1900.yaml",
 ]
+
+_SPEC = importlib.util.spec_from_file_location("prepare_ci_configs", ROOT / "tools/prepare_ci_configs.py")
+_prepare = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(_prepare)
+DOC_CONFIGS = _prepare.doc_configs(ROOT)
 
 
 class _SecretSafeLoader(yaml.SafeLoader):
@@ -28,6 +35,37 @@ _SecretSafeLoader.add_constructor("!secret", _secret_constructor)
 _SecretSafeLoader.add_constructor("!lambda", _secret_constructor)
 
 
+def _configs() -> dict[str, dict]:
+    """Every user-facing configuration: the examples and the documented overlays.
+
+    Both are parsed with the CI generator's loader, so tags read the same everywhere.
+    """
+    configs = {example.name: _prepare.load_config(example.read_text(encoding="utf-8")) for example in EXAMPLES}
+    configs.update(DOC_CONFIGS)
+    return configs
+
+
+def test_documented_receiver_configurations_are_found() -> None:
+    assert set(DOC_CONFIGS) == {"yamaha_rx_vx500.yaml", "yamaha_rx_v1900.yaml"}
+
+
+EXCERPT = re.compile(r"<!-- excerpt: (?P<source>examples/[\w.-]+\.yaml) -->\n```yaml\n(?P<body>.*?)\n```", re.S)
+
+
+def test_documented_excerpts_match_their_example() -> None:
+    # A YAML block marked as an excerpt must show the example's blocks unchanged, so
+    # the reference cannot drift from a configuration CI validates and compiles.
+    found = 0
+    for doc in [*ROOT.glob("*.md"), *(ROOT / "docs").glob("*.md")]:
+        for match in EXCERPT.finditer(doc.read_text(encoding="utf-8")):
+            found += 1
+            excerpt = _prepare.load_config(match["body"])
+            example = _prepare.load_config((ROOT / match["source"]).read_text(encoding="utf-8"))
+            for key, block in excerpt.items():
+                assert block == example[key], f"{doc.name}: `{key}:` differs from {match['source']}"
+    assert found >= 1
+
+
 def test_python_modules_are_syntax_valid() -> None:
     python_files = sorted((ROOT / "components/yamaha_serial").glob("*.py"))
     assert python_files, "No python files found in component folder"
@@ -36,25 +74,22 @@ def test_python_modules_are_syntax_valid() -> None:
 
 
 def test_examples_have_external_component_reference() -> None:
-    for example in EXAMPLES:
-        text = example.read_text(encoding="utf-8")
-        assert "external_components:" in text
-        assert "yamaha_serial" in text
-        assert "github://memphi2/ESPHome-Yamaha-Serial" in text
+    for name, data in _configs().items():
+        (component,) = data["external_components"]
+        assert component["source"] == "github://memphi2/ESPHome-Yamaha-Serial", name
+        assert component["components"] == ["yamaha_serial"], name
 
 
 def test_examples_require_ota_authentication() -> None:
     # An encrypted API only makes encrypted OTA available; it does not require it.
-    for example in EXAMPLES:
-        data = yaml.load(example.read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+    for name, data in _configs().items():
         for entry in data.get("ota", []):
             if entry.get("platform") == "esphome":
-                assert "encryption" in entry or "password" in entry, example.name
+                assert "encryption" in entry or "password" in entry, name
 
 
 def test_examples_have_minimum_expected_blocks() -> None:
-    for example in EXAMPLES:
-        data = yaml.load(example.read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+    for data in _configs().values():
         assert "uart" in data
         assert "yamaha_serial" in data
         assert "external_components" in data
@@ -69,9 +104,15 @@ def test_examples_have_minimum_expected_blocks() -> None:
 
 
 def test_examples_use_report_based_polling_by_default() -> None:
-    for example in EXAMPLES:
-        data = yaml.load(example.read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+    for data in _configs().values():
         assert data["yamaha_serial"]["poll_interval"] == "never"
+
+
+def test_factory_reset_button_is_disabled_by_default() -> None:
+    for name, data in _configs().items():
+        for block in data.get("button", []):
+            if "receiver_reset" in block:
+                assert block["receiver_reset"]["disabled_by_default"] is True, name
 
 
 def test_poll_interval_supports_never_mode() -> None:
@@ -192,8 +233,8 @@ def test_full_example_uses_rx_v1600_consistent_entity_layout() -> None:
     assert "disabled_by_default" not in full["select"][0]["tuner_preset"]
 
 
-def test_x500_example_uses_explicit_x500_profile_and_inputs() -> None:
-    data = yaml.load((ROOT / "examples/yamaha_rx_vx500.yaml").read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+def test_x500_configuration_uses_explicit_x500_profile_and_inputs() -> None:
+    data = DOC_CONFIGS["yamaha_rx_vx500.yaml"]
 
     yamaha = data["yamaha_serial"]
     assert yamaha["model"] == "RX-V1500"
@@ -220,20 +261,22 @@ def test_x500_example_uses_explicit_x500_profile_and_inputs() -> None:
     ):
         assert key in select_block
 
-    services = data["api"]["services"]
-    assert services[0]["service"] == "yamaha_raw_command"
-    assert services[0]["then"][0]["yamaha_serial.raw_command"]["id"] == "yamaha"
+    # The x500 profiles have no fan or DC4 setup controls; their commands would be rejected.
+    assert "fan_mode" not in data["switch"][0]
+    assert "number" not in data
+    assert "receiver_reset" not in data["button"][0]
+    assert data["yamaha_serial"]["allow_raw_commands"] is False
 
 
-def test_rx_v1900_example_uses_rx_v1900_profile_without_unsupported_entities() -> None:
-    data = yaml.load((ROOT / "examples/yamaha_rx_v1900.yaml").read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+def test_rx_v1900_configuration_uses_rx_v1900_profile_without_unsupported_entities() -> None:
+    data = DOC_CONFIGS["yamaha_rx_v1900.yaml"]
 
     yamaha = data["yamaha_serial"]
     assert yamaha["model"] == "RX-V1900"
     assert yamaha["receiver_profile"] == "rx_v1900_extended"
     assert yamaha["poll_interval"] == "never"
-    assert yamaha["allow_raw_commands"] is True
-    # The profile carries the verified RX-V1900 input labels; x500 overrides would undo them.
+    assert yamaha["allow_raw_commands"] is False
+    # The profile carries the verified RX-V1900 input labels; RX-V1600 overrides would undo them.
     assert "inputs" not in yamaha
 
     # A main-zone example: exactly these controls, nothing the RX-V1900 lacks or ignores.
@@ -251,7 +294,6 @@ def test_rx_v1900_example_uses_rx_v1900_profile_without_unsupported_entities() -
         "tuner_am_frequency",
     }
     assert data["button"][0].keys() - {"platform", "yamaha_serial_id"} == {"refresh"}
-    assert data["button"][1]["platform"] == "restart"
     assert data["media_player"][0]["receiver"]["name"] == "Yamaha Receiver"
     number_block = data["number"][0]
     for key in ("tuner_fm_frequency", "tuner_am_frequency"):
@@ -262,8 +304,9 @@ def test_rx_v1900_example_uses_rx_v1900_profile_without_unsupported_entities() -
         assert key not in data["sensor"][0]
     for key in ("input_source", "zone2_input_source"):
         assert key not in data["text_sensor"][0]
-    for key in ("commands_sent", "timeouts", "parse_errors"):
-        assert data["sensor"][0][key]["disabled_by_default"] is True
+    assert data["sensor"][0]["last_response_age"]["disabled_by_default"] is True
+    for key in ("last_error", "last_parse_error"):
+        assert data["text_sensor"][0][key]["disabled_by_default"] is True
     assert data["binary_sensor"][0]["availability"]["name"] == "Yamaha Availability"
 
 

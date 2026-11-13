@@ -47,8 +47,8 @@ A profile must not own:
 4. Add `apply_profile_rx_vxNNN_()` for the standard command table.
 5. Add `apply_profile_rx_vxNNN_extended_()` that calls the standard profile and only enables validated extended capabilities.
 6. Keep user configured `inputs:` labels working by relying on `apply_input_overrides_()` after profile load.
-7. Update `docs/supported_models.md`, `docs/protocol.md`, examples if useful, and command coverage tests.
-8. Validate at least `esphome config` for all examples and compile the smallest realistic ESP8266 profile if the profile targets ESP8266-era hardware.
+7. Update `docs/supported_models.md` (models table, entities per profile and a configuration section with a `ci-config` overlay), `docs/protocol.md` and the command coverage tests. Keep `examples/` for the RX-V1600 reference receiver.
+8. Validate at least `esphome config` for all examples and documented configurations (`python tools/prepare_ci_configs.py` builds both into `.ci/`), and compile the smallest realistic ESP8266 profile if the profile targets ESP8266-era hardware.
 
 ## Runtime Detection
 
