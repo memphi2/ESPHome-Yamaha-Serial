@@ -97,7 +97,7 @@ Primary commands in this port:
 | `0F7F013FC0` / `0F7F0140BF` | NET/USB main / zone2 input | `select.input_source` on RX-V2700/RX-V3800-class profiles |
 | `07AC8` / `07ACE` | BD/HD DVD main / zone2 input | `select.input_source` on x800 profile |
 | `07EE0`..`07EFF` | DSP/Program select | `select.program` |
-| `07E35`..`07E3A` | System Memory preset A-F | `select.scene` |
+| `07E35`..`07E3A` | System Memory preset A-F (1-6 on RX-V1900) | `select.scene` |
 | `07EA6`/`07EA9`/`07EAA`/`07EDA` | Audio select mode | `select.audio_select` |
 | `28B00`..`28B22` | Night mode | `select.night_mode` |
 | `2B200`/`2B201` | Fan mode off/on | `switch.fan_mode` |
@@ -112,6 +112,7 @@ Primary commands in this port:
 | `07EBC`/`07EBD` | Tuner band FM/AM | `select.tuner_band` |
 | `07EBE`/`07EBF` | Tuner auto seek up/down | `button.tuner_auto_up` / `button.tuner_auto_down` |
 | `07EDB`/`07EA8`/`07E3B` | Decoder mode Auto/DTS/AAC | `select.decoder_mode` |
+| `07E67`/`07E68`/`07EC7`/`07E69`/`07E6A` | 2ch surround decoder PLII Movie/Music/Game, Neo:6 Cinema/Music (x700+) | `select.surround_decoder` |
 | `07E28`/`07E29` | Speaker B assignment | `select.speaker_b_assignment` |
 | `07E99`/`07E9A` | Zone2 amp mode | `select.zone2_amp` |
 | `2006050000` | Current tuner station read | FM/AM frequency number state |
@@ -370,11 +371,13 @@ Receiver-specific behavior is modularized by profile:
 - `rx_vx700_extended`: auto-selected x700 profile with DC4 raw/setup transport enabled.
 - `rx_vx800`: standard x800 input/DSP map with DC4 setup entities disabled.
 - `rx_vx800_extended`: auto-selected x800 profile with DC4 raw/setup transport enabled.
+- `rx_v1900`: standard RX-V1900 input and DSP program maps; DC4 setup entities and DC2 offset decode disabled.
+- `rx_v1900_extended`: auto-selected RX-V1900 profile with DC4 raw/setup transport and DC2 offset decode.
 
 In `auto` mode, the configured `model` value is only a startup hint. Once a DC2
 or DC4 recognized model response is received, the normalized receiver model is
 used to reselect the matching extended profile and refresh input/program options.
-Known internal DC2 IDs are translated; `R0177` identifies the x500 family, not a
+Known internal DC2 IDs are translated (for example `R0240` is RX-V1900); `R0177` identifies the x500 family, not a
 unique model. Unknown IDs keep the configured model hint. Explicit profiles stay fixed.
 Changed option lists invalidate removed selections and request one native-API
 client reconnect so HA fetches fresh metadata. Repeated identical reports do not reconnect.
@@ -396,3 +399,133 @@ source/report values:
 The extended operation tables for x700/x800 use 9-byte STX payloads such as
 `0F7F013FC0` for NET/USB source selection. These are accepted by the normal command
 queue and by `yamaha_serial.raw_command` with the `stx:` prefix.
+
+## RX-V1900 profile notes
+
+Everything in this section was measured on one RX-V1900 G/E (UK/Europe) unit.
+Other regional variants differ; see the last item. The RX-V1900 reports DC2
+model ID `R0240` and follows the x800 command generation, with its own main
+input map:
+
+- Main input reports (checked on hardware): `00 PHONO`, `01 CD`, `02 Tuner`,
+  `03 MD/CD-R`, `05 DVD`, `06 TV`, `07 CBL/SAT`, `09 VCR`, `0A DVR`, `0C V-AUX`,
+  `0D USB`, `10 Multi CH`, `11 BD/HD DVD` and `12 DOCK`. There is a single
+  MD/CD-R input (`07A19` / zone 2 `07AD4`); `04` MD/TAPE is never reported.
+- BD/HD DVD reports `11` in the main zone but `0F` in zone 2 (commands `07AC8` /
+  `07ACE`).
+- Zone 2 input commands are ignored while zone 2 is powered off.
+- DOCK reports `12` in the main zone but `08` in zone 2. It is selected with the
+  long remote-code form `0F7F014AB5` (main) and `0F7F014BB4` (zone 2), the codes
+  the remote and Yamaha's Receiver Manager send. `07A55` selects V-AUX, not DOCK.
+- In the DC2 configuration reply, the main input ID spans two hex nibbles
+  (DC2 data DT9/DT10, frame bytes 18-19). RX-Vx500/RX-Vx600 use a single nibble
+  at frame byte 18, so the two-nibble decode is a per-profile capability.
+  The RX-Vx700 RS-232C documentation uses the same two-nibble layout, but the
+  x700/x800 profiles do not enable DC2 offset decode yet.
+- The remaining DC2 offsets used by the extended decode (power, audio select,
+  mute, volume, program, dimmer, fan, Pure Direct) match the RX-V1600 layout.
+- The DC2 reply also gives these startup values, checked against RX-V1900
+  captures with known settings. DTn is frame byte 9+n.
+
+  | Field | DT | Frame byte(s) |
+  |---|---|---|
+  | Zone 2 input (one nibble) | DT13 | 22 |
+  | Zone 2 mute | DT14 | 23 |
+  | Zone 2 volume | DT17-18 | 26-27 |
+  | Extended Surround | DT22 | 31 |
+  | System Sleep, last time set (not used, see below) | DT24 | 33 |
+  | Tuner preset page | DT25 | 34 |
+  | Tuner preset | DT26 | 35 |
+  | Playback format | DT31-32 | 40-41 |
+  | Sampling rate | DT33-34 | 42-43 |
+  | Tuner band | DT37 | 46 |
+  | Sleep, remote timer (not used, see below) | DT186 | 195 |
+
+  Each value uses the same encoding as the matching STX report.
+- Night mode isn't read from the DC2 reply on the RX-V1900, because its RX-V1600
+  position (frame bytes 36-37) holds DT27-28 in this layout. The RX-V1900 has no
+  night mode anyway.
+- DSP program reports use x700 codes except the enhancers: Straight Enhancer is
+  `44` and 7ch Enhancer is `45`. `07ED8` selects Straight Enhancer. 7ch Enhancer
+  is only accepted in the long remote-code form `0F7E81146B` (captured from
+  Receiver Manager); the short form `07E14` and `07ED9` get no reply.
+- DSP program reports and select commands, checked on hardware, in front-panel
+  order: `25` Sci-Fi, `28` Adventure, `29` Drama, `20` Mono Movie, `34` 2ch
+  Stereo, `17` 7ch Stereo, `44` Straight Enhancer, `45` 7ch Enhancer, `2C`
+  Surround Decode, `00` Munich, `05` Vienna, `07` Amsterdam, `09` Freiburg, `0B`
+  Chamber, `0D` Village Vanguard, `11` Warehouse Loft, `0F` Cellar Club, `10` The
+  Roxy Theatre, `0E` The Bottom Line, `21` Sports, `1E` Action Game, `1F`
+  Roleplaying Game, `18` Music Video, `1C` Recital/Opera, `2D` Standard, `24`
+  Spectacle. STRAIGHT (`80`) is reached with the EFFECT key. The RX-V1900 has no
+  Disco, Game or THX programs, so its profile leaves them out.
+- Playback format (`10`) and sampling rate (`11`) reports use the RX-Vx700 tables
+  with the full report byte; this also applies to the x700 and x800 profiles.
+- The tuner band report (`35`) is `00` AM / `01` FM on this unit, the reverse of
+  the x500-x800 manuals (`00` FM). Only the RX-V1900 profile uses the reversed
+  mapping (`tuner_band_fm_is_1`). The `07EBC` (FM) and `07EBD` (AM) commands are
+  unchanged. The DC4 tuner-station field (band `1` = FM) is a separate encoding.
+- The tuner-station write (`050`) is sent without the trailing Program field that
+  the RX-V1900 Extended command table lists for HD Radio (US) models. FM and AM
+  station writes (for example `200D0501001095.00` and `200D0501000000900`) tune
+  the G/E unit and read back correctly; HD Radio models are untested.
+- Tuning from the front panel sends no serial report, so the tuner frequency is
+  only refreshed by the extended tuner-station read (`2006050000`). That read
+  returns only the current station, so the AM frequency stays unknown while the
+  tuner is on FM, and the FM frequency while it is on AM.
+- The RX-V1900 has two sleep timers, and the profile exposes neither
+  (`sleep_control` is off; use a Home Assistant automation instead):
+  - System Sleep ("System Sleep" on the display) is set by `07EB4`-`07EB7`
+    (120/90/60/30) and `07EB3` (Off), acknowledged with `2C`. Its on/off state is
+    never reported: after Off, the `2C` reply, the DC2 reply (DT24 keeps the last
+    time) and all thirteen DC4 information blocks are identical to sleep running.
+  - Sleep (the remote SLEEP key, "Sleep" on the display) reports `C5` and its
+    state is in DC2 DT186 (`00` 120 min, `01` 90, `02` 60, `03` 30, `04` Off), but
+    it has no direct command. The remote key `07A30` steps it: from Off the first
+    press sets 120; within about two seconds each press advances one step, after
+    that a press only shows the current value. `07A31` and `07A32` appear to be the
+    zone 2 and zone 3 keys (untested).
+- System Memory is numbered 1-6 (same `07E35`-`07E3A` commands). Recalling one
+  from the remote reports `30` with the 1-based memory number, followed by a full
+  DC2 configuration reply.
+- The 2ch surround decoder used by Surround Decode on 2-channel sources (analog
+  or digital) reports `6E`: `00` Pro Logic, `01` PLII Movie, `02` PLII Music, `03`
+  PLII Game, `04` Neo:6 Cinema, `05` Neo:6 Music. `07E67`, `07E68`, `07EC7`, `07E69`
+  and `07E6A` select the last five, but only while Surround Decode is active on a
+  2-channel source; otherwise they are ignored. Pro Logic is `07EC9` (`07E66` is
+  refused with a guarded reply). The remote's decoder key `07A8D` steps through
+  all six. Selecting a decoder from Home Assistant always selects Surround Decode
+  first; re-selecting it while active keeps the current decoder. On a
+  multichannel source (tested with Dolby Digital) the receiver still accepts the
+  command and reports `6E`, but the stored setting only applies to 2-channel
+  sources: Surround Decode decodes the multichannel format itself (shown by
+  Playback Format). The select therefore shows the stored 2ch decoder, like the
+  receiver's own setting. If a decoder command gets no reply, the component sets
+  `last_error` but does not treat that as a lost connection. The decoder's DC2
+  position is not known, so it shows unknown until the first `6E` report. This
+  catalog is RX-V1900-specific (`surround_decoder`): the x700/x800 manuals
+  document a different table (for example Neural `07ECC` / `6E 09`, which this
+  unit refuses), and that table is not implemented.
+- The input decoder mode commands (`07EDB`/`07EA8`/`07E3B`, Auto/DTS/AAC) are
+  ignored on both analog and digital inputs, so the RX-V1900 profile rejects them.
+- Extended Surround accepted Off, EX/ES and Auto on a setup without surround
+  back speakers; EX and PLIIx Movie/Music need surround back speakers.
+- DC4 setup writes such as bass/treble (`033`) are acknowledged with the status
+  alone (`20 04 0330`), with no value echo. The component accepts that as success
+  and reads the value back. Front-panel tone changes send no serial report.
+- `07E6B`-`07E70` are Volume Memory 1-6, as in the older manuals: `07E6C`
+  showed "Volume Memory 2" on the display and reported `33 02`; `07E70` reported
+  `33 06`. They are not exposed.
+- There is no Speaker A/B: `07EAB` gets no reply (the A/B remote keys do
+  nothing), so the profile rejects the relay controls (`supports_speaker_relays`).
+- Other remote keys, converted from IR captures and checked over serial (not
+  used by the component): ENHANCER `07A94` toggles Straight Enhancer and 7ch
+  Enhancer; STRAIGHT `07A56` toggles STRAIGHT and the previous program; the
+  program category keys `07A88` (Classical), `07A89` (Live/Club), `07A8A`
+  (Entertain), `07A8B` (Movie) and `07A8C` (Stereo) cycle within their category.
+  Captured but untested zone 3 keys: TV `07AF6`, DOCK `0F7F014CB3`, power `07AED`.
+- Regional variants (from the service manual; none tested): U and J models add
+  the CS II Cinema and CS II Music decoders, and U and C models add Neural-THX and
+  Neural-THX Digital Music. None of these are in the decoder catalog, so the
+  select can't show or set them on those models. U models also list XM/SIRIUS
+  inputs and HD Radio, and use US tuner ranges. Other regions may report a model
+  ID other than `R0240`, in which case select the profile explicitly.

@@ -48,6 +48,11 @@ void YamahaSerialComponent::set_program_select(YamahaSelect *obj) {
   this->configure_program_select_options_();
 }
 
+void YamahaSerialComponent::set_scene_select(YamahaSelect *obj) {
+  this->scene_select_ = obj;
+  this->configure_scene_select_options_();
+}
+
 void YamahaSerialComponent::add_input_mapping(const std::string &key, const std::string &label) {
   const std::string key_norm = normalize_token_(key);
   if (key_norm.empty()) {
@@ -453,6 +458,8 @@ std::string YamahaSerialComponent::normalize_model_name_(const std::string &mode
     return "HTR-6190";
   if (value == "R0225")
     return "RX-V3800";
+  if (value == "R0240")
+    return "RX-V1900";
   if (value.size() > 2 && std::isdigit(static_cast<unsigned char>(value[0])) != 0 &&
       std::isdigit(static_cast<unsigned char>(value[1])) != 0 && value[2] == 'R') {
     value = value.substr(2);

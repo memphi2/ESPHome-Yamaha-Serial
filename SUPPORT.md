@@ -33,7 +33,7 @@ target, not a separately runtime-tested baseline. Real receiver validation is st
 model-specific behavior. The host C++ tests compile the production parser and
 queue with UART/entity doubles and AddressSanitizer/UBSan. HA tests exercise
 the real event dispatcher, service registry, availability and listener cleanup.
-CI also fuzzes the production parser/raw input, validates all eight explicit
+CI also fuzzes the production parser/raw input, validates all ten explicit
 standard/extended profiles, checks generated catalogs, and runs C++ CodeQL.
 
 ## ESPHome Media Player Limitation

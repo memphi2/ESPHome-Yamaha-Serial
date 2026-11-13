@@ -16,10 +16,17 @@ only the common STX command surface should be used.
 
 A profile is responsible for:
 
-- `ProfileCapabilities` flags
+- `ProfileCapabilities` flags; every base profile sets each flag explicitly,
+  because nothing resets them between profiles. Generation-wide:
+  `x700_protocol` (x700/x800 manual facts: DC2 layout, full-byte format/sampling
+  tables, memory-recall reports). Model-specific, so a measurement on one model
+  doesn't spread to a family: `supports_decoder_mode` (Auto/DTS/AAC commands),
+  `sleep_control` (sleep timer commands), `supports_speaker_relays`
+  (Speaker A/B), `tuner_band_fm_is_1` (reversed STX `35` band report) and
+  `surround_decoder` (the RX-V1900 2ch decoder catalog)
 - main and Zone2 input mappings
 - DSP/program mappings
-- System Memory/scene mappings
+- System Memory/scene mappings, including their labels (A-F, or 1-6 on RX-V1900)
 - generation-specific command differences such as MD/TAPE or Pure Direct
 - whether DC2 offset decoding is valid
 - whether typed DC4 setup entities may send commands

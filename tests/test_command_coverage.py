@@ -134,6 +134,8 @@ def test_cpp_contains_profile_layout_hooks() -> None:
     assert 'return "rx_vx700_extended";' in text
     assert 'return "rx_vx800";' in text
     assert 'return "rx_vx800_extended";' in text
+    assert 'return "rx_v1900";' in text
+    assert 'return "rx_v1900_extended";' in text
     assert "apply_profile_rx_vx500_" in text
     assert "apply_profile_rx_vx500_extended_" in text
     assert "apply_profile_rx_vx600_" in text
@@ -142,6 +144,8 @@ def test_cpp_contains_profile_layout_hooks() -> None:
     assert "apply_profile_rx_vx700_extended_" in text
     assert "apply_profile_rx_vx800_" in text
     assert "apply_profile_rx_vx800_extended_" in text
+    assert "apply_profile_rx_v1900_" in text
+    assert "apply_profile_rx_v1900_extended_" in text
     assert "Standard" in profiles_doc
     assert "Extended" in profiles_doc
     assert "handle_detected_model_()" in profiles_doc
@@ -155,6 +159,7 @@ def test_auto_detect_chooses_extended_profiles() -> None:
         "rx_vx600_extended",
         "rx_vx700_extended",
         "rx_vx800_extended",
+        "rx_v1900_extended",
     ):
         assert f'return "{profile}";' in text
 
@@ -200,15 +205,51 @@ def test_standard_and_extended_profiles_have_distinct_capabilities() -> None:
         assert match is not None
         return match.group(1)
 
-    for name in ("apply_profile_rx_vx600_", "apply_profile_rx_vx700_", "apply_profile_rx_vx800_"):
+    for name in (
+        "apply_profile_rx_vx600_",
+        "apply_profile_rx_vx700_",
+        "apply_profile_rx_vx800_",
+        "apply_profile_rx_v1900_",
+    ):
         assert "supports_extended = false" in body(name)
 
     for name in (
         "apply_profile_rx_vx600_extended_",
         "apply_profile_rx_vx700_extended_",
         "apply_profile_rx_vx800_extended_",
+        "apply_profile_rx_v1900_extended_",
     ):
         assert "supports_extended = true" in body(name)
+
+    # Nothing resets capabilities between profiles, so every base profile sets each one.
+    for name in (
+        "apply_profile_rx_vx500_",
+        "apply_profile_rx_vx600_",
+        "apply_profile_rx_vx700_",
+        "apply_profile_rx_vx800_",
+        "apply_profile_rx_v1900_",
+    ):
+        assert "supports_decoder_mode = " in body(name)
+        assert "sleep_control = " in body(name)
+        assert "supports_speaker_relays = " in body(name)
+        assert "tuner_band_fm_is_1 = " in body(name)
+        assert "surround_decoder = " in body(name)
+        assert "x700_protocol = " in body(name)
+    assert "supports_decoder_mode = false" in body("apply_profile_rx_v1900_")
+    assert "sleep_control = false" in body("apply_profile_rx_v1900_")
+    # RX-V1900 observations stay on RX-V1900-only flags, not on x700_protocol.
+    assert "supports_speaker_relays = false" in body("apply_profile_rx_v1900_")
+    assert "tuner_band_fm_is_1 = true" in body("apply_profile_rx_v1900_")
+    assert "surround_decoder = true" in body("apply_profile_rx_v1900_")
+    for name in ("apply_profile_rx_vx700_", "apply_profile_rx_vx800_"):
+        assert "tuner_band_fm_is_1 = false" in body(name)
+        assert "surround_decoder = false" in body(name)
+
+    # RX-V1900 is a standalone profile; only extended enables DC2 decode.
+    assert "this->apply_profile_rx_vx800_();" not in body("apply_profile_rx_v1900_")
+    assert "decode_dc2_layout = false" in body("apply_profile_rx_v1900_")
+    assert "x700_protocol = true" in body("apply_profile_rx_v1900_")
+    assert "decode_dc2_layout = true" in body("apply_profile_rx_v1900_extended_")
 
     assert "void YamahaSerialComponent::apply_profile_rx_vx500_extended_()" in text
 

@@ -12,6 +12,7 @@ EXAMPLES = [
     ROOT / "examples/yamaha_rx_v_basic.yaml",
     ROOT / "examples/yamaha_rx_v_full.yaml",
     ROOT / "examples/yamaha_rx_vx500.yaml",
+    ROOT / "examples/yamaha_rx_v1900.yaml",
 ]
 
 
@@ -40,6 +41,15 @@ def test_examples_have_external_component_reference() -> None:
         assert "external_components:" in text
         assert "yamaha_serial" in text
         assert "github://memphi2/ESPHome-Yamaha-Serial" in text
+
+
+def test_examples_require_ota_authentication() -> None:
+    # An encrypted API only makes encrypted OTA available; it does not require it.
+    for example in EXAMPLES:
+        data = yaml.load(example.read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+        for entry in data.get("ota", []):
+            if entry.get("platform") == "esphome":
+                assert "encryption" in entry or "password" in entry, example.name
 
 
 def test_examples_have_minimum_expected_blocks() -> None:
@@ -213,6 +223,48 @@ def test_x500_example_uses_explicit_x500_profile_and_inputs() -> None:
     services = data["api"]["services"]
     assert services[0]["service"] == "yamaha_raw_command"
     assert services[0]["then"][0]["yamaha_serial.raw_command"]["id"] == "yamaha"
+
+
+def test_rx_v1900_example_uses_rx_v1900_profile_without_unsupported_entities() -> None:
+    data = yaml.load((ROOT / "examples/yamaha_rx_v1900.yaml").read_text(encoding="utf-8"), Loader=_SecretSafeLoader)
+
+    yamaha = data["yamaha_serial"]
+    assert yamaha["model"] == "RX-V1900"
+    assert yamaha["receiver_profile"] == "rx_v1900_extended"
+    assert yamaha["poll_interval"] == "never"
+    assert yamaha["allow_raw_commands"] is True
+    # The profile carries the verified RX-V1900 input labels; x500 overrides would undo them.
+    assert "inputs" not in yamaha
+
+    # A main-zone example: exactly these controls, nothing the RX-V1900 lacks or ignores.
+    assert data["switch"][0].keys() - {"platform", "yamaha_serial_id"} == {"pure_direct"}
+    select_block = data["select"][0]
+    assert select_block.keys() - {"platform", "yamaha_serial_id"} == {
+        "input_source",
+        "program",
+        "audio_select",
+        "tuner_band",
+        "surround_decoder",
+    }
+    assert data["number"][0].keys() - {"platform", "yamaha_serial_id"} == {
+        "tuner_fm_frequency",
+        "tuner_am_frequency",
+    }
+    assert data["button"][0].keys() - {"platform", "yamaha_serial_id"} == {"refresh"}
+    assert data["button"][1]["platform"] == "restart"
+    assert data["media_player"][0]["receiver"]["name"] == "Yamaha Receiver"
+    number_block = data["number"][0]
+    for key in ("tuner_fm_frequency", "tuner_am_frequency"):
+        assert number_block[key]["mode"] == "box"
+    # Read-only sensors only, main zone; diagnostics hidden by default.
+    # No mirrors of state the media player and selects already show.
+    for key in ("volume_db", "zone2_volume_db"):
+        assert key not in data["sensor"][0]
+    for key in ("input_source", "zone2_input_source"):
+        assert key not in data["text_sensor"][0]
+    for key in ("commands_sent", "timeouts", "parse_errors"):
+        assert data["sensor"][0][key]["disabled_by_default"] is True
+    assert data["binary_sensor"][0]["availability"]["name"] == "Yamaha Availability"
 
 
 def _number_entry(key: str) -> ast.Dict:

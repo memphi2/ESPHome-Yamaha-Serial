@@ -69,6 +69,12 @@ def main() -> None:
                     (out / f"yamaha_rx_vx{family}{suffix}_profile.yaml").write_text(
                         yaml.dump(variant, Dumper=ConfigDumper, sort_keys=False), encoding="utf-8"
                     )
+            for suffix in ("", "_extended"):
+                variant = deepcopy(data)
+                variant["yamaha_serial"].update(model="RX-V1900", receiver_profile=f"rx_v1900{suffix}")
+                (out / f"yamaha_rx_v1900{suffix}_profile.yaml").write_text(
+                    yaml.dump(variant, Dumper=ConfigDumper, sort_keys=False), encoding="utf-8"
+                )
 
 
 if __name__ == "__main__":

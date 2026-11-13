@@ -76,6 +76,7 @@ enum class SelectFunction : uint8_t {
   EXTENDED_SURROUND,
   SPEAKER_B_ASSIGNMENT,
   ZONE2_AMP,
+  SURROUND_DECODER,
 };
 
 enum class ButtonFunction : uint8_t {
@@ -116,8 +117,8 @@ class YamahaSelect : public select::Select {
  public:
   void set_parent(YamahaSerialComponent *parent) { this->parent_ = parent; }
   void set_function(SelectFunction function) { this->function_ = function; }
-  // Only the input, zone2 input and program selects take their options from
-  // the configured labels; the rest carry a fixed option list from YAML.
+  // The input, zone2 input, program and scene selects take their options from
+  // the active profile; the rest carry a fixed option list from YAML.
   bool set_options_from_labels(const std::vector<std::string> &labels);
 
  protected:
@@ -196,7 +197,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_input_source_select(YamahaSelect *obj);
   void set_zone2_input_source_select(YamahaSelect *obj);
   void set_program_select(YamahaSelect *obj);
-  void set_scene_select(YamahaSelect *obj) { this->scene_select_ = obj; }
+  void set_scene_select(YamahaSelect *obj);
   void set_audio_select_select(YamahaSelect *obj) { this->audio_select_select_ = obj; }
   void set_night_mode_select(YamahaSelect *obj) { this->night_mode_select_ = obj; }
   void set_tuner_preset_select(YamahaSelect *obj) { this->tuner_preset_select_ = obj; }
@@ -207,6 +208,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void set_extended_surround_select(YamahaSelect *obj) { this->extended_surround_select_ = obj; }
   void set_speaker_b_assignment_select(YamahaSelect *obj) { this->speaker_b_assignment_select_ = obj; }
   void set_zone2_amp_select(YamahaSelect *obj) { this->zone2_amp_select_ = obj; }
+  void set_surround_decoder_select(YamahaSelect *obj) { this->surround_decoder_select_ = obj; }
 
   void set_volume_db_sensor(sensor::Sensor *obj) { this->volume_db_sensor_ = obj; }
   void set_zone2_volume_db_sensor(sensor::Sensor *obj) { this->zone2_volume_db_sensor_ = obj; }
@@ -266,6 +268,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void command_extended_surround(const std::string &label);
   void command_speaker_b_assignment(const std::string &label);
   void command_zone2_amp(const std::string &label);
+  void command_surround_decoder(const std::string &label);
   void command_tuner_auto_seek(bool up);
   void command_dimmer_percent(float percent);
   void command_tuner_preset(uint8_t preset);
@@ -342,6 +345,29 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     bool supports_pure_direct{true};
     bool supports_extended{true};
     bool decode_dc2_layout{false};
+    // STX 07EDB/07EA8/07E3B input decoder mode (Auto/DTS/AAC); ignored by the RX-V1900.
+    bool supports_decoder_mode{true};
+    // STX 07EB3-07EB7 sleep timer commands and their 2C/DC2 DT24 reports. Untested on
+    // hardware for x500-x800; on the RX-V1900 they drive "System Sleep", whose Off is
+    // never reported back, so the RX-V1900 profile disables them.
+    bool sleep_control{true};
+    // STX 07EAB-07EAE Speaker A/B relays and their 2E/2F reports. The RX-V1900 has no
+    // Speaker A/B and never answers these commands.
+    bool supports_speaker_relays{true};
+    // STX 0x35 tuner band reports 00 = AM, 01 = FM. The x500-x800 manuals specify
+    // 00 = FM; the reverse was measured on an RX-V1900 (G/E).
+    bool tuner_band_fm_is_1{false};
+    // RX-V1900 2ch surround decoder select: STX 0x6E reports and direct commands, accepted
+    // only while Surround Decode is active. The x700/x800 manuals document a different
+    // decoder table, which is not implemented.
+    bool surround_decoder{false};
+    // x700+ protocol generation (RX-Vx700, RX-Vx800, RX-V1900), per the x700/x800 manuals:
+    // - DC2 CONFIG uses the x700 layout: two-nibble input ID at frame[18..19] and the
+    //   extra startup fields (Zone2, extended surround, sleep, tuner, format/sampling);
+    //   the RX-V1600 night-mode offset is not read.
+    // - STX 0x10/0x11 playback format/sampling use the full-byte x700 tables.
+    // - STX 0x30 reports a System Memory recall (1-based).
+    bool x700_protocol{false};
   };
 
   struct QueuedCommand {
@@ -357,6 +383,9 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     uint8_t response_mask{0};
     uint8_t selector_length{0};
     bool power_on{false};
+    // No reply is a normal outcome (the receiver ignores the command in some states), so a
+    // final timeout sets last_error but is not treated as a lost connection.
+    bool silence_ok{false};
   };
 
   struct InFlightCommand {
@@ -382,6 +411,8 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void apply_profile_rx_vx700_extended_();
   void apply_profile_rx_vx800_();
   void apply_profile_rx_vx800_extended_();
+  void apply_profile_rx_v1900_();
+  void apply_profile_rx_v1900_extended_();
   void clear_profile_mappings_();
   void load_input_mappings_(const StaticInputMapping *mappings, size_t count);
   void load_program_mappings_(const StaticProgramMapping *mappings, size_t count);
@@ -392,6 +423,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void handle_detected_model_(const std::string &model);
   void configure_input_select_options_();
   void configure_program_select_options_();
+  void configure_scene_select_options_();
   void queue_command_(QueuedCommand command);
   void configure_command_policy_(QueuedCommand &command) const;
   bool response_matches_(const QueuedCommand &command, const std::vector<uint8_t> &frame) const;
@@ -446,6 +478,8 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void publish_extended_surround_by_report_(uint8_t report_id);
   void publish_speaker_b_assignment_by_report_(uint8_t report_id);
   void publish_zone2_amp_by_report_(uint8_t report_id);
+  void publish_scene_by_report_(uint8_t report_id);
+  void publish_surround_decoder_by_report_(uint8_t report_id);
   void publish_playback_format_by_report_(uint8_t report_id);
   void publish_sampling_rate_by_report_(uint8_t report_id);
   void queue_extended_poll_commands_();
@@ -532,6 +566,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   std::string extended_surround_label_{"unknown"};
   std::string speaker_b_assignment_label_{"unknown"};
   std::string zone2_amp_label_{"unknown"};
+  std::string surround_decoder_label_{"unknown"};
   std::string playback_format_{"unknown"};
   std::string sampling_rate_{"unknown"};
   float sampling_rate_hz_{NAN};
@@ -588,6 +623,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   YamahaSelect *extended_surround_select_{nullptr};
   YamahaSelect *speaker_b_assignment_select_{nullptr};
   YamahaSelect *zone2_amp_select_{nullptr};
+  YamahaSelect *surround_decoder_select_{nullptr};
 
   sensor::Sensor *volume_db_sensor_{nullptr};
   sensor::Sensor *zone2_volume_db_sensor_{nullptr};

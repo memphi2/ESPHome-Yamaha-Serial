@@ -63,6 +63,14 @@ static const LabelCommand ZONE2_AMP_COMMANDS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {"external", "07E9A"},
     {"ext", "07E9A"},
 };
+static const LabelCommand SURROUND_DECODER_COMMANDS[] YAMAHA_SERIAL_FLASH_TABLE = {
+    {"pro_logic", "07EC9"},
+    {"plii_movie", "07E67"},
+    {"plii_music", "07E68"},
+    {"plii_game", "07EC7"},
+    {"neo_6_cinema", "07E69"},
+    {"neo_6_music", "07E6A"},
+};
 #endif
 #ifdef YAMAHA_SERIAL_SELECT_REPORTS
 static const ReportLabel AUDIO_SELECT_REPORTS[] = {
@@ -122,5 +130,13 @@ static const ReportLabel ZONE2_AMP_REPORTS[] = {
     {0x01, "Internal"},
     {0x02, "Internal"},
     {0x03, "Internal"},
+};
+static const ReportLabel SURROUND_DECODER_REPORTS[] = {
+    {0x00, "Pro Logic"},
+    {0x01, "PLII Movie"},
+    {0x02, "PLII Music"},
+    {0x03, "PLII Game"},
+    {0x04, "Neo:6 Cinema"},
+    {0x05, "Neo:6 Music"},
 };
 #endif

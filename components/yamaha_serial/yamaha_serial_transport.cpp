@@ -99,6 +99,14 @@ void YamahaSerialComponent::process_command_queue_() {
         return;
       }
       this->timeouts_++;
+      if (in_flight.command.silence_ok) {
+        // Expected silence (the receiver ignores this command in its current state): report it,
+        // but it is no evidence of a lost connection and no state is published.
+        this->set_last_error_(std::string("No reply to '") + in_flight.command.tag +
+                              "' (not applicable in the receiver's current state)");
+        this->in_flight_.reset();
+        return;
+      }
       this->set_last_error_(std::string("Timeout waiting for response to '") + in_flight.command.tag + "'");
       const bool no_activity = in_flight.responses_at_send == this->responses_received_;
       this->in_flight_.reset();

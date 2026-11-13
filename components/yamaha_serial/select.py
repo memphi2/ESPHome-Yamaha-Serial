@@ -86,9 +86,10 @@ DECODER_MODE_OPTIONS = SELECT_CATALOG["decoder_mode"]["options"]
 EXTENDED_SURROUND_OPTIONS = SELECT_CATALOG["extended_surround"]["options"]
 SPEAKER_B_ASSIGNMENT_OPTIONS = SELECT_CATALOG["speaker_b_assignment"]["options"]
 ZONE2_AMP_OPTIONS = SELECT_CATALOG["zone2_amp"]["options"]
+SURROUND_DECODER_OPTIONS = SELECT_CATALOG["surround_decoder"]["options"]
 
 # YAML key -> (component setter, receiver function, option list, icon). The
-# input and program setters replace the option list at runtime from the
+# input, program and scene setters replace the option list at runtime from the
 # configured labels and the detected receiver profile; the rest keep the list
 # below.
 SELECT_TYPES = {
@@ -175,6 +176,12 @@ SELECT_TYPES = {
         SelectFunction.ZONE2_AMP,
         ZONE2_AMP_OPTIONS,
         "mdi:amplifier",
+    ),
+    "surround_decoder": (
+        "set_surround_decoder_select",
+        SelectFunction.SURROUND_DECODER,
+        SURROUND_DECODER_OPTIONS,
+        "mdi:surround-sound-2-0",
     ),
 }
 

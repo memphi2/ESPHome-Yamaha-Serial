@@ -1,6 +1,6 @@
 # Contributing
 
-Use a focused branch and keep the four standard/extended profile pairs distinct.
+Use a focused branch and keep the five standard/extended profile pairs distinct.
 Do not add redundant state/control entities or advertise unsupported HA features.
 Confirm mappings against the receiver's exact protocol revision and capture
 sanitized receiver feedback when testing hardware. Transport access is not proof

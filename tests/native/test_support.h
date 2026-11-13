@@ -40,6 +40,25 @@ class Receiver : public yamaha_serial::YamahaSerialComponent {
   using YamahaSerialComponent::set_last_error_;
   using YamahaSerialComponent::record_parse_error_;
   using YamahaSerialComponent::receiver_model_;
+  using YamahaSerialComponent::input_label_;
+  using YamahaSerialComponent::zone2_input_label_;
+  using YamahaSerialComponent::tuner_band_label_;
+  using YamahaSerialComponent::tuner_preset_label_;
+  using YamahaSerialComponent::tuner_preset_page_label_;
+  using YamahaSerialComponent::sleep_timer_label_;
+  using YamahaSerialComponent::extended_surround_label_;
+  using YamahaSerialComponent::night_mode_label_;
+  using YamahaSerialComponent::mute_on_;
+  using YamahaSerialComponent::zone2_mute_on_;
+  using YamahaSerialComponent::main_volume_db_;
+  using YamahaSerialComponent::zone2_volume_db_;
+  using YamahaSerialComponent::program_label_;
+  using YamahaSerialComponent::playback_format_;
+  using YamahaSerialComponent::sampling_rate_hz_;
+  using YamahaSerialComponent::scene_label_;
+  using YamahaSerialComponent::surround_decoder_label_;
+  using YamahaSerialComponent::bass_percent_;
+  using YamahaSerialComponent::treble_percent_;
   void feed(const std::string &s) { for (uint8_t byte : s) process_incoming_byte_(byte); }
 };
 

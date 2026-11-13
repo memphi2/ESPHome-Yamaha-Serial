@@ -1,6 +1,7 @@
 """Generated lookup data and configuration limits are part of the public contract."""
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -22,9 +23,15 @@ def test_select_reports_are_valid_control_options():
     catalog = json.loads((ROOT / "components/yamaha_serial/select_catalog.json").read_text())
     render_selects(catalog)
     for group in catalog["selects"].values():
+        report_only = set(group.get("report_only", []))
+        assert report_only <= set(group["options"])
         for label in group["options"]:
-            key = label.lower().replace("/", "_").replace(" ", "_")
-            assert key in group["commands"]
+            # Same normalization as YamahaSerialComponent::normalize_token_.
+            key = re.sub(r"[ /:._-]+", "_", label.lower()).strip("_")
+            if label in report_only:
+                assert key not in group["commands"]
+            else:
+                assert key in group["commands"]
 
 
 @pytest.mark.parametrize("values", [

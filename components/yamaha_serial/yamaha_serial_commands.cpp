@@ -164,6 +164,11 @@ void YamahaSerialComponent::command_program(const std::string &label) {
     return;
   }
   const auto &program = this->programs_[idx.value()];
+  if (program.command.empty()) {
+    // Report-only program: decoded from receiver reports, no known select command.
+    this->set_last_error_("Program has no select command for this profile: " + program.label);
+    return;
+  }
   this->queue_simple_command_(FrameType::STX, program.command, "program_select");
 }
 
@@ -179,8 +184,14 @@ void YamahaSerialComponent::command_program_step(bool next) {
   } else {
     current = next ? this->programs_.size() - 1 : 0;
   }
-  const size_t target =
-      next ? (current + 1) % this->programs_.size() : (current + this->programs_.size() - 1) % this->programs_.size();
+  // Skip report-only programs (no select command) when stepping.
+  const size_t count = this->programs_.size();
+  size_t target = current;
+  for (size_t step = 0; step < count; step++) {
+    target = next ? (target + 1) % count : (target + count - 1) % count;
+    if (!this->programs_[target].command.empty())
+      break;
+  }
   this->command_program(this->programs_[target].label);
 }
 
@@ -339,6 +350,10 @@ void YamahaSerialComponent::command_zone2_mute(bool on) {
 }
 
 void YamahaSerialComponent::command_speaker_relay(char relay, bool on) {
+  if (!this->profile_caps_.supports_speaker_relays) {
+    this->set_last_error_("Speaker relay control not supported by active profile");
+    return;
+  }
   if (relay == 'A') {
     this->queue_simple_command_(FrameType::STX, on ? CMD_SPEAKER_A_ON : CMD_SPEAKER_A_OFF,
                                 on ? "speaker_a_on" : "speaker_a_off");
@@ -375,6 +390,10 @@ void YamahaSerialComponent::command_tuner_band(const std::string &label) {
 }
 
 void YamahaSerialComponent::command_sleep_timer(const std::string &label) {
+  if (!this->profile_caps_.sleep_control) {
+    this->set_last_error_("Sleep control disabled for active profile");
+    return;
+  }
   const std::string key = normalize_token_(label);
   const char *command = lookup_command_(SLEEP_TIMER_COMMANDS, std::size(SLEEP_TIMER_COMMANDS), key);
   if (command == nullptr) {
@@ -385,6 +404,10 @@ void YamahaSerialComponent::command_sleep_timer(const std::string &label) {
 }
 
 void YamahaSerialComponent::command_decoder_mode(const std::string &label) {
+  if (!this->profile_caps_.supports_decoder_mode) {
+    this->set_last_error_("Decoder mode not supported by active profile");
+    return;
+  }
   const std::string key = normalize_token_(label);
   const char *command = lookup_command_(DECODER_MODE_COMMANDS, std::size(DECODER_MODE_COMMANDS), key);
   if (command == nullptr) {
@@ -426,6 +449,29 @@ void YamahaSerialComponent::command_zone2_amp(const std::string &label) {
     return;
   }
   this->queue_simple_command_(FrameType::STX, command, "zone2_amp_set");
+}
+
+void YamahaSerialComponent::command_surround_decoder(const std::string &label) {
+  if (!this->profile_caps_.surround_decoder) {
+    this->set_last_error_("Surround decoder not supported by active profile");
+    return;
+  }
+  const std::string key = normalize_token_(label);
+  const char *command = lookup_command_(SURROUND_DECODER_COMMANDS, std::size(SURROUND_DECODER_COMMANDS), key);
+  if (command == nullptr) {
+    this->set_last_error_("Surround decoder has no select command: " + label);
+    return;
+  }
+  // The receiver ignores decoder commands unless Surround Decode (report 0x2C) is active.
+  // Always select it first: the last reported program may be stale or about to change by
+  // a queued command, and re-selecting Surround Decode keeps the current decoder.
+  for (const auto &program : this->programs_) {
+    if (program.report_code == 0x2C && !program.command.empty()) {
+      this->queue_simple_command_(FrameType::STX, program.command, "program_select");
+      break;
+    }
+  }
+  this->queue_simple_command_(FrameType::STX, command, "surround_decoder_set");
 }
 
 void YamahaSerialComponent::command_tuner_auto_seek(bool up) {
