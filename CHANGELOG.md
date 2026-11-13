@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-13
+
 ### Added
 - README badges for the latest release, the Validate and CodeQL workflows, the
   license, the minimum ESPHome and Home Assistant versions, the
