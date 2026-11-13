@@ -78,6 +78,6 @@ def test_component_parser_keeps_expected_frame_guards() -> None:
 
     assert "is_frame_start_(byte)" in text
     assert "byte == static_cast<uint8_t>(FrameType::ETX)" in text
-    assert 'record_parse_error_("UART frame overflow"' in text
-    assert 'record_parse_error_("UART frame interrupted by new frame start"' in text
-    assert 'record_parse_error_("DC4 checksum mismatch"' in text
+    assert 'record_parse_error_(YAMAHA_SERIAL_PSTR("UART frame overflow")' in text
+    assert 'record_parse_error_(YAMAHA_SERIAL_PSTR("UART frame interrupted by new frame start")' in text
+    assert 'record_parse_error_(YAMAHA_SERIAL_PSTR("DC4 checksum mismatch")' in text

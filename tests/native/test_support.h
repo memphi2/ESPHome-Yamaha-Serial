@@ -17,6 +17,7 @@ class Receiver : public yamaha_serial::YamahaSerialComponent {
   using YamahaSerialComponent::responses_received_;
   using YamahaSerialComponent::last_response_ms_;
   using YamahaSerialComponent::last_error_;
+  using YamahaSerialComponent::last_parse_error_;
   using YamahaSerialComponent::in_flight_;
   using YamahaSerialComponent::queue_;
   using YamahaSerialComponent::timeouts_;

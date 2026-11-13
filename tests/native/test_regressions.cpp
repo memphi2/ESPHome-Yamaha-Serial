@@ -144,8 +144,13 @@ void test_regressions() {
   raw.set_last_parse_error_text_sensor(&parse_error);
   raw.record_parse_error_("Rejected packet", std::vector<uint8_t>(268, '0'));
   assert(parse_error.state.size() <= 255);
-  raw.set_last_error_(std::string(400, 'a'));
-  assert(raw.last_error_.size() <= 255);
+  raw.set_last_error_("%s", std::string(400, 'a').c_str());
+  assert(raw.last_error_ == std::string(252, 'a') + "...");
+  // The cut moves back to the start of a UTF-8 character instead of splitting it.
+  raw.set_last_error_("%s%s", std::string(251, 'a').c_str(), "\xC3\xA4 tail");
+  assert(raw.last_error_ == std::string(251, 'a') + "...");
+  raw.set_last_error_("%s", std::string(252, 'a').c_str());
+  assert(raw.last_error_ == std::string(252, 'a'));
 
   Receiver volume;
   ready(volume);

@@ -300,7 +300,9 @@ def test_cpp_waits_for_receiver_before_regular_polling() -> None:
 def test_dc4_parser_ignores_non_extended_payloads_before_minimum_length_check() -> None:
     text = component_source()
     ignore_idx = text.index('ESP_LOGD(TAG, "Ignoring unsupported DC4 payload:')
-    minimum_idx = text.index('record_parse_error_("Extended payload shorter than minimum length", frame)')
+    minimum_idx = text.index(
+        'record_parse_error_(YAMAHA_SERIAL_PSTR("Extended payload shorter than minimum length"), frame)'
+    )
     assert ignore_idx < minimum_idx
     assert "parse_dc4_extended_payload_(body, frame);" in text
 

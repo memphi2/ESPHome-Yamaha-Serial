@@ -4,10 +4,6 @@
 
 #include "esphome/core/log.h"
 
-#ifdef ARDUINO_ARCH_ESP8266
-#include <pgmspace.h>
-#endif
-
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -19,12 +15,6 @@
 namespace esphome::yamaha_serial {
 
 static const char *const TAG = "yamaha_serial";
-
-#ifdef ARDUINO_ARCH_ESP8266
-#define YAMAHA_SERIAL_FLASH_TABLE PROGMEM
-#else
-#define YAMAHA_SERIAL_FLASH_TABLE
-#endif
 
 std::string YamahaSerialComponent::resolve_profile_() const {
   const std::string configured_profile = normalize_token_(this->configured_profile_);
@@ -100,12 +90,7 @@ void YamahaSerialComponent::load_input_mappings_(const StaticInputMapping *mappi
   this->inputs_.clear();
   this->inputs_.reserve(count);
   for (size_t i = 0; i < count; i++) {
-#ifdef ARDUINO_ARCH_ESP8266
-    StaticInputMapping mapping;
-    memcpy_P(&mapping, &mappings[i], sizeof(mapping));
-#else
-    const auto &mapping = mappings[i];
-#endif
+    const StaticInputMapping mapping = flash_read(mappings[i]);
     this->inputs_.push_back({mapping.key, mapping.label, mapping.report_id, mapping.zone2_report_id,
                              mapping.main_command, mapping.zone2_command});
   }
@@ -115,12 +100,7 @@ void YamahaSerialComponent::load_program_mappings_(const StaticProgramMapping *m
   this->programs_.clear();
   this->programs_.reserve(count);
   for (size_t i = 0; i < count; i++) {
-#ifdef ARDUINO_ARCH_ESP8266
-    StaticProgramMapping mapping;
-    memcpy_P(&mapping, &mappings[i], sizeof(mapping));
-#else
-    const auto &mapping = mappings[i];
-#endif
+    const StaticProgramMapping mapping = flash_read(mappings[i]);
     this->programs_.push_back({mapping.label, mapping.report_code, mapping.command});
   }
 }
@@ -129,12 +109,7 @@ void YamahaSerialComponent::load_scene_mappings_(const StaticSceneMapping *mappi
   this->scenes_.clear();
   this->scenes_.reserve(count);
   for (size_t i = 0; i < count; i++) {
-#ifdef ARDUINO_ARCH_ESP8266
-    StaticSceneMapping mapping;
-    memcpy_P(&mapping, &mappings[i], sizeof(mapping));
-#else
-    const auto &mapping = mappings[i];
-#endif
+    const StaticSceneMapping mapping = flash_read(mappings[i]);
     this->scenes_.push_back({mapping.label, mapping.command});
   }
 }

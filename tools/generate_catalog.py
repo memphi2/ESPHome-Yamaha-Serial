@@ -56,7 +56,7 @@ def render_selects(catalog):
         commands.append(f"static const LabelCommand {name.upper()}_COMMANDS[] YAMAHA_SERIAL_FLASH_TABLE = {{")
         commands.extend(f'    {{"{key}", "{payload}"}},' for key, payload in group["commands"].items())
         commands.append("};")
-        reports.append(f"static const ReportLabel {name.upper()}_REPORTS[] = {{")
+        reports.append(f"static const ReportLabel {name.upper()}_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {{")
         reports.extend(f'    {{0x{int(code):02X}, "{label}"}},' for code, label in group["reports"].items())
         reports.append("};")
     return (

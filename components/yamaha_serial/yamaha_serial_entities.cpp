@@ -16,38 +16,45 @@ namespace esphome::yamaha_serial {
 
 static const char *const TAG = "yamaha_serial";
 
+// Report tables live in flash (YAMAHA_SERIAL_FLASH_TABLE) with their labels inline.
 struct ReportLabel {
   uint8_t report;
-  const char *label;
+  char label[24];
 };
 
 struct SamplingRateInfo {
   uint8_t report;
-  const char *label;
+  char label[20];
   float hz;
 };
-static const char *lookup_label_(const ReportLabel *entries, size_t count, uint8_t report) {
-  for (size_t i = 0; i < count; i++) {
-    if (report == entries[i].report) {
-      return entries[i].label;
+
+// Copies the entry for a report code out of a flash table; false if the code is unknown.
+template<typename Entry, size_t N>
+static bool lookup_report_(const Entry (&entries)[N], uint8_t report, Entry &result) {
+  for (const Entry &flash_entry : entries) {
+    const Entry entry = flash_read(flash_entry);
+    if (entry.report == report) {
+      result = entry;
+      return true;
     }
   }
-  return nullptr;
+  return false;
 }
 
-static const SamplingRateInfo *lookup_sampling_rate_(const SamplingRateInfo *entries, size_t count, uint8_t report) {
-  for (size_t i = 0; i < count; i++) {
-    if (report == entries[i].report) {
-      return &entries[i];
-    }
+// Sets `label` from a flash table; leaves it unchanged and returns false if the code is unknown.
+template<size_t N> static bool lookup_label_(const ReportLabel (&entries)[N], uint8_t report, std::string &label) {
+  ReportLabel entry;
+  if (!lookup_report_(entries, report, entry)) {
+    return false;
   }
-  return nullptr;
+  label = entry.label;
+  return true;
 }
 #define YAMAHA_SERIAL_SELECT_REPORTS
 #include "select_catalog.generated.h"
 #undef YAMAHA_SERIAL_SELECT_REPORTS
 
-static const ReportLabel PLAYBACK_FORMAT_REPORTS[] = {
+static const ReportLabel PLAYBACK_FORMAT_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x0, "6CH Input"},
     {0x1, "Analog"},
     {0x2, "PCM"},
@@ -59,20 +66,20 @@ static const ReportLabel PLAYBACK_FORMAT_REPORTS[] = {
     {0x8, "DTS-ES"},
     {0x9, "Other Digital"},
 };
-static const SamplingRateInfo SAMPLING_RATE_REPORTS[] = {
+static const SamplingRateInfo SAMPLING_RATE_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x0, "Analog", 0.0f},        {0x1, "32kHz", 32000.0f},     {0x2, "44.1kHz", 44100.0f},
     {0x3, "48kHz", 48000.0f},     {0x4, "64kHz", 64000.0f},     {0x5, "88.2kHz", 88200.0f},
     {0x6, "96kHz", 96000.0f},     {0x7, "Unknown", NAN},        {0x8, "128.0kHz", 128000.0f},
     {0x9, "176.4kHz", 176400.0f}, {0xA, "192.0kHz", 192000.0f}, {0xB, "48kHz (DTS 96/24)", 48000.0f},
 };
 // RX-Vx700 RS-232C spec, report 0x10 (Format) / 0x11 (Sampling); full RDAT byte.
-static const ReportLabel PLAYBACK_FORMAT_REPORTS_X700[] = {
+static const ReportLabel PLAYBACK_FORMAT_REPORTS_X700[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Analog"},     {0x01, "PCM"},     {0x02, "DSD"},          {0x03, "Digital"},
     {0x04, "Dolby Digital"}, {0x05, "DTS"},  {0x06, "AAC"},          {0x07, "DTS-HD"},
     {0x08, "DTS-HD Master Audio"}, {0x09, "Dolby Digital Plus"}, {0x0A, "Dolby TrueHD"},
     {0x0B, "WMA"},        {0x0C, "MP3"},     {0xFE, "Unknown"},      {0xFF, "None"},
 };
-static const SamplingRateInfo SAMPLING_RATE_REPORTS_X700[] = {
+static const SamplingRateInfo SAMPLING_RATE_REPORTS_X700[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Analog", 0.0f},         {0x01, "8kHz", 8000.0f},       {0x02, "11.025kHz", 11025.0f},
     {0x03, "12kHz", 12000.0f},      {0x04, "16kHz", 16000.0f},     {0x05, "22.05kHz", 22050.0f},
     {0x06, "24kHz", 24000.0f},      {0x07, "32kHz", 32000.0f},     {0x08, "44.1kHz", 44100.0f},
@@ -541,11 +548,9 @@ void YamahaSerialComponent::publish_dimmer_percent_(uint8_t dimmer_nibble) {
 }
 
 void YamahaSerialComponent::publish_audio_select_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(AUDIO_SELECT_REPORTS, std::size(AUDIO_SELECT_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(AUDIO_SELECT_REPORTS, report_id, this->audio_select_label_)) {
     return;
   }
-  this->audio_select_label_ = label;
   if (this->audio_select_select_ != nullptr && this->audio_select_select_->has_option(this->audio_select_label_)) {
     this->audio_select_select_->publish_state(this->audio_select_label_);
   }
@@ -556,11 +561,9 @@ void YamahaSerialComponent::publish_audio_select_by_report_(uint8_t report_id) {
 
 void YamahaSerialComponent::publish_night_mode_by_report_(uint8_t high_nibble, uint8_t low_nibble) {
   const uint8_t key = static_cast<uint8_t>((high_nibble << 4) | low_nibble);
-  const char *label = lookup_label_(NIGHT_MODE_REPORTS, std::size(NIGHT_MODE_REPORTS), key);
-  if (label == nullptr) {
+  if (!lookup_label_(NIGHT_MODE_REPORTS, key, this->night_mode_label_)) {
     return;
   }
-  this->night_mode_label_ = label;
   if (this->night_mode_select_ != nullptr && this->night_mode_select_->has_option(this->night_mode_label_)) {
     this->night_mode_select_->publish_state(this->night_mode_label_);
   }
@@ -580,11 +583,9 @@ void YamahaSerialComponent::publish_tuner_preset_by_report_(uint8_t report_id) {
 }
 
 void YamahaSerialComponent::publish_tuner_preset_page_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(TUNER_PRESET_PAGE_REPORTS, std::size(TUNER_PRESET_PAGE_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(TUNER_PRESET_PAGE_REPORTS, report_id, this->tuner_preset_page_label_)) {
     return;
   }
-  this->tuner_preset_page_label_ = label;
   if (this->tuner_preset_page_select_ != nullptr &&
       this->tuner_preset_page_select_->has_option(this->tuner_preset_page_label_)) {
     this->tuner_preset_page_select_->publish_state(this->tuner_preset_page_label_);
@@ -595,11 +596,9 @@ void YamahaSerialComponent::publish_tuner_band_by_report_(uint8_t report_id) {
   // TUNER_BAND_REPORTS is 00 = FM, 01 = AM (x500-x800 manuals); the RX-V1900 reports the reverse.
   if (this->profile_caps_.tuner_band_fm_is_1 && report_id <= 1)
     report_id ^= 1;
-  const char *label = lookup_label_(TUNER_BAND_REPORTS, std::size(TUNER_BAND_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(TUNER_BAND_REPORTS, report_id, this->tuner_band_label_)) {
     return;
   }
-  this->tuner_band_label_ = label;
   if (this->tuner_band_select_ != nullptr && this->tuner_band_select_->has_option(this->tuner_band_label_)) {
     this->tuner_band_select_->publish_state(this->tuner_band_label_);
   }
@@ -609,33 +608,27 @@ void YamahaSerialComponent::publish_sleep_timer_by_report_(uint8_t report_id) {
   if (!this->profile_caps_.sleep_control) {
     return;
   }
-  const char *label = lookup_label_(SLEEP_TIMER_REPORTS, std::size(SLEEP_TIMER_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(SLEEP_TIMER_REPORTS, report_id, this->sleep_timer_label_)) {
     return;
   }
-  this->sleep_timer_label_ = label;
   if (this->sleep_timer_select_ != nullptr && this->sleep_timer_select_->has_option(this->sleep_timer_label_)) {
     this->sleep_timer_select_->publish_state(this->sleep_timer_label_);
   }
 }
 
 void YamahaSerialComponent::publish_decoder_mode_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(DECODER_MODE_REPORTS, std::size(DECODER_MODE_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(DECODER_MODE_REPORTS, report_id, this->decoder_mode_label_)) {
     return;
   }
-  this->decoder_mode_label_ = label;
   if (this->decoder_mode_select_ != nullptr && this->decoder_mode_select_->has_option(this->decoder_mode_label_)) {
     this->decoder_mode_select_->publish_state(this->decoder_mode_label_);
   }
 }
 
 void YamahaSerialComponent::publish_extended_surround_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(EXTENDED_SURROUND_REPORTS, std::size(EXTENDED_SURROUND_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(EXTENDED_SURROUND_REPORTS, report_id, this->extended_surround_label_)) {
     return;
   }
-  this->extended_surround_label_ = label;
   if (this->extended_surround_select_ != nullptr &&
       this->extended_surround_select_->has_option(this->extended_surround_label_)) {
     this->extended_surround_select_->publish_state(this->extended_surround_label_);
@@ -643,11 +636,9 @@ void YamahaSerialComponent::publish_extended_surround_by_report_(uint8_t report_
 }
 
 void YamahaSerialComponent::publish_speaker_b_assignment_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(SPEAKER_B_ASSIGNMENT_REPORTS, std::size(SPEAKER_B_ASSIGNMENT_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(SPEAKER_B_ASSIGNMENT_REPORTS, report_id, this->speaker_b_assignment_label_)) {
     return;
   }
-  this->speaker_b_assignment_label_ = label;
   if (this->speaker_b_assignment_select_ != nullptr &&
       this->speaker_b_assignment_select_->has_option(this->speaker_b_assignment_label_)) {
     this->speaker_b_assignment_select_->publish_state(this->speaker_b_assignment_label_);
@@ -655,11 +646,9 @@ void YamahaSerialComponent::publish_speaker_b_assignment_by_report_(uint8_t repo
 }
 
 void YamahaSerialComponent::publish_zone2_amp_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(ZONE2_AMP_REPORTS, std::size(ZONE2_AMP_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(ZONE2_AMP_REPORTS, report_id, this->zone2_amp_label_)) {
     return;
   }
-  this->zone2_amp_label_ = label;
   if (this->zone2_amp_select_ != nullptr && this->zone2_amp_select_->has_option(this->zone2_amp_label_)) {
     this->zone2_amp_select_->publish_state(this->zone2_amp_label_);
   }
@@ -677,11 +666,9 @@ void YamahaSerialComponent::publish_scene_by_report_(uint8_t report_id) {
 }
 
 void YamahaSerialComponent::publish_surround_decoder_by_report_(uint8_t report_id) {
-  const char *label = lookup_label_(SURROUND_DECODER_REPORTS, std::size(SURROUND_DECODER_REPORTS), report_id);
-  if (label == nullptr) {
+  if (!lookup_label_(SURROUND_DECODER_REPORTS, report_id, this->surround_decoder_label_)) {
     return;
   }
-  this->surround_decoder_label_ = label;
   if (this->surround_decoder_select_ != nullptr &&
       this->surround_decoder_select_->has_option(this->surround_decoder_label_)) {
     this->surround_decoder_select_->publish_state(this->surround_decoder_label_);
@@ -689,32 +676,29 @@ void YamahaSerialComponent::publish_surround_decoder_by_report_(uint8_t report_i
 }
 
 void YamahaSerialComponent::publish_playback_format_by_report_(uint8_t report_id) {
-  const char *label =
-      this->profile_caps_.x700_protocol
-          ? lookup_label_(PLAYBACK_FORMAT_REPORTS_X700, std::size(PLAYBACK_FORMAT_REPORTS_X700), report_id)
-          : lookup_label_(PLAYBACK_FORMAT_REPORTS, std::size(PLAYBACK_FORMAT_REPORTS), report_id);
-  if (label == nullptr) {
+  const bool known = this->profile_caps_.x700_protocol
+                         ? lookup_label_(PLAYBACK_FORMAT_REPORTS_X700, report_id, this->playback_format_)
+                         : lookup_label_(PLAYBACK_FORMAT_REPORTS, report_id, this->playback_format_);
+  if (!known) {
     return;
   }
-  this->playback_format_ = label;
   if (this->playback_format_text_sensor_ != nullptr) {
     this->playback_format_text_sensor_->publish_state(this->playback_format_);
   }
 }
 
 void YamahaSerialComponent::publish_sampling_rate_by_report_(uint8_t report_id) {
-  const SamplingRateInfo *info =
-      this->profile_caps_.x700_protocol
-          ? lookup_sampling_rate_(SAMPLING_RATE_REPORTS_X700, std::size(SAMPLING_RATE_REPORTS_X700), report_id)
-          : lookup_sampling_rate_(SAMPLING_RATE_REPORTS, std::size(SAMPLING_RATE_REPORTS), report_id);
-  if (info == nullptr) {
+  SamplingRateInfo info;
+  const bool known = this->profile_caps_.x700_protocol ? lookup_report_(SAMPLING_RATE_REPORTS_X700, report_id, info)
+                                                       : lookup_report_(SAMPLING_RATE_REPORTS, report_id, info);
+  if (!known) {
     return;
   }
-  this->sampling_rate_ = info->label;
+  this->sampling_rate_ = info.label;
   if (this->sampling_rate_text_sensor_ != nullptr) {
     this->sampling_rate_text_sensor_->publish_state(this->sampling_rate_);
   }
-  this->sampling_rate_hz_ = info->hz;
+  this->sampling_rate_hz_ = info.hz;
   if (this->sampling_rate_sensor_ != nullptr) {
     this->sampling_rate_sensor_->publish_state(this->sampling_rate_hz_);
   }

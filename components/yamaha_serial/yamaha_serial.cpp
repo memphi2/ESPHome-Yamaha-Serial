@@ -22,7 +22,7 @@ static const char *const TAG = "yamaha_serial";
 void YamahaSerialComponent::set_volume_config(float min_db, float max_db, float step_db) {
   if (!std::isfinite(min_db) || !std::isfinite(max_db) || !std::isfinite(step_db) || min_db < -80.0f ||
       max_db > 16.5f || min_db >= max_db || step_db < 0.5f || step_db > 10.0f) {
-    this->set_last_error_("Invalid volume configuration");
+    this->set_last_error_(YAMAHA_SERIAL_PSTR("Invalid volume configuration"));
     return;
   }
   this->volume_min_db_ = min_db;
@@ -206,16 +206,19 @@ void YamahaSerialComponent::queue_extended_poll_commands_() {
   this->queue_simple_command_(FrameType::DC4, "20060410A0", "poll_subwoofer_distance");
   this->queue_simple_command_(FrameType::DC4, "2006050000", "poll_tuner_station");
 }
-void YamahaSerialComponent::record_parse_error_(const std::string &message) {
+void YamahaSerialComponent::record_parse_error_(const char *message) {
   this->parse_errors_++;
-  this->last_parse_error_ = message.substr(0, 255);
-  ESP_LOGW(TAG, "Parse error: %s", message.c_str());
+  this->last_parse_error_ = flash_string(message);
+  if (this->last_parse_error_.size() > 255) {
+    this->last_parse_error_.resize(255);
+  }
+  ESP_LOGW(TAG, "Parse error: %s", this->last_parse_error_.c_str());
   if (this->last_parse_error_text_sensor_ != nullptr) {
     this->last_parse_error_text_sensor_->publish_state(this->last_parse_error_);
   }
 }
 
-void YamahaSerialComponent::record_parse_error_(const std::string &message, const std::vector<uint8_t> &frame) {
+void YamahaSerialComponent::record_parse_error_(const char *message, const std::vector<uint8_t> &frame) {
   if (!frame.empty()) {
     // Stay below the logger's line buffer even for maximum-length DC2 frames.
     for (size_t offset = 0; offset < frame.size(); offset += 32) {
@@ -240,12 +243,25 @@ void YamahaSerialComponent::publish_connection_state_(const std::string &state) 
   }
 }
 
-void YamahaSerialComponent::set_last_error_(const std::string &message) {
+void YamahaSerialComponent::set_last_error_(const char *format, ...) {
+  // Keep at most 252 bytes plus "...". The buffer holds one more byte, so a cut that would
+  // split a UTF-8 sequence can be moved back to the start of that character.
+  static constexpr size_t MAX_KEPT = 252;
+  char message[MAX_KEPT + 2];
+  va_list args;
+  va_start(args, format);
+  const int written = flash_vsnprintf(message, sizeof(message), format, args);
+  va_end(args);
+  const size_t full = written < 0 ? 0 : static_cast<size_t>(written);
+  const size_t length = std::min(full, sizeof(message) - 1);
+  size_t end = std::min(length, MAX_KEPT);
+  while (end > 0 && end < length && (static_cast<uint8_t>(message[end]) & 0xC0) == 0x80) --end;
   this->error_generation_++;
-  size_t end = std::min<size_t>(message.size(), 252);
-  while (end > 0 && end < message.size() && (static_cast<uint8_t>(message[end]) & 0xC0) == 0x80) --end;
-  this->last_error_ = message.size() > end ? message.substr(0, end) + "..." : message;
-  ESP_LOGW(TAG, "%s", message.c_str());
+  this->last_error_.assign(message, end);
+  if (full > end) {
+    this->last_error_ += "...";
+  }
+  ESP_LOGW(TAG, "%s", this->last_error_.c_str());
   if (this->last_error_text_sensor_ != nullptr) {
     this->last_error_text_sensor_->publish_state(this->last_error_);
   }
@@ -295,7 +311,12 @@ std::optional<size_t> YamahaSerialComponent::find_input_index_(const std::string
     }
   }
 
-  static const std::pair<const char *, const char *> aliases[] = {
+  // Alternative names for profile input keys, tried last to first.
+  struct InputAlias {
+    char token[12];
+    char key[12];
+  };
+  static const InputAlias aliases[] YAMAHA_SERIAL_FLASH_TABLE = {
       {"md", "md_tape"},
       {"tape", "md_tape"},
       {"v_aux", "vaux"},
@@ -338,11 +359,12 @@ std::optional<size_t> YamahaSerialComponent::find_input_index_(const std::string
       {"av3", "dvd"},
   };
   for (auto it = std::rbegin(aliases); it != std::rend(aliases); ++it) {
-    if (token != it->first) {
+    const InputAlias alias = flash_read(*it);
+    if (token != alias.token) {
       continue;
     }
     for (size_t i = 0; i < this->inputs_.size(); i++) {
-      if (this->inputs_[i].key == it->second) {
+      if (this->inputs_[i].key == alias.key) {
         return i;
       }
     }

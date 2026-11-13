@@ -18,7 +18,7 @@ static const char *const TAG = "yamaha_serial";
 
 void YamahaSerialComponent::parse_stx_frame_(const std::vector<uint8_t> &frame) {
   if (frame.size() != 8) {
-    this->record_parse_error_("STX status frame must contain exactly 8 bytes", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("STX status frame must contain exactly 8 bytes"), frame);
     return;
   }
 
@@ -29,12 +29,12 @@ void YamahaSerialComponent::parse_stx_frame_(const std::vector<uint8_t> &frame) 
   const int8_t grd = hex_nibble_(frame[2]);
 
   if (cmd_hi < 0 || cmd_lo < 0 || data_hi < 0 || data_lo < 0 || grd < 0 || hex_nibble_(frame[1]) < 0) {
-    this->record_parse_error_("STX frame contains non-hex status fields", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("STX frame contains non-hex status fields"), frame);
     return;
   }
 
   if (grd > 0) {
-    this->set_last_error_("Guarded command response (GRD=" + std::to_string(grd) + ")");
+    this->set_last_error_(YAMAHA_SERIAL_PSTR("Guarded command response (GRD=%d)"), grd);
   }
 
   const uint8_t cmd = static_cast<uint8_t>((cmd_hi << 4) | cmd_lo);
@@ -187,7 +187,7 @@ void YamahaSerialComponent::parse_stx_frame_(const std::vector<uint8_t> &frame) 
 
 void YamahaSerialComponent::parse_dc1_frame_(const std::vector<uint8_t> &frame) {
   if (frame.size() < 5 || !parse_hex_(std::string_view(reinterpret_cast<const char *>(frame.data() + 1), 2))) {
-    this->record_parse_error_("DC1 text frame shorter than minimum length", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC1 text frame shorter than minimum length"), frame);
     return;
   }
 
@@ -217,7 +217,7 @@ void YamahaSerialComponent::parse_dc1_frame_(const std::vector<uint8_t> &frame) 
 
 void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) {
   if (frame.size() < 12) {
-    this->record_parse_error_("DC2 system-status frame shorter than header/checksum", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC2 system-status frame shorter than header/checksum"), frame);
     return;
   }
   const std::string_view body(reinterpret_cast<const char *>(frame.data() + 1), frame.size() - 4);
@@ -225,11 +225,11 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
   const auto checksum =
       parse_hex_(std::string_view(reinterpret_cast<const char *>(frame.data() + frame.size() - 3), 2));
   if (!length || frame.size() != 12U + (*length == 0 ? MAX_EXTENDED_DATA_LEN : *length)) {
-    this->record_parse_error_("DC2 system-status length mismatch", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC2 system-status length mismatch"), frame);
     return;
   }
   if (!checksum || *checksum != checksum_8bit_(body)) {
-    this->record_parse_error_("DC2 system-status checksum mismatch", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC2 system-status checksum mismatch"), frame);
     return;
   }
   std::string model(frame.begin() + 1, frame.begin() + 6);
@@ -350,13 +350,13 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
 
 void YamahaSerialComponent::parse_dc4_frame_(const std::vector<uint8_t> &frame) {
   if (frame.size() < 8) {
-    this->record_parse_error_("DC4 extended frame shorter than minimum length", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC4 extended frame shorter than minimum length"), frame);
     return;
   }
 
   const std::string_view raw(reinterpret_cast<const char *>(frame.data() + 1), frame.size() - 2);
   if (raw.size() < 4) {
-    this->record_parse_error_("DC4 extended payload shorter than checksum length", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC4 extended payload shorter than checksum length"), frame);
     return;
   }
 
@@ -366,7 +366,7 @@ void YamahaSerialComponent::parse_dc4_frame_(const std::vector<uint8_t> &frame) 
   const char expected_hi = static_cast<char>(nibble_to_hex_(expected_sum >> 4));
   const char expected_lo = static_cast<char>(nibble_to_hex_(expected_sum & 0x0F));
   if (rx_sum.size() != 2 || rx_sum[0] != expected_hi || rx_sum[1] != expected_lo) {
-    this->record_parse_error_("DC4 checksum mismatch", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("DC4 checksum mismatch"), frame);
     return;
   }
 
@@ -380,39 +380,39 @@ void YamahaSerialComponent::parse_dc4_extended_payload_(std::string_view payload
   }
 
   if (payload.size() < 8) {
-    this->record_parse_error_("Extended payload shorter than minimum length", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Extended payload shorter than minimum length"), frame);
     return;
   }
 
   const int8_t len_hi = hex_nibble_(payload[2]);
   const int8_t len_lo = hex_nibble_(payload[3]);
   if (len_hi < 0 || len_lo < 0) {
-    this->record_parse_error_("Extended payload length contains non-hex data", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Extended payload length contains non-hex data"), frame);
     return;
   }
 
   const size_t encoded_len = static_cast<size_t>((len_hi << 4) | len_lo);
   const size_t data_len = encoded_len == 0 ? MAX_EXTENDED_DATA_LEN : encoded_len;
   if (payload.size() != 4 + data_len) {
-    this->record_parse_error_("Extended payload length mismatch", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Extended payload length mismatch"), frame);
     return;
   }
 
   const std::string_view data = payload.substr(4, data_len);
   if (data.size() < 4) {
-    this->record_parse_error_("Extended command data shorter than status field", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Extended command data shorter than status field"), frame);
     return;
   }
 
   const std::string_view command_id = data.substr(0, 3);
   const char status = data[3];
   if (!parse_hex_(command_id).has_value() || status < '0' || status > '4') {
-    this->record_parse_error_("Invalid extended command or status", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Invalid extended command or status"), frame);
     return;
   }
   if (status != '0') {
-    this->set_last_error_("Extended command status error: " + std::string(1, status) + " for " +
-                          std::string(command_id));
+    this->set_last_error_(YAMAHA_SERIAL_PSTR("Extended command status error: %c for %.*s"), status,
+                          static_cast<int>(command_id.size()), command_id.data());
     return;
   }
 
@@ -443,7 +443,7 @@ void YamahaSerialComponent::parse_dc4_extended_payload_(std::string_view payload
 
 void YamahaSerialComponent::parse_tone_control_(std::string_view payload) {
   if (payload.size() < 5) {
-    this->record_parse_error_("Tone-control payload shorter than minimum length");
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Tone-control payload shorter than minimum length"));
     return;
   }
 
@@ -453,7 +453,7 @@ void YamahaSerialComponent::parse_tone_control_(std::string_view payload) {
   const int8_t gain_lo = hex_nibble_(static_cast<uint8_t>(payload[4]));
   if (sp_hp < 0 || sp_hp > 1 || bass_treble < 0 || bass_treble > 1 || gain_hi < 0 || gain_lo < 0 ||
       hex_nibble_(payload[2]) < 0 || ((gain_hi << 4) | gain_lo) > 0x18) {
-    this->record_parse_error_("Tone-control payload contains non-hex data");
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Tone-control payload contains non-hex data"));
     return;
   }
 
@@ -472,7 +472,7 @@ void YamahaSerialComponent::parse_tone_control_(std::string_view payload) {
 
 void YamahaSerialComponent::parse_speaker_distance_(std::string_view payload) {
   if (payload.size() < 5) {
-    this->record_parse_error_("Speaker-distance payload shorter than minimum length");
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Speaker-distance payload shorter than minimum length"));
     return;
   }
 
@@ -482,18 +482,18 @@ void YamahaSerialComponent::parse_speaker_distance_(std::string_view payload) {
   const int8_t d_mid = hex_nibble_(static_cast<uint8_t>(payload[3]));
   const int8_t d_lo = hex_nibble_(static_cast<uint8_t>(payload[4]));
   if (channel < 0 || unit < 0 || d_hi < 0 || d_mid < 0 || d_lo < 0) {
-    this->record_parse_error_("Speaker-distance payload contains non-hex data");
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Speaker-distance payload contains non-hex data"));
     return;
   }
 
   if (unit != 0) {
-    this->set_last_error_("Speaker distance unit is not meter (UNIT=" + std::to_string(unit) + ")");
+    this->set_last_error_(YAMAHA_SERIAL_PSTR("Speaker distance unit is not meter (UNIT=%d)"), unit);
     return;
   }
 
   const uint16_t value = static_cast<uint16_t>((d_hi << 8) | (d_mid << 4) | d_lo);
   if (value < 30 || value > 2400) {
-    this->record_parse_error_("Speaker distance outside protocol range");
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Speaker distance outside protocol range"));
     return;
   }
   this->publish_speaker_distance_(static_cast<uint8_t>(channel), value);
@@ -501,7 +501,7 @@ void YamahaSerialComponent::parse_speaker_distance_(std::string_view payload) {
 
 void YamahaSerialComponent::parse_tuner_station_(std::string_view payload) {
   if (payload.size() < 9) {
-    this->record_parse_error_("Tuner-station payload shorter than minimum length");
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Tuner-station payload shorter than minimum length"));
     return;
   }
 
@@ -511,7 +511,7 @@ void YamahaSerialComponent::parse_tuner_station_(std::string_view payload) {
     char *end = nullptr;
     const float mhz = std::strtof(freq.c_str(), &end);
     if (end == freq.c_str() || *end != '\0' || !std::isfinite(mhz) || mhz < 76.0f || mhz > 108.0f) {
-      this->record_parse_error_("Tuner FM frequency contains invalid data");
+      this->record_parse_error_(YAMAHA_SERIAL_PSTR("Tuner FM frequency contains invalid data"));
       return;
     }
     if (this->tuner_fm_frequency_number_ != nullptr) {
@@ -524,7 +524,7 @@ void YamahaSerialComponent::parse_tuner_station_(std::string_view payload) {
     char *end = nullptr;
     const float khz = std::strtof(freq.c_str(), &end);
     if (end == freq.c_str() || *end != '\0' || !std::isfinite(khz) || khz < 500.0f || khz > 1800.0f) {
-      this->record_parse_error_("Tuner AM frequency contains invalid data");
+      this->record_parse_error_(YAMAHA_SERIAL_PSTR("Tuner AM frequency contains invalid data"));
       return;
     }
     if (this->tuner_am_frequency_number_ != nullptr) {
@@ -532,7 +532,7 @@ void YamahaSerialComponent::parse_tuner_station_(std::string_view payload) {
     }
     return;
   }
-  this->record_parse_error_("Unknown tuner band");
+  this->record_parse_error_(YAMAHA_SERIAL_PSTR("Unknown tuner band"));
 }
 
 }  // namespace esphome::yamaha_serial
