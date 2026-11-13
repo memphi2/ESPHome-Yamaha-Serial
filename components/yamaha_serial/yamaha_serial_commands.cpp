@@ -515,8 +515,9 @@ void YamahaSerialComponent::command_tuner_frequency(float frequency, bool fm) {
     const float clamped = clamp(frequency, 76.0f, 108.0f);
     std::snprintf(freq_chars, sizeof(freq_chars), "%06.2f", static_cast<double>(clamped));
   } else {
-    const auto clamped = static_cast<unsigned>(std::lround(clamp(frequency, 500.0f, 1800.0f)));
-    std::snprintf(freq_chars, sizeof(freq_chars), "%06u", clamped);
+    // A uint16_t has at most five digits, so GCC can see that "%06u" fits.
+    const auto clamped = static_cast<uint16_t>(std::lround(clamp(frequency, 500.0f, 1800.0f)));
+    std::snprintf(freq_chars, sizeof(freq_chars), "%06u", static_cast<unsigned>(clamped));
   }
 
   char write_cmd[18]{0};
