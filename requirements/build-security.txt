@@ -1,5 +1,5 @@
 # Security floors for the build environment; not dependencies shipped in firmware.
-# These remain compatible with ESPHome 2026.10.1's declared requirements.
+# These remain compatible with ESPHome 2026.10.2's declared requirements.
 anyio>=4.14.2
 brotli>=1.2.1
 certifi>=2026.10.19

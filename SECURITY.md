@@ -70,7 +70,8 @@ receive constraints if installed. Firmware test/lint tool versions are pinned;
 the full transitive environment is not hash-locked across Python/platforms.
 
 Two upstream pins remain unresolved in the latest stable ESPHome baseline
-available on this review date (`2026.10.1`):
+available on this review date (`2026.10.1`). `2026.10.2`, the LTS pin since
+`0.3.1`, declares the same dependency pins:
 
 | Dependency | ESPHome pin | Patched version | Relevant boundary |
 |---|---|---|---|

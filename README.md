@@ -1,5 +1,16 @@
 # ESPHome-Yamaha-Serial
 
+[![Release](https://img.shields.io/github/v/release/memphi2/ESPHome-Yamaha-Serial?sort=semver&display_name=tag)](https://github.com/memphi2/ESPHome-Yamaha-Serial/releases/latest)
+[![Validate](https://github.com/memphi2/ESPHome-Yamaha-Serial/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/memphi2/ESPHome-Yamaha-Serial/actions/workflows/validate.yml)
+[![CodeQL](https://github.com/memphi2/ESPHome-Yamaha-Serial/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/memphi2/ESPHome-Yamaha-Serial/actions/workflows/codeql.yml)
+[![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue)](LICENSE)
+<br>
+[![ESPHome 2026.9.0+](https://img.shields.io/badge/ESPHome-2026.9.0%2B-000000?logo=esphome&logoColor=white)](SUPPORT.md#compatibility-baseline)
+[![Listed on esphome.io](https://img.shields.io/badge/esphome.io-listed-000000?logo=esphome&logoColor=white)](https://esphome.io/guides/diy/#external-components--code)
+[![Home Assistant 2026.9.0+](https://img.shields.io/badge/Home%20Assistant-2026.9.0%2B-18BCF2?logo=homeassistant&logoColor=white)](docs/home_assistant_companion.md)
+[![HACS: Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?logo=homeassistantcommunitystore&logoColor=white)](docs/home_assistant_companion.md#installation)
+[![LTS 11.2026](https://img.shields.io/badge/LTS-11.2026-2EA44F)](SUPPORT.md)
+
 Control a Yamaha AV receiver from Home Assistant through its RS-232 port, with
 an ESP32 or ESP8266 running ESPHome.
 

@@ -1,0 +1,23 @@
+name: Weekly upstream check
+
+# New ESPHome and Home Assistant releases reach Validate's stable and beta jobs
+# without a change here. The cron lives in this file, not in validate.yml:
+# GitHub disables a scheduled workflow after 60 days without repository
+# activity, and that must not switch off the push and pull request gate.
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  dispatch:
+    name: start validate on main
+    runs-on: ubuntu-24.04
+    steps:
+      # A workflow_dispatch sent with GITHUB_TOKEN does start a run.
+      - run: gh workflow run validate.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}

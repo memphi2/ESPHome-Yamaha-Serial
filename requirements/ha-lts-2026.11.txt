@@ -1,4 +1,3 @@
 # Install separately from ESPHome: their dependencies can have conflicting pins.
+-r ha-test.txt
 homeassistant==2026.10.4
-pytest>=8.3.0
-pytest-asyncio>=1.0

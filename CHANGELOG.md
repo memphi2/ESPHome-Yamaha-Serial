@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- README badges for the latest release, the Validate and CodeQL workflows, the
+  license, the minimum ESPHome and Home Assistant versions, the
+  [esphome.io listing](https://esphome.io/guides/diy/#external-components--code),
+  HACS and the LTS line. A test keeps the version badges on the baseline in
+  SUPPORT.md.
+- CI tests four versions of ESPHome and of Home Assistant: the LTS pins, the
+  minimums, the newest stable releases and the newest betas, which
+  `tools/resolve_upstream_version.py` reads from PyPI on each run. A new
+  weekly workflow also starts Validate, so a new upstream release is tested
+  without a push. A failing beta job warns but does not fail the workflow.
+- The examples set `esphome: min_version: 2026.9.0`, so an older ESPHome stops
+  with a clear message instead of a build error.
+
+### Changed
+- The minimum ESPHome `2026.9.0` is now compiled in CI, not only validated, and
+  the minimum Home Assistant `2026.9.0` runs the companion runtime tests.
+  `2026.9.0` stays the minimum: older releases reject the examples'
+  `ota: encryption:`, and on `2026.5.0` the component does not compile.
+- LTS build pin ESPHome `2026.10.1` to `2026.10.2`. Both releases declare the
+  same dependency pins, so the host-dependency findings in SECURITY.md are
+  unchanged.
+
+### Fixed
+- The ESP32 build no longer warns about a possible truncation when it formats
+  an AM tuner frequency. The value always fitted; GCC could not see that.
+
 ## [0.3.0] - 2026-11-13
 
 ### Added

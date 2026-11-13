@@ -1,6 +1,8 @@
 esphome:
   name: yamaha-rxv-basic
   friendly_name: Yamaha RX-V Basic
+  # Older ESPHome releases stop with a clear message instead of a build error.
+  min_version: 2026.9.0
 
 esp32:
   board: esp32dev

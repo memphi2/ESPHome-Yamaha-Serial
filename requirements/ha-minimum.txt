@@ -1,0 +1,4 @@
+# The oldest Home Assistant release SUPPORT.md and hacs.json promise for the
+# companion. Install separately from ESPHome: their dependencies can conflict.
+-r ha-test.txt
+homeassistant==2026.9.0

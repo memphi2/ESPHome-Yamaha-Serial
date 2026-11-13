@@ -18,6 +18,54 @@ def declared_version() -> str:
     return match.group(1)
 
 
+def test_readme_badges_match_the_support_policy() -> None:
+    # The compatibility badges are static text; keep them on the baseline SUPPORT.md states.
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    support = (ROOT / "SUPPORT.md").read_text(encoding="utf-8")
+    esphome = re.search(r"^- Minimum ESPHome: `([^`]+)`", support, re.M)
+    home_assistant = re.search(r"^- Minimum Home Assistant for the optional companion integration: `([^`]+)`", support, re.M)
+    lts = re.search(r"^- LTS maintenance baseline: \*\*([^*]+)\*\*", support, re.M)
+    assert esphome and home_assistant and lts
+    assert f"badge/ESPHome-{esphome[1]}%2B-" in readme
+    assert f"badge/Home%20Assistant-{home_assistant[1]}%2B-" in readme
+    assert f"badge/LTS-{lts[1]}-" in readme
+    hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
+    assert hacs["homeassistant"] == home_assistant[1]
+
+
+def test_ci_pins_match_the_support_policy() -> None:
+    # CI must test exactly the versions SUPPORT.md promises.
+    support = (ROOT / "SUPPORT.md").read_text(encoding="utf-8")
+
+    def stated(label: str) -> str:
+        match = re.search(rf"^- {re.escape(label)}: `([^`]+)`", support, re.M)
+        assert match, label
+        return match[1]
+
+    def pinned(name: str, package: str) -> str:
+        text = (ROOT / "requirements" / name).read_text(encoding="utf-8")
+        match = re.search(rf"^{package}==(\S+)$", text, re.M)
+        assert match, name
+        return match[1]
+
+    minimum = stated("Minimum ESPHome")
+    lts = stated("LTS build ESPHome")
+    ha_minimum = stated("Minimum Home Assistant for the optional companion integration")
+    ha_lts = re.search(r"^- LTS build Home Assistant \(companion runtime tests\): `([^`]+)`", support, re.M)
+    assert ha_lts
+    assert pinned("esphome-minimum.txt", "esphome") == minimum
+    assert pinned("esphome-lts-2026.11.txt", "esphome") == lts
+    assert pinned("ha-minimum.txt", "homeassistant") == ha_minimum
+    assert pinned("ha-lts-2026.11.txt", "homeassistant") == ha_lts[1]
+    # The CI table in SUPPORT.md repeats the pins.
+    assert f"| LTS pin | `{lts}` | `{ha_lts[1]}` |" in support
+    assert f"| Minimum | `{minimum}` | `{ha_minimum}` |" in support
+    assert f'"esphome>={minimum}"' in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    for example in ("yamaha_rx_v_basic.yaml", "yamaha_rx_v_full.yaml"):
+        text = (ROOT / "examples" / example).read_text(encoding="utf-8")
+        assert re.search(rf"^  min_version: {re.escape(minimum)}$", text, re.M), example
+
+
 def test_companion_manifest_matches_project_version() -> None:
     manifest = json.loads(
         (ROOT / "custom_components" / "yamaha_serial_receiver" / "manifest.json").read_text(

@@ -1,6 +1,8 @@
 esphome:
   name: yamaha-rxv-full
   friendly_name: Yamaha RX-V Full
+  # Older ESPHome releases stop with a clear message instead of a build error.
+  min_version: 2026.9.0
 
 esp8266:
   board: nodemcuv2
