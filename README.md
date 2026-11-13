@@ -1,35 +1,49 @@
 # ESPHome-Yamaha-Serial
 
-ESPHome external component for Yamaha AV receivers controlled via RS-232/UART.
+Control a Yamaha AV receiver from Home Assistant through its RS-232 port, with
+an ESP32 or ESP8266 running ESPHome.
 
-This project provides a native ESPHome external component for Yamaha RS-232 receivers with non-blocking parsing, queueing, retries, diagnostics entities, and ESPHome-native switches/selects/sensors.
+The component gives you a media player (power, volume, mute), selects for the
+input, DSP program and System Memory, Zone2 and tuner controls, sound and setup
+controls, status sensors such as playback format and sampling rate, and
+diagnostics. It reads the receiver's own status reports, so most changes made
+with the remote or on the front panel show up in Home Assistant.
 
-## Project status
+## Status
 
-- Current status: `beta`
-- LTS maintenance baseline: **11.2026** (`0.2.4`), see [SUPPORT.md](SUPPORT.md).
-- Focus: RX-Vx500 / RX-Vx600 / RX-Vx700 / RX-Vx800 / RX-V1900 RS-232 command families
-- Profile architecture: `auto` + standard/extended profiles for RX-Vx500, RX-Vx600, RX-Vx700, RX-Vx800, and RX-V1900
-- Hardware validation: still required on multiple receiver models
+- `beta`. LTS maintenance baseline **11.2026** (`0.3.0`); see
+  [SUPPORT.md](SUPPORT.md).
+- **Reference receiver: RX-V1600.** All [examples](examples) are written for it.
+- Profiles exist for the RX-Vx500, RX-Vx600, RX-Vx700 and RX-Vx800 families and
+  the RX-V1900. Hardware validation is partial; see
+  [Supported Receivers](docs/supported_models.md).
 
-See [docs/supported_models.md](docs/supported_models.md).
+## Safety
 
-## Safety and hardware warning (important)
+Yamaha receivers use **true RS-232 voltage levels** on their DB9 port, not
+3.3 V logic. Never connect an ESP pin directly to the receiver. Use an RS-232
+level converter (MAX3232 or equivalent); see [Wiring](docs/wiring.md).
 
-Yamaha DB9 ports usually use **true RS-232 voltage levels**, not 3.3V TTL.
-Do **not** connect ESP GPIO directly to the receiver serial port.
+## What You Need
 
-Use a proper RS-232 level converter (MAX3232 class or equivalent).
-See [docs/wiring.md](docs/wiring.md).
+- An ESP32 or ESP8266 board.
+- An RS-232 level converter and a cable to the receiver's DB9 port.
+- ESPHome `2026.9.0` or newer.
+- For the optional companion integration, Home Assistant `2026.9.0` or newer.
 
-## Requirements
+## Quick Start
 
-- ESPHome `2026.9.0` or newer (see [SUPPORT.md](SUPPORT.md))
-- An RS-232 level converter between the ESP and the receiver — see
-  [docs/wiring.md](docs/wiring.md)
-- Home Assistant `2026.9.0` or newer for the optional companion integration
+1. Wire the ESP, the converter and the receiver as described in
+   [Wiring](docs/wiring.md).
+2. Copy [`examples/yamaha_rx_v_basic.yaml`](examples/yamaha_rx_v_basic.yaml)
+   into your ESPHome configuration, and fill in a `secrets.yaml` from
+   [`examples/secrets.example.yaml`](examples/secrets.example.yaml). Adjust the
+   UART pins if your wiring differs.
+3. If your receiver is not an RX-V1600, change `model:` and follow its section
+   in [Supported Receivers](docs/supported_models.md#configuration-per-receiver).
+4. Install the firmware and add the device in Home Assistant.
 
-## Installation (External Component)
+The example loads the component from this repository:
 
 ```yaml
 external_components:
@@ -37,259 +51,53 @@ external_components:
     components: [yamaha_serial]
 ```
 
-Pin a tag for reproducible builds:
+Pin a release tag for reproducible builds, for example
+`github://memphi2/ESPHome-Yamaha-Serial@v0.3.0`.
 
-```yaml
-external_components:
-  - source: github://memphi2/ESPHome-Yamaha-Serial@v0.2.4
-    components: [yamaha_serial]
-```
+If nothing happens, start with [Troubleshooting](docs/troubleshooting.md).
 
-## Minimal example
+## Examples
 
-See [examples/yamaha_rx_v_basic.yaml](examples/yamaha_rx_v_basic.yaml).
-This recommended baseline uses:
-- one `media_player` entity for daily receiver control
-- diagnostics entities for availability, connection state, and error visibility
-- optional `media_player.play_media` shortcuts for receiver input/program selection
-
-## Full example
-
-See [examples/yamaha_rx_v_full.yaml](examples/yamaha_rx_v_full.yaml).
-
-## Native Home Assistant media player wrapper
-
-ESPHome has `SELECT_SOURCE` and `SELECT_SOUND_MODE` feature flags, but its
-C++/native-API media-player call path carries no source or sound-mode value:
-`media_player::MediaPlayerCall` has only `command`, `media_url`, `volume` and
-`announcement`, and `MediaPlayerTraits` has no `source_list` or
-`sound_mode_list`. This is still true on ESPHome `2026.10`. This
-repository therefore keeps the ESPHome media-player entity conservative and
-provides an optional Home Assistant companion wrapper for native
-`media_player.select_source` and `media_player.select_sound_mode`.
-
-See [docs/home_assistant_companion.md](docs/home_assistant_companion.md) and
-[examples/home_assistant_companion.yaml](examples/home_assistant_companion.yaml).
-
-## RX-Vx500 example
-
-See [examples/yamaha_rx_vx500.yaml](examples/yamaha_rx_vx500.yaml) for RX-V1500/RX-V2500-style receivers using the explicit `rx_vx500_extended` profile.
-
-## RX-V1900 example
-
-See [examples/yamaha_rx_v1900.yaml](examples/yamaha_rx_v1900.yaml) for the RX-V1900 using the `rx_v1900_extended` profile. It is a main-zone example: the media player, input, program, audio select, Pure Direct, surround decoder and tuner controls, plus Refresh and read-only status sensors (playback format, sampling rate, availability and hidden diagnostics). It was tested on a G/E (UK/Europe) unit. Zone 2, System Memory and the setup entities work too; add them from [examples/yamaha_rx_v_full.yaml](examples/yamaha_rx_v_full.yaml). It has no `inputs:` block, because the profile already carries the RX-V1900 input labels. The RX-V1900 has no Speaker A/B, fan or night mode, and the profile has no sleep timer control. Set **RS-232C STANDBY** to YES in the receiver's advanced setup so it can be controlled from standby.
-
-## Core configuration
-
-```yaml
-yamaha_serial:
-  id: yamaha
-  uart_id: uart_yamaha
-  model: "RX-Vxxx"
-  receiver_profile: auto
-  poll_interval: never
-  command_timeout: 1500ms
-  max_retries: 2
-  command_spacing: 100ms
-  power_on_delay: 2s
-  diagnostics_interval: 60s
-  allow_raw_commands: false
-  inputs:
-    tuner: "Tuner"
-    cd: "CD"
-    dvd: "DVD"
-    dtv_ld: "D-TV/LD"
-    cbl_sat: "CBL/SAT"
-    vaux: "V-AUX"
-  volume:
-    min: -80
-    max: 16
-    step: 0.5
-
-media_player:
-  - platform: yamaha_serial
-    yamaha_serial_id: yamaha
-    receiver:
-      name: Yamaha Receiver
-```
-
-## Configuration options
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `model` | string | `RX-Vx500` | Friendly model hint for diagnostics/logging. |
-| `receiver_profile` | `auto` \| `rx_vx500` \| `rx_vx500_extended` \| `rx_vx600` \| `rx_vx600_extended` \| `rx_vx700` \| `rx_vx700_extended` \| `rx_vx800` \| `rx_vx800_extended` \| `rx_v1900` \| `rx_v1900_extended` | `auto` | Selects receiver-specific mapping/capability profile. Explicit standard profiles keep DC4 setup entities disabled; `auto` starts from the model hint and reapplies the matching extended profile when the receiver reports its real model. |
-| `poll_interval` | time \| `never` \| `off` | `never` | Optional periodic status refresh interval. `never` uses startup sync plus Yamaha report frames only. |
-| `command_timeout` | time | `1500ms` | Timeout for in-flight command responses. |
-| `max_retries` | int | `2` | Maximum retries for reads and recognized idempotent setters. Relative/toggle/unknown writes are never retried. |
-| `command_spacing` | time | `100ms` | Minimum gap between transmitted commands. |
-| `power_on_delay` | time | `2s` | Holdoff after power-on before further queued commands. |
-| `diagnostics_interval` | time | `60s` | Diagnostic publishing cadence, 1s..7d. Does not query the receiver. |
-| `allow_raw_commands` | bool | `false` | Explicit opt-in for raw actions, aliases and raw media-player shortcuts. Requires API encryption when the native API is configured. |
-| `inputs` | map | profile labels | Optional label overrides for existing profile input keys. Unknown keys are logged and are not exposed as controls; Zone2 lists only inputs with a Zone2 command. |
-| `volume.min` | float | `-80` | Minimum dB for typed media-player, button and number controls. Half-dB increments. |
-| `volume.max` | float | `16.5` | Maximum dB for typed controls. Set a lower ceiling for your speakers. Raw commands bypass it. |
-| `volume.step` | float | `0.5` | 0.5..10 dB for typed volume steps; inherited by number controls unless explicitly narrowed. |
-
-Volume steps use the last reported volume plus pending absolute targets. Before
-the first volume report, a step is rejected instead of guessing a loudness.
-Number ranges must fit the parent volume range; reversed or nonfinite limits fail validation.
-Command timeout, spacing and power-on delay are limited to 60s; polling to 7d.
-
-See [migration notes](docs/maintenance.md#migration) before updating an existing
-installation. Diagnostic counters, age and error details now default to disabled
-in HA; existing registry choices are not overridden by a firmware update.
-
-## Implemented entities and features
-
-### Power / Zone
-- Native `media_player` entity for receiver core control: power, mute, volume, volume step, play/power-on, next/previous DSP program
-- Main power on/off
-- Main zone power on/off
-- Zone2 power on/off (where supported)
-- Power toggle button
-
-### Audio
-- Mute on/off
-- Volume up/down
-- Absolute dB volume controls (main + zone2, config entities; daily control is the `media_player` volume)
-- Optional current volume sensors (main + zone2)
-- Optional main volume text state
-- Audio select mode (Auto/Coax/Opt/Analog/HDMI)
-- Night mode (Cinema/Music low-mid-high)
-- Pure Direct on/off
-- Fan mode on/off (profile dependent, config entity)
-- Tuner preset select (`Preset 1`..`Preset 8`)
-- Tuner FM/AM frequency controls for RX-Vx600 extended profiles
-
-### Source / program
-- Input source select (main + zone2)
-- Optional current input text state (main + zone2)
-- Program/DSP select
-- Optional program text state
-- System Memory preset select (A-F, exposed as the `scene` config key for backward compatibility)
-- Zone2 mute
-- Speaker relay A/B
-- Tuner preset page, tuner band and auto seek
-- Sleep timer
-- Decoder mode
-- Extended surround mode
-- Speaker B assignment
-- Zone2 amp mode
-- Playback format text sensor
-- Sampling-rate sensor in Hz, plus optional text state for raw Yamaha labels
-- `media_player.play_media` shortcuts:
-  - `input:DVD`, `source:Tuner`, `select_source=DVD`, `yamaha://input/dvd`, `media-source://yamaha/source/dvd`
-  - `program:STRAIGHT`, `dsp:7ch Stereo`, `sound_mode=STRAIGHT`, `yamaha://program/straight`, `yamaha://sound_mode/straight`
-  - `scene:A`, `yamaha://scene/a`
-  - `yamaha://raw/stx/07E7E`, `yamaha://raw/dc4/20050000F`
-
-### Polling / refresh
-- Startup bootstrap sequence
-- Yamaha report-frame based updates after startup
-- Optional periodic refresh queue via `poll_interval`
-- Manual refresh button
-- Extended status polling for compatible profiles
-- Offline-safe startup: waits for first receiver response before startup sync/manual refresh
-
-### Extended setup controls (RX-Vx600 profile)
-- Bass
-- Treble
-- Speaker distances (center/front/surround/subwoofer)
-- Dimmer
-- Receiver reset button
-- Raw Yamaha command action/API service for complete raw command access:
-  - named aliases for finite table commands, for example `program_munich`, `zone3_power_on`, `gui_cursor_up`, `ipod_play`, `net_usb_play`, `system_memory_save_3`
-  - `stx:<payload>` for standard operation commands
-  - `dc4:<payload>` for RX-Vx600 extended commands, checksum added automatically
-  - `dc1:000` for ready/probe
-  - `dc3:reset` for receiver reset
-
-The full examples expose an ESPHome API service named `yamaha_raw_command`.
-Call it from Home Assistant with a payload such as `{"command": "power_on"}`,
-`{"command": "alias:zone3_power_on"}` or `{"command": "stx:07E7E"}`.
-
-### Receiver profiles
-
-| Profile | Auto-detected models | Notes |
+| File | Board | Contents |
 |---|---|---|
-| `rx_vx500` | never by `auto` | Standard x500 input/program map; standard setup controls; no typed DC4 setup controls. |
-| `rx_vx500_extended` | RX-V1500, RX-V2500 | Extended x500 slot for profile consistency; standard setup controls, with raw extended frames available through the raw command action. |
-| `rx_vx600` | never by `auto` | Standard x600-compatible baseline; DC4 setup entities disabled. |
-| `rx_vx600_extended` | RX-V1600, RX-V2600 | Extended x600 profile with DC4 setup controls and RX-V1600 DC2 offset decode. |
-| `rx_vx700` | never by `auto` | Standard x700 input/program map; DC4 setup entities disabled. |
-| `rx_vx700_extended` | RX-V1700, RX-V2700 | Extended x700 profile with x700 input/program map and DC4 raw/setup transport enabled. |
-| `rx_vx800` | never by `auto` | Standard x800 input/program map; DC4 setup entities disabled. |
-| `rx_vx800_extended` | RX-V1800, RX-V3800 | Extended x800 profile with x800 input/program map and DC4 raw/setup transport enabled. |
-| `rx_v1900` | never by `auto` | Standard RX-V1900 input and program maps; DC4 setup entities and DC2 offset decode disabled. |
-| `rx_v1900_extended` | RX-V1900 | Extended RX-V1900 profile with DC4 raw/setup transport and DC2 offset decode (two-nibble input ID). |
+| [`yamaha_rx_v_basic.yaml`](examples/yamaha_rx_v_basic.yaml) | ESP32 | Media player and diagnostics. The recommended start. |
+| [`yamaha_rx_v_full.yaml`](examples/yamaha_rx_v_full.yaml) | ESP8266 (NodeMCU, UART0) | Every entity the RX-V1600 supports, including Zone2, tuner, tone and speaker setup, and the raw command service. |
+| [`home_assistant_companion.yaml`](examples/home_assistant_companion.yaml) | Home Assistant | The companion media player with source and sound-mode lists. |
 
-With `receiver_profile: auto`, the component uses `model` as a startup hint and
-then reselects the matching extended profile after a DC2/DC4 model response.
-Labels configured under `inputs:` are preserved when that profile switch happens.
+Configurations for the RX-Vx500 family, the RX-V1900 and the other receivers
+are in [Supported Receivers](docs/supported_models.md#configuration-per-receiver).
 
-### Diagnostics
-- availability binary sensor
-- connection_state text sensor
-- receiver_model text sensor
-- last_error text sensor
-- last_parse_error text sensor with the last rejected frame/reason
-- last_response_age sensor
-- counters:
-  - commands_sent
-  - responses_received
-  - parse_errors
-  - timeouts
-  - queue_drops
+## Documentation
 
-## Recommended HA layout
+For users:
 
-For a clean Home Assistant device model:
-- start with `media_player` + diagnostics only (the basic example)
-- use `select.input_source`/`select.program` for visible receiver source and DSP state; ESPHome's current C++ media_player API does not expose source or sound-mode state fields
-- enable the optional Home Assistant companion wrapper when you want one native receiver `media_player` with `source_list`, `sound_mode_list`, `media_player.select_source`, and `media_player.select_sound_mode`
-- use `media_player.play_media` for dashboard/service shortcuts when you want source/program changes from the media-player entity; HA-style strings such as `select_source=DVD` and `sound_mode=STRAIGHT` are routed through the same mappings
-- do not add redundant state mirrors when HA already has a select/switch/number/media_player state
-- keep noisy diagnostics such as counters and last parse/error details disabled by default unless actively debugging
-- add fine-grained `switch`/`select`/`number` entities only when you need advanced tuning controls
+- [Supported Receivers](docs/supported_models.md): models, profiles, which
+  entities each profile supports, and a configuration per receiver.
+- [Configuration](docs/configuration.md): every option and entity, media player
+  shortcuts and raw commands.
+- [Wiring](docs/wiring.md): converter, pins and handshake.
+- [Troubleshooting](docs/troubleshooting.md).
+- [Home Assistant companion](docs/home_assistant_companion.md): one receiver
+  media player with native source and sound-mode selection.
 
-## RS-232 protocol notes
+For contributors:
 
-See [docs/protocol.md](docs/protocol.md).
-For the entity/alias/raw split across the receiver command surface, see
-[docs/command_matrix.md](docs/command_matrix.md).
-For the receiver-family profile contract, see [docs/profiles.md](docs/profiles.md).
+- [Receiver profiles](docs/profiles.md), [RS-232 protocol](docs/protocol.md)
+  and the [command matrix](docs/command_matrix.md).
+- [Maintenance](docs/maintenance.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The normal HA entities intentionally expose stable receiver controls; the `yamaha_serial.raw_command` action and the optional API service in the full examples keep the broader raw command surface reachable for model-specific or rarely used functions such as I/O assign, rename, volume trim, graphic EQ, DC trigger, Zone3, NET/USB/iPod/XM operation, tuner station and DSP parameter blocks. Finite RX-Vx500/x600/x700/x800 operation commands are also available as symbolic aliases so automations do not need to carry raw hexadecimal payloads.
+## Support, Security and Privacy
 
-## Known limitations
+- [SUPPORT.md](SUPPORT.md): the supported release line, the ESPHome and Home
+  Assistant baseline, and validated hardware.
+- [SECURITY.md](SECURITY.md): threat model and how to report a vulnerability.
+- [PRIVACY.md](PRIVACY.md): what is collected, stored and shared (nothing
+  leaves your network).
 
-- Cross-model behavior differences exist, especially for input/program IDs and region-specific XM/NET/USB blocks.
-- Zone2 report behavior may vary by model/firmware.
-- Extended setup controls are implemented for RX-Vx600 style devices; x700/x800 profile maps need broader hardware validation.
+## License
 
-## Troubleshooting
+Licensed as `GPL-3.0-only`; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
-See [docs/troubleshooting.md](docs/troubleshooting.md).
-
-## Support, security and privacy
-
-- [SUPPORT.md](SUPPORT.md) — supported release line, ESPHome and Home Assistant
-  baseline, validated hardware and what is deliberately not an entity
-- [SECURITY.md](SECURITY.md) — threat model and how to report a vulnerability
-- [PRIVACY.md](PRIVACY.md) — what is collected, stored and shared (nothing
-  leaves your network)
-
-## License and legal notes
-
-This repository is licensed as `GPL-3.0-only`. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
-
-No Yamaha manual PDFs, manual images, vendor diagrams, or copied vendor tables are included. Product and project names are used only for compatibility description and may be trademarks of their respective owners.
-
-## Architecture notes
-
-- MQTT property transport is not used.
-- ESPHome entities are now first-class (`switch`, `number`, `select`, `sensor`, `text_sensor`, `binary_sensor`, `button`).
-- UART parser and command dispatch are non-blocking and queue-driven.
-- Retry/timeout/spacing and diagnostics are integrated.
-- Receiver behavior is profile-driven, so additional Yamaha model families can be added modularly.
+No Yamaha manual PDFs, manual images, vendor diagrams or copied vendor tables
+are included. Product names are used only to describe compatibility and may be
+trademarks of their owners.

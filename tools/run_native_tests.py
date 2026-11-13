@@ -33,7 +33,7 @@ def run(build, *, build_only=False, fuzz=False):
     sources = ["fuzz_yamaha.cpp"] if fuzz else ["test_yamaha.cpp", "test_regressions.cpp"]
     sanitizers = [] if build_only else ["-fsanitize=" + ("fuzzer," if fuzz else "") + "address,undefined"]
     subprocess.run([
-        os.environ.get("CXX", "clang++" if fuzz else "g++"), "-std=c++17", "-g", *sanitizers,
+        os.environ.get("CXX", "clang++" if fuzz else "g++"), "-std=c++17", "-g", "-Werror=format", *sanitizers,
         "-fno-omit-frame-pointer", "-fno-pie", "-no-pie",
         "-I", str(build), "-I", str(ROOT / "tests/native"),
         "-I", str(ROOT / "components/yamaha_serial"),

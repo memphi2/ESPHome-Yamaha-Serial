@@ -73,14 +73,14 @@ static const LabelCommand SURROUND_DECODER_COMMANDS[] YAMAHA_SERIAL_FLASH_TABLE 
 };
 #endif
 #ifdef YAMAHA_SERIAL_SELECT_REPORTS
-static const ReportLabel AUDIO_SELECT_REPORTS[] = {
+static const ReportLabel AUDIO_SELECT_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Auto"},
     {0x03, "Coax/Opt"},
     {0x04, "Analog"},
     {0x05, "Analog"},
     {0x08, "HDMI"},
 };
-static const ReportLabel NIGHT_MODE_REPORTS[] = {
+static const ReportLabel NIGHT_MODE_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Off"},
     {0x10, "Cinema Low"},
     {0x11, "Cinema Mid"},
@@ -89,30 +89,30 @@ static const ReportLabel NIGHT_MODE_REPORTS[] = {
     {0x21, "Music Mid"},
     {0x22, "Music High"},
 };
-static const ReportLabel TUNER_PRESET_PAGE_REPORTS[] = {
+static const ReportLabel TUNER_PRESET_PAGE_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "A"},
     {0x01, "B"},
     {0x02, "C"},
     {0x03, "D"},
     {0x04, "E"},
 };
-static const ReportLabel TUNER_BAND_REPORTS[] = {
+static const ReportLabel TUNER_BAND_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "FM"},
     {0x01, "AM"},
 };
-static const ReportLabel SLEEP_TIMER_REPORTS[] = {
+static const ReportLabel SLEEP_TIMER_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "120 min"},
     {0x01, "90 min"},
     {0x02, "60 min"},
     {0x03, "30 min"},
     {0x04, "Off"},
 };
-static const ReportLabel DECODER_MODE_REPORTS[] = {
+static const ReportLabel DECODER_MODE_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Auto"},
     {0x10, "DTS"},
     {0x20, "AAC"},
 };
-static const ReportLabel EXTENDED_SURROUND_REPORTS[] = {
+static const ReportLabel EXTENDED_SURROUND_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Off"},
     {0x01, "EX/ES"},
     {0x02, "EX/ES"},
@@ -121,17 +121,17 @@ static const ReportLabel EXTENDED_SURROUND_REPORTS[] = {
     {0x05, "PLIIx Movie"},
     {0x06, "PLIIx Music"},
 };
-static const ReportLabel SPEAKER_B_ASSIGNMENT_REPORTS[] = {
+static const ReportLabel SPEAKER_B_ASSIGNMENT_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Main"},
     {0x01, "Zone B"},
 };
-static const ReportLabel ZONE2_AMP_REPORTS[] = {
+static const ReportLabel ZONE2_AMP_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "External"},
     {0x01, "Internal"},
     {0x02, "Internal"},
     {0x03, "Internal"},
 };
-static const ReportLabel SURROUND_DECODER_REPORTS[] = {
+static const ReportLabel SURROUND_DECODER_REPORTS[] YAMAHA_SERIAL_FLASH_TABLE = {
     {0x00, "Pro Logic"},
     {0x01, "PLII Movie"},
     {0x02, "PLII Music"},

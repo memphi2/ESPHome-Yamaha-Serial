@@ -4,13 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-13
+
 ### Added
 - `rx_v1900` and `rx_v1900_extended` receiver profiles. `auto` selects the
   extended profile when the receiver reports DC2 model ID `R0240` (RX-V1900).
-- `examples/yamaha_rx_v1900.yaml`, a main-zone RX-V1900 example (media player,
+- A main-zone RX-V1900 configuration in
+  [Supported Receivers](docs/supported_models.md#rx-v1900) (media player,
   input, program, audio select, Pure Direct, surround decoder and tuner
-  controls, with status sensors; OTA requires encryption). CI also validates
-  the `rx_v1900` and `rx_v1900_extended` profile variants.
+  controls, with status sensors). CI also validates the `rx_v1900` and
+  `rx_v1900_extended` profile variants.
+- [Configuration](docs/configuration.md), a reference for every option and
+  entity, the media player shortcuts and raw commands.
 - `surround_decoder` select for the RX-V1900's 2ch Pro Logic / PLII / Neo:6
   decoder used by Surround Decode (report `6E`; direct commands for all six,
   including Pro Logic `07EC9`, verified on a G/E unit). Selecting a decoder
@@ -21,6 +26,28 @@ All notable changes to this project will be documented in this file.
   capability): the x700/x800 manuals document a different decoder table, and the
   regional modes (CS II on U/J models, Neural-THX on U/C models) are untested
   and not included.
+
+### Changed
+- ESP8266 static RAM for the full example falls by 6,916 bytes (45,240 to
+  38,324 bytes; flash grows by 6,368 bytes). Error and parse-error messages,
+  the profile input/program/scene tables, select command and report tables,
+  playback format and sampling tables, response-policy rules and input aliases
+  now stay in flash instead of being copied to RAM at boot. Messages, labels
+  and behavior are unchanged: `last_error` is still cut at 252 bytes, and the
+  log still gets the whole message.
+- The user documentation is reorganized. The README is a short quick start;
+  the option and entity reference moved to `docs/configuration.md`, and
+  `docs/supported_models.md` lists which entities each profile supports and
+  has a configuration section per receiver. `docs/wiring.md` has the pins of
+  each example and the receiver's RS-232 standby setting.
+- `examples/` holds only RX-V1600 configurations, the reference receiver. The
+  RX-Vx500 example moved to `docs/supported_models.md` without the reset
+  button and with raw commands off. CI checks the documented configurations
+  with `esphome config` and `yamllint`, so a renamed or removed option fails
+  the build.
+- The `receiver_reset` button and `dc3:reset` are documented as what they are:
+  a factory reset that deletes every user setting on the receiver. The full
+  example keeps the button but disables it by default.
 
 ### Fixed
 - DC2 configuration input decoding is now per profile: RX-Vx500/RX-Vx600 keep the

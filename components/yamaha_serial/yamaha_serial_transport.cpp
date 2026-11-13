@@ -102,12 +102,12 @@ void YamahaSerialComponent::process_command_queue_() {
       if (in_flight.command.silence_ok) {
         // Expected silence (the receiver ignores this command in its current state): report it,
         // but it is no evidence of a lost connection and no state is published.
-        this->set_last_error_(std::string("No reply to '") + in_flight.command.tag +
-                              "' (not applicable in the receiver's current state)");
+        this->set_last_error_(YAMAHA_SERIAL_PSTR("No reply to '%s' (not applicable in the receiver's current state)"),
+                              in_flight.command.tag);
         this->in_flight_.reset();
         return;
       }
-      this->set_last_error_(std::string("Timeout waiting for response to '") + in_flight.command.tag + "'");
+      this->set_last_error_(YAMAHA_SERIAL_PSTR("Timeout waiting for response to '%s'"), in_flight.command.tag);
       const bool no_activity = in_flight.responses_at_send == this->responses_received_;
       this->in_flight_.reset();
       if (no_activity)
@@ -128,7 +128,7 @@ void YamahaSerialComponent::process_command_queue_() {
   this->queue_.pop_front();
 
   if (!this->send_command_(command)) {
-    this->set_last_error_(std::string("Failed to send command '") + command.tag + "'");
+    this->set_last_error_(YAMAHA_SERIAL_PSTR("Failed to send command '%s'"), command.tag);
     return;
   }
   this->last_tx_ms_ = now;
@@ -146,7 +146,7 @@ bool YamahaSerialComponent::send_command_(const QueuedCommand &command) {
   size_t packet_len = 0;
   const size_t expected_len = command.payload.size() + (command.frame_type == FrameType::DC4 ? 4 : 2);
   if (expected_len > sizeof(packet)) {
-    this->set_last_error_("TX payload too long");
+    this->set_last_error_(YAMAHA_SERIAL_PSTR("TX payload too long"));
     return false;
   }
 
@@ -173,7 +173,7 @@ bool YamahaSerialComponent::send_command_(const QueuedCommand &command) {
 void YamahaSerialComponent::check_frame_timeout_() {
   const uint32_t now = millis();
   if (this->in_frame_ && now - this->frame_started_ms_ > FRAME_READ_TIMEOUT_MS) {
-    this->record_parse_error_("UART frame timeout", this->frame_buffer_);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("UART frame timeout"), this->frame_buffer_);
     this->in_frame_ = false;
     this->frame_buffer_.clear();
   }
@@ -185,7 +185,7 @@ void YamahaSerialComponent::process_incoming_byte_(uint8_t byte) {
 
   if (is_frame_start_(byte)) {
     if (this->in_frame_ && !this->frame_buffer_.empty()) {
-      this->record_parse_error_("UART frame interrupted by new frame start", this->frame_buffer_);
+      this->record_parse_error_(YAMAHA_SERIAL_PSTR("UART frame interrupted by new frame start"), this->frame_buffer_);
     }
     this->in_frame_ = true;
     this->frame_started_ms_ = now;
@@ -199,7 +199,7 @@ void YamahaSerialComponent::process_incoming_byte_(uint8_t byte) {
   }
 
   if (this->frame_buffer_.size() >= BUFFER_MAX_LEN) {
-    this->record_parse_error_("UART frame overflow", this->frame_buffer_);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("UART frame overflow"), this->frame_buffer_);
     this->in_frame_ = false;
     this->frame_buffer_.clear();
     return;
@@ -215,7 +215,7 @@ void YamahaSerialComponent::process_incoming_byte_(uint8_t byte) {
 
 void YamahaSerialComponent::parse_frame_(const std::vector<uint8_t> &frame) {
   if (frame.size() < 3) {
-    this->record_parse_error_("Frame shorter than minimum length", frame);
+    this->record_parse_error_(YAMAHA_SERIAL_PSTR("Frame shorter than minimum length"), frame);
     return;
   }
 
@@ -238,7 +238,7 @@ void YamahaSerialComponent::parse_frame_(const std::vector<uint8_t> &frame) {
       ESP_LOGW(TAG, "Receiver sent reset frame");
       break;
     default:
-      this->record_parse_error_("Unknown frame type", frame);
+      this->record_parse_error_(YAMAHA_SERIAL_PSTR("Unknown frame type"), frame);
       break;
   }
 

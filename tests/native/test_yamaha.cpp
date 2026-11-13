@@ -28,7 +28,7 @@ int main() {
   assert(!receiver.in_flight_.has_value());
   // Valid error replies must remain visible after dispatch.
   receiver.feed(extended("20040331"));
-  assert(receiver.last_error_.find("Extended command status error") == 0);
+  assert(receiver.last_error_ == "Extended command status error: 1 for 033");
   receiver.feed(std::string("\x02") + "002600\x03");
   assert(!receiver.last_error_.empty()); // Unrelated reports do not clear command errors.
 
@@ -45,6 +45,7 @@ int main() {
   test_now += 101;
   queue.process_command_queue_();
   assert(queue.timeouts_ == 1 && !queue.in_flight_);
+  assert(queue.last_error_ == "Timeout waiting for response to 'mute_on'");
   for (int i = 0; i < 40; ++i) queue.command_mute(true);
   assert(queue.queue_.size() == 32 && queue.queue_drops_ == 8);
   Receiver probes;
@@ -55,6 +56,7 @@ int main() {
   probes.feed(std::string(1, '\x02') + std::string(269, '0'));
   probes.feed(std::string("\x02") + "002002\x03");
   assert(probes.parse_errors_ == 2 && probes.responses_received_ == 2);
+  assert(probes.last_parse_error_ == "UART frame overflow");
 
   Receiver step;
   step.set_command_timeout(1);
@@ -66,7 +68,9 @@ int main() {
   step.process_command_queue_();
   assert(step.sent.size() == 1 && step.timeouts_ == 1);
   step.command_volume_absolute(NAN, false);
-  assert(step.queue_.empty());
+  assert(step.queue_.empty() && step.last_error_ == "Volume must be finite");
+  step.command_input("no_such_input", false);
+  assert(step.queue_.empty() && step.last_error_ == "Unknown input source: no_such_input");
   assert(!Receiver::parse_volume_text_db_("nan"));
   assert(!Receiver::parse_volume_text_db_("12junk dB"));
   assert(Receiver::parse_volume_text_db_(" -40.5 dB ") == -40.5f);

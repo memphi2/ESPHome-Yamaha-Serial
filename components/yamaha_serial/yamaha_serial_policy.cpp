@@ -113,12 +113,12 @@ void YamahaSerialComponent::configure_command_policy_(QueuedCommand &command) co
         }
       }
       struct Rule {
-        const char *payload;
+        char payload[FLASH_COMMAND_SIZE];
         uint8_t code;
         uint8_t value;
         uint8_t mask;
       };
-      static const Rule rules[] = {
+      static const Rule rules[] YAMAHA_SERIAL_FLASH_TABLE = {
           {"07EA6", 0x22, 0, 0xFF},    {"07EA9", 0x22, 3, 0xFF},    {"07EAA", 0x22, 4, 0xFE}, {"07EDA", 0x22, 8, 0xFF},
           {"07EAB", 0x2E, 1, 0xFF},    {"07EAC", 0x2E, 0, 0xFF},    {"07EAD", 0x2F, 1, 0xFF}, {"07EAE", 0x2F, 0, 0xFF},
           {"07EB3", 0x2C, 4, 0xFF}, {"07EB4", 0x2C, 0, 0xFF},
@@ -127,7 +127,8 @@ void YamahaSerialComponent::configure_command_policy_(QueuedCommand &command) co
           {"07E7C", 0x2D, 3, 0xFF},    {"07EDC", 0x2D, 4, 0xFF},    {"07EDD", 0x2D, 5, 0xFF}, {"07EDE", 0x2D, 6, 0xFF},
           {"07E28", 0x3D, 0, 0xFF},    {"07E29", 0x3D, 1, 0xFF},    {"07E99", 0x3E, 0, 0},    {"07E9A", 0x3E, 0, 0xFF},
       };
-      for (const auto &rule : rules) {
+      for (const auto &flash_rule : rules) {
+        const Rule rule = flash_read(flash_rule);
         if (payload == rule.payload) {
           report(rule.code, rule.value, rule.mask);
           break;

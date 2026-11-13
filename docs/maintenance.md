@@ -2,12 +2,35 @@
 
 ## Migration
 
-These changes ship in `v0.2.4`. Review them when upgrading from `v0.2.3`
-or earlier.
+### Upgrading to 0.3.0
+
+Configurations from `v0.2.4` keep working: no option was renamed or removed.
+
+- `examples/yamaha_rx_vx500.yaml` is gone. Its configuration is in
+  [Supported Receivers](supported_models.md#rx-v1500-and-rx-v2500-rx-vx500),
+  now without the reset button and with raw commands off. If you use the
+  `yamaha_raw_command` API service, keep it in your own configuration with
+  `allow_raw_commands: true` and API encryption.
+- `receiver_reset` is a factory reset: the receiver deletes every user setting.
+  The full example now sets `disabled_by_default: true`, which only affects
+  newly added devices. If the button is enabled in Home Assistant and you do
+  not need it, remove it from your YAML.
+- RX-Vx700 and RX-Vx800 profiles decode playback format and sampling rate with
+  the RX-Vx700 tables, so their text changes, for example to Dolby Digital at
+  48 kHz instead of "Dolby Digital 2.0" at 176.4 kHz. Update automations that
+  match the old text.
+- An RX-V1900 gets its own profile. Set `model: "RX-V1900"`, keep
+  `receiver_profile: auto`, remove an `inputs:` block copied from the RX-V1600
+  examples, and set RS-232C STANDBY to YES; see
+  [RX-V1900](supported_models.md#rx-v1900).
+
+### Upgrading to 0.2.4
+
+Review these when upgrading from `v0.2.3` or earlier.
 
 - Raw actions, aliases and raw `play_media` shortcuts need
-  `allow_raw_commands: true`. The full/x500 examples opt in explicitly and use
-  encrypted API connections; Basic leaves raw access off.
+  `allow_raw_commands: true`. The full example opts in explicitly and uses an
+  encrypted API connection; Basic leaves raw access off.
 - `volume.min/max/step` now govern typed volume steps and provide the defaults
   for volume numbers. Remove redundant number limits or keep them within the
   parent limits. Values must be finite half-dB increments, within -80..16.5 dB.
@@ -56,23 +79,40 @@ no serial command. Avoid redundant number/sensor/control mirrors.
 
 ## Memory Measurement
 
-The full ESP8266 example has 666 aliases. Their names and payloads now live in
-one deduplicated flash string pool with 16-bit offsets and binary-search lookup,
-instead of RAM-resident literals behind a flash pointer table. No alias was
-removed. Unused button backpointers were removed, DC4 dispatch uses string views,
-and queue dispatch moves payloads instead of copying them.
+The ESP8266 copies all `.rodata`, including every string literal, into RAM at
+boot. The component therefore keeps its constant text in flash:
 
-Local comparison on 2026-11-01, ESPHome 2026.10.1, default example configurations:
+- The 666 command aliases live in one deduplicated flash string pool with 16-bit
+  offsets and binary-search lookup, generated from `command_catalog.json`.
+- Profile input/program/scene tables, select command and report tables,
+  playback format and sampling tables, response-policy rules and input aliases
+  are `YAMAHA_SERIAL_FLASH_TABLE` arrays whose strings are inline `char` arrays.
+  `flash_read()` copies one entry, strings included, into RAM. A string longer
+  than its field fails to compile; widen the field in the struct.
+- Error and parse-error messages are flash strings (`YAMAHA_SERIAL_PSTR`).
+  `set_last_error_` formats them with printf-style arguments only when an error
+  occurs. Host tests build with `-Werror=format`, so a mismatched argument
+  fails CI.
 
-| Example | Before RAM | After RAM | Before Flash | After Flash |
-|---|---:|---:|---:|---:|
-| ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,540 B |
-| ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,943 B |
+`yamaha_serial_flash.h` holds these helpers. Never pass a flash string or a
+flash table field to `strlen`, `strcmp` or a `std::string` constructor; on the
+ESP8266 that faults. Tags, fixed command payloads, `snprintf` formats and the
+media player shortcut prefixes are still RAM literals.
 
-ESP8266 static RAM falls by 14,612 bytes (24.9%); the additional checks increase
-flash by 8,180 bytes (1.7%). The flash string placement primarily benefits
-ESP8266; it is not a claim of equivalent ESP32 RAM savings. CI budgets are
-48,000 bytes RAM and 520,000 bytes flash for Full.
+Local comparisons with ESPHome 2026.10.1 and the default example configurations:
+
+| Change | Example | Before RAM | After RAM | Before Flash | After Flash |
+|---|---|---:|---:|---:|---:|
+| Alias string pool (0.2.4) | ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,540 B |
+| Alias string pool (0.2.4) | ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,943 B |
+| Flash tables and messages | ESP8266 Full | 45,240 B | 38,324 B | 487,772 B | 494,140 B |
+| Flash tables and messages | ESP32 Basic | 45,444 B | 45,444 B | 824,047 B | 828,835 B |
+
+The second change was measured on top of the RX-V1900 profiles. ESP8266 static
+RAM falls by 6,916 bytes (15.3%); the change costs 6,368 bytes of flash,
+mostly for the inline table fields. On the ESP32, `.rodata` is already read
+from flash, so it gains no RAM and only pays the flash. CI budgets are 48,000
+bytes RAM and 520,000 bytes flash for Full.
 
 RX is bounded at 268 bytes, raw input at 320 bytes, and the queue at 32 entries.
 Payloads and runtime profile/select lists still use dynamic storage. Static RAM
@@ -107,6 +147,7 @@ is claimed for the maintenance changes.
 - `yamaha_serial_commands.cpp`: typed controls and raw entry points.
 - `yamaha_serial_profiles.cpp`: family mappings and metadata updates.
 - `yamaha_serial_entities.cpp`: ESPHome bindings and report publication.
+- `yamaha_serial_flash.h`: flash placement of constant tables and messages.
 - `command_catalog.json`: public alias/payload catalog.
 - `select_catalog.json`: shared select options, command keys and report labels.
 

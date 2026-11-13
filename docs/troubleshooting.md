@@ -106,8 +106,10 @@ Use the `yamaha_raw_command` API service from the full example:
 stx:07E7E
 dc4:20050000F
 dc1:000
-dc3:reset
 ```
+
+`dc3:reset` also exists, but it is a factory reset that deletes every user
+setting on the receiver.
 
 For `dc4:` use the payload from Yamaha's RX-Vx600 extended table without frame
 bytes and without checksum. The component adds `DC4`, checksum and `ETX`.

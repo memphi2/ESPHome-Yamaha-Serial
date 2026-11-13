@@ -14,6 +14,7 @@
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/component.h"
 #include "esphome/core/helpers.h"
+#include "yamaha_serial_flash.h"
 
 #include <cstdint>
 #include <deque>
@@ -316,24 +317,26 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     std::string command;
   };
 
+  // Profile table entries keep their strings inline, so a whole table stays in flash
+  // (see yamaha_serial_flash.h). A string longer than its array fails to compile.
   struct StaticInputMapping {
-    const char *key;
-    const char *label;
+    char key[12];
+    char label[16];
     uint8_t report_id;
     uint8_t zone2_report_id;
-    const char *main_command;
-    const char *zone2_command;
+    char main_command[FLASH_COMMAND_SIZE];
+    char zone2_command[FLASH_COMMAND_SIZE];
   };
 
   struct StaticProgramMapping {
-    const char *label;
+    char label[20];
     uint8_t report_code;
-    const char *command;
+    char command[FLASH_COMMAND_SIZE];
   };
 
   struct StaticSceneMapping {
-    const char *label;
-    const char *command;
+    char label[4];
+    char command[FLASH_COMMAND_SIZE];
   };
 
   struct ProfileCapabilities {
@@ -448,10 +451,12 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void parse_tone_control_(std::string_view payload);
   void parse_speaker_distance_(std::string_view payload);
   void parse_tuner_station_(std::string_view payload);
-  void record_parse_error_(const std::string &message);
-  void record_parse_error_(const std::string &message, const std::vector<uint8_t> &frame);
+  // Diagnostic texts are flash strings (YAMAHA_SERIAL_PSTR), so their fixed wording stays
+  // out of ESP8266 RAM; set_last_error_ formats its printf-style arguments on demand.
+  void record_parse_error_(const char *message);
+  void record_parse_error_(const char *message, const std::vector<uint8_t> &frame);
   void publish_connection_state_(const std::string &state);
-  void set_last_error_(const std::string &message);
+  void set_last_error_(const char *format, ...) __attribute__((format(printf, 2, 3)));
   void clear_last_error_();
   void publish_diagnostics_();
   void publish_power_state_(bool on);
