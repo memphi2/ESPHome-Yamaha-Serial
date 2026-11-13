@@ -24,11 +24,12 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - ESP8266 static RAM for the full example falls by 6,916 bytes (45,240 to
-  38,324 bytes; flash grows by 6,080 bytes). Error and parse-error messages,
+  38,324 bytes; flash grows by 6,368 bytes). Error and parse-error messages,
   the profile input/program/scene tables, select command and report tables,
   playback format and sampling tables, response-policy rules and input aliases
   now stay in flash instead of being copied to RAM at boot. Messages, labels
-  and behavior are unchanged.
+  and behavior are unchanged: `last_error` is still cut at 252 bytes, and the
+  log still gets the whole message.
 
 ### Fixed
 - DC2 configuration input decoding is now per profile: RX-Vx500/RX-Vx600 keep the

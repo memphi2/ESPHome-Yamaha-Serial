@@ -146,11 +146,21 @@ void test_regressions() {
   assert(parse_error.state.size() <= 255);
   raw.set_last_error_("%s", std::string(400, 'a').c_str());
   assert(raw.last_error_ == std::string(252, 'a') + "...");
+  // Only the entity is cut; the log keeps the whole message, input tail included.
+  assert(esphome::test_last_warning == std::string(400, 'a'));
+  raw.set_last_error_("%s tail", std::string(260, 'b').c_str());
+  assert(raw.last_error_ == std::string(252, 'b') + "...");
+  assert(esphome::test_last_warning == std::string(260, 'b') + " tail");
   // The cut moves back to the start of a UTF-8 character instead of splitting it.
   raw.set_last_error_("%s%s", std::string(251, 'a').c_str(), "\xC3\xA4 tail");
   assert(raw.last_error_ == std::string(251, 'a') + "...");
+  assert(esphome::test_last_warning == std::string(251, 'a') + "\xC3\xA4 tail");
   raw.set_last_error_("%s", std::string(252, 'a').c_str());
   assert(raw.last_error_ == std::string(252, 'a'));
+  assert(esphome::test_last_warning == raw.last_error_);
+  raw.set_last_error_("%s", std::string(253, 'a').c_str());
+  assert(raw.last_error_ == std::string(252, 'a') + "...");
+  assert(esphome::test_last_warning == std::string(253, 'a'));
 
   Receiver volume;
   ready(volume);

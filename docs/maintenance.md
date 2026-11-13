@@ -82,14 +82,14 @@ Local comparisons with ESPHome 2026.10.1 and the default example configurations:
 |---|---|---:|---:|---:|---:|
 | Alias string pool (0.2.4) | ESP8266 Full | 58,756 B | 44,144 B | 475,360 B | 483,540 B |
 | Alias string pool (0.2.4) | ESP32 Basic | 45,428 B | 45,404 B | 815,587 B | 820,943 B |
-| Flash tables and messages | ESP8266 Full | 45,240 B | 38,324 B | 487,772 B | 493,852 B |
-| Flash tables and messages | ESP32 Basic | 45,444 B | 45,444 B | 824,047 B | 828,587 B |
+| Flash tables and messages | ESP8266 Full | 45,240 B | 38,324 B | 487,772 B | 494,140 B |
+| Flash tables and messages | ESP32 Basic | 45,444 B | 45,444 B | 824,047 B | 828,835 B |
 
 The second change was measured on top of the RX-V1900 profiles. ESP8266 static
-RAM falls by 6,916 bytes (15.3%); the inline table fields cost 6,080 bytes of
-flash. On the ESP32, `.rodata` is already read from flash, so it gains no RAM
-and only pays the flash. CI budgets are 48,000 bytes RAM and 520,000 bytes
-flash for Full.
+RAM falls by 6,916 bytes (15.3%); the change costs 6,368 bytes of flash,
+mostly for the inline table fields. On the ESP32, `.rodata` is already read
+from flash, so it gains no RAM and only pays the flash. CI budgets are 48,000
+bytes RAM and 520,000 bytes flash for Full.
 
 RX is bounded at 268 bytes, raw input at 320 bytes, and the queue at 32 entries.
 Payloads and runtime profile/select lists still use dynamic storage. Static RAM

@@ -2,7 +2,9 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include <cstdarg>
 #include <cstdint>
+#include <cstdio>
 #include <optional>
 #include <memory>
 #include <cstring>
@@ -10,13 +12,28 @@
 #include <vector>
 #define ESP_LOGD(...) ((void) 0)
 #define ESP_LOGI(...) ((void) 0)
-#define ESP_LOGW(...) ((void) 0)
+#define ESP_LOGW(...) ::esphome::test_log_warning(__VA_ARGS__)
 #define ESP_LOGE(...) ((void) 0)
 #define ESP_LOGCONFIG(...) ((void) 0)
 #define USE_API
 #define TEMPLATABLE_VALUE(type, name) struct { template<typename... A> type value(A...){ return {}; } } name##_;
 
 namespace esphome {
+// The last warning, formatted as the logger would print it.
+inline std::string test_last_warning;
+__attribute__((format(printf, 2, 3))) inline void test_log_warning(const char *, const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  va_list measure;
+  va_copy(measure, args);
+  const int size = std::vsnprintf(nullptr, 0, format, measure);
+  va_end(measure);
+  test_last_warning.assign(size > 0 ? static_cast<size_t>(size) : 0, '\0');
+  if (size > 0)
+    std::vsnprintf(&test_last_warning[0], test_last_warning.size() + 1, format, args);
+  va_end(args);
+}
+
 struct TestEntity {
   bool has_state() const { return has_state_; }
   void set_has_state(bool value) { has_state_ = value; }

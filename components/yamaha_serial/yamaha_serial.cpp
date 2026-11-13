@@ -244,24 +244,36 @@ void YamahaSerialComponent::publish_connection_state_(const std::string &state) 
 }
 
 void YamahaSerialComponent::set_last_error_(const char *format, ...) {
-  // Keep at most 252 bytes plus "...". The buffer holds one more byte, so a cut that would
-  // split a UTF-8 sequence can be moved back to the start of that character.
+  // The entity keeps at most 252 bytes plus "..."; the log gets the whole message. Most
+  // messages fit the stack buffer. A longer one, usually echoing user input, is formatted
+  // again on the heap, so the log keeps the input's tail.
   static constexpr size_t MAX_KEPT = 252;
-  char message[MAX_KEPT + 2];
+  char buffer[MAX_KEPT + 2];
   va_list args;
   va_start(args, format);
-  const int written = flash_vsnprintf(message, sizeof(message), format, args);
+  va_list again;
+  va_copy(again, args);
+  const int written = flash_vsnprintf(buffer, sizeof(buffer), format, args);
   va_end(args);
-  const size_t full = written < 0 ? 0 : static_cast<size_t>(written);
-  const size_t length = std::min(full, sizeof(message) - 1);
+  const char *message = buffer;
+  size_t length = written < 0 ? 0 : std::min(static_cast<size_t>(written), sizeof(buffer) - 1);
+  std::string overflow;
+  if (written >= static_cast<int>(sizeof(buffer))) {
+    overflow.assign(static_cast<size_t>(written), '\0');
+    flash_vsnprintf(&overflow[0], overflow.size() + 1, format, again);
+    message = overflow.c_str();
+    length = overflow.size();
+  }
+  va_end(again);
+  // A cut that would split a UTF-8 sequence moves back to the start of that character.
   size_t end = std::min(length, MAX_KEPT);
   while (end > 0 && end < length && (static_cast<uint8_t>(message[end]) & 0xC0) == 0x80) --end;
   this->error_generation_++;
   this->last_error_.assign(message, end);
-  if (full > end) {
+  if (length > end) {
     this->last_error_ += "...";
   }
-  ESP_LOGW(TAG, "%s", this->last_error_.c_str());
+  ESP_LOGW(TAG, "%s", message);
   if (this->last_error_text_sensor_ != nullptr) {
     this->last_error_text_sensor_->publish_state(this->last_error_);
   }
