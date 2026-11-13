@@ -3,8 +3,8 @@
 ## Supported Release Line
 
 - LTS maintenance baseline: **11.2026**, reviewed on **2026-11-01**.
-- `0.3.x`: active maintenance line; `0.3.0` is the current release.
-- `0.2.x`: superseded; update to `0.3.0`, which keeps `0.2.4` configurations
+- `0.3.x`: active maintenance line; `0.3.1` is the current release.
+- `0.2.x`: superseded; update to `0.3.1`, which keeps `0.2.4` configurations
   working.
 - `0.1.x`: superseded; update to the current maintenance release.
 
@@ -15,23 +15,45 @@ fixes on the current minor line; no fixed end-of-support date is promised.
 ## Compatibility Baseline
 
 - Minimum ESPHome: `2026.9.0`
-- LTS build ESPHome: `2026.10.1`
+- LTS build ESPHome: `2026.10.2`
 - Python (for the repository's own tooling and tests): `3.12`, `3.13`, `3.14`
 - Minimum Home Assistant for the optional companion integration: `2026.9.0`
-- Runtime-tested Home Assistant companion: `2026.10.4` on Python `3.14`
+- LTS build Home Assistant (companion runtime tests): `2026.10.4` on Python `3.14`
 - Targets: ESP32 (basic example) and ESP8266 (full example), both compiled in
   CI on every push
 
-CI and releases constrain ESPHome using
-`requirements/esphome-lts-2026.11.txt`. The HA companion runs in a separate
-environment using `requirements/ha-lts-2026.11.txt`, so conflicting upstream
-dependencies cannot affect firmware builds. These pins are reviewed as
-maintenance updates arrive. On 2026-11-01 the latest stable releases are still
-2026.10; the November label does not claim compatibility with unreleased 2026.11.
+The LTS jobs and releases constrain ESPHome using
+`requirements/esphome-lts-2026.11.txt`, which also applies the
+`requirements/build-security.txt` floors; the other ESPHome jobs install only
+the exact ESPHome version. The HA companion always runs in a separate
+environment from ESPHome (`requirements/ha-lts-2026.11.txt`,
+`requirements/ha-minimum.txt` or `requirements/ha-test.txt`), so conflicting
+upstream dependencies cannot affect firmware builds. These pins are reviewed as
+maintenance updates arrive.
 
-The minimum ESPHome version has a separate configuration-validation job; binary
-builds target the LTS baseline. The minimum HA version remains a compatibility
-target, not a separately runtime-tested baseline. Real receiver validation is still required for
+CI tests four versions of ESPHome and of Home Assistant on every push and
+pull request, and once a week through `.github/workflows/weekly.yml`. GitHub
+pauses scheduled workflows after 60 days without repository activity; re-enable
+the weekly workflow in the Actions tab if that happens.
+
+| Version | ESPHome | Home Assistant |
+|---|---|---|
+| LTS pin | `2026.10.2` | `2026.10.4` |
+| Minimum | `2026.9.0` | `2026.9.0` |
+| Newest stable | from PyPI | from PyPI |
+| Newest beta | from PyPI | from PyPI |
+
+Each ESPHome version validates every configuration, compiles both examples and
+checks the ESP8266 full example against the RAM and flash budget; each HA
+version runs the companion runtime tests.
+`tools/resolve_upstream_version.py` reads the newest stable and beta from PyPI
+on each run; when no beta is newer than the stable release, the beta job tests
+the stable release again. A failing beta job is an early warning and does not
+fail the workflow; the other versions are what this project promises.
+
+`2026.9.0` is the oldest ESPHome release that runs the examples: older releases
+reject `ota: encryption:`, and on `2026.5.0` the component itself does not
+compile. Real receiver validation is still required for
 model-specific behavior. The host C++ tests compile the production parser and
 queue with UART/entity doubles and AddressSanitizer/UBSan. HA tests exercise
 the real event dispatcher, service registry, availability and listener cleanup.
@@ -44,7 +66,8 @@ ESPHome's `media_player` exposes `SELECT_SOURCE` and `SELECT_SOUND_MODE`
 feature flags, but its C++ and native-API call path carries no source or
 sound-mode value: `media_player::MediaPlayerCall` has only `command`,
 `media_url`, `volume` and `announcement`, and `MediaPlayerTraits` has no
-`source_list` or `sound_mode_list`. This is verified on ESPHome `2026.10.1`.
+`source_list` or `sound_mode_list`. This is verified on ESPHome `2026.10.2`;
+the `2026.11.0b4` beta and `dev` on 2026-11-13 have no such fields either.
 
 Consequences, which are deliberate and not bugs:
 

@@ -1,0 +1,3 @@
+# The oldest ESPHome release SUPPORT.md promises; CI validates and compiles every
+# example against it. tests/test_release_metadata.py keeps the two equal.
+esphome==2026.9.0

@@ -2,6 +2,12 @@
 
 ## Migration
 
+### Upgrading to 0.3.1
+
+Configurations from `v0.3.0` keep working; change the `external_components`
+source to `@v0.3.1`. The examples now set `min_version: 2026.9.0` under
+`esphome:`; add it to your own configuration if you copied an older example.
+
 ### Upgrading to 0.3.0
 
 Configurations from `v0.2.4` keep working: no option was renamed or removed.
