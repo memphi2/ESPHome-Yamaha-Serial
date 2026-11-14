@@ -307,6 +307,9 @@ def test_rx_v1900_configuration_uses_rx_v1900_profile_without_unsupported_entiti
     assert data["sensor"][0]["last_response_age"]["disabled_by_default"] is True
     for key in ("last_error", "last_parse_error"):
         assert data["text_sensor"][0][key]["disabled_by_default"] is True
+    # Source information decoded from the x700+ reports 0x12-0x14.
+    for key in ("playback_format", "input_channels", "bit_rate"):
+        assert key in data["text_sensor"][0]
     assert data["binary_sensor"][0]["availability"]["name"] == "Yamaha Availability"
 
 

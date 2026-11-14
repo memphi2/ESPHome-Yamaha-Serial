@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Source information for x700+ profiles (x700, x800, RX-V1900), from the
+  Playback Status Reports `12`-`16` in the RX-Vx700 RS-232C manual: an
+  `input_channels` text sensor (`2.0 (2/0)`, `5.1 (3/2.1)`), `bit_rate` and
+  `signal_flags` text sensors and a `dialogue_normalization` sensor (dB). The
+  RX-V1900 extended profile also reads them from the DC2 reply at startup.
+  Verified on an RX-V1900 with analog, PCM, Dolby Digital and DTS sources,
+  including the startup values; no source with signal flags set was tried.
 - [Tested Setups](docs/wiring.md#tested-setups) in the wiring guide: the
   ESP32-C3 RS232 Adapter used for the RX-V1900 tests, with its pins, cable and
   a minimal `esp32:` and `uart:` configuration.

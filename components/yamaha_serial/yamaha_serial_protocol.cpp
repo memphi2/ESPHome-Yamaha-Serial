@@ -50,6 +50,31 @@ void YamahaSerialComponent::parse_stx_frame_(const std::vector<uint8_t> &frame) 
       this->publish_sampling_rate_by_report_(
           this->profile_caps_.x700_protocol ? data : static_cast<uint8_t>(data_lo));
       break;
+    // x700+ source information (RX-Vx700 RS-232C Playback Status Reports, verified on RX-V1900).
+    case 0x12:
+      if (this->profile_caps_.x700_protocol) {
+        this->channel_layout_ = data;
+        this->publish_input_channels_();
+      }
+      break;
+    case 0x13:
+      if (this->profile_caps_.x700_protocol) {
+        this->channel_lfe_ = data;
+        this->publish_input_channels_();
+      }
+      break;
+    case 0x14:
+      if (this->profile_caps_.x700_protocol)
+        this->publish_bit_rate_by_report_(data);
+      break;
+    case 0x15:
+      if (this->profile_caps_.x700_protocol)
+        this->publish_dialogue_normalization_by_report_(data);
+      break;
+    case 0x16:
+      if (this->profile_caps_.x700_protocol)
+        this->publish_signal_flags_by_report_(data);
+      break;
     case 0x20: {
       bool main_on = this->main_power_on_;
       bool zone2_on = this->zone2_power_on_;
@@ -342,6 +367,22 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
         this->publish_sampling_rate_by_report_(static_cast<uint8_t>(v));
       if (const int8_t v = hex_nibble_(frame[46]); v >= 0)  // DT37 tuner band
         this->publish_tuner_band_by_report_(static_cast<uint8_t>(v));
+      // DT35 channel front/rear and DT38 channel LFE are single nibbles; F means "---".
+      const int8_t layout = hex_nibble_(frame[44]);
+      const int8_t lfe = hex_nibble_(frame[47]);
+      if (layout >= 0 && lfe >= 0) {
+        this->channel_layout_ = layout == 0xF ? 0xFF : static_cast<uint8_t>(layout);
+        this->channel_lfe_ = lfe == 0xF ? 0xFF : static_cast<uint8_t>(lfe);
+        this->publish_input_channels_();
+      }
+      if (frame.size() >= 186) {  // Only when the frame reaches DT173.
+        if (const int v = byte_at(154); v >= 0)  // DT145-146 bit rate
+          this->publish_bit_rate_by_report_(static_cast<uint8_t>(v));
+        if (const int v = byte_at(156); v >= 0)  // DT147-148 dialogue normalization
+          this->publish_dialogue_normalization_by_report_(static_cast<uint8_t>(v));
+        if (const int v = byte_at(181); v >= 0)  // DT172-173 flags
+          this->publish_signal_flags_by_report_(static_cast<uint8_t>(v));
+      }
     }
   }
 
