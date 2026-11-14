@@ -3,8 +3,10 @@
 ## Supported Release Line
 
 - LTS maintenance baseline: **11.2026**, reviewed on **2026-11-01**.
-- `0.3.x`: active maintenance line; `0.3.1` is the current release.
-- `0.2.x`: superseded; update to `0.3.1`, which keeps `0.2.4` configurations
+- `0.4.x`: active maintenance line; `0.4.0` is the current release.
+- `0.3.x`: superseded; update to `0.4.0`, which keeps `0.3.x` configurations
+  working.
+- `0.2.x`: superseded; update to `0.4.0`, which keeps `0.2.4` configurations
   working.
 - `0.1.x`: superseded; update to the current maintenance release.
 

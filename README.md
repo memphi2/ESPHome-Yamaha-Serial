@@ -22,7 +22,7 @@ with the remote or on the front panel show up in Home Assistant.
 
 ## Status
 
-- `beta`. LTS maintenance baseline **11.2026** (`0.3.1`); see
+- LTS maintenance baseline **11.2026** (`0.4.0`); see
   [SUPPORT.md](SUPPORT.md).
 - **Reference receiver: RX-V1600.** All [examples](examples) are written for it.
 - Profiles exist for the RX-Vx500, RX-Vx600, RX-Vx700 and RX-Vx800 families and
@@ -63,7 +63,7 @@ external_components:
 ```
 
 Pin a release tag for reproducible builds, for example
-`github://memphi2/ESPHome-Yamaha-Serial@v0.3.1`.
+`github://memphi2/ESPHome-Yamaha-Serial@v0.4.0`.
 
 If nothing happens, start with [Troubleshooting](docs/troubleshooting.md).
 

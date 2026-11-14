@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-14
+
 ### Added
 - Source information for x700+ profiles (x700, x800, RX-V1900), from the
   Playback Status Reports `12`-`16` in the RX-Vx700 RS-232C manual: an
