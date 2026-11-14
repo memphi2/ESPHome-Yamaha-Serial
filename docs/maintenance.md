@@ -2,6 +2,11 @@
 
 ## Migration
 
+### Upgrading to 0.4.1
+
+Configurations from `v0.4.0` keep working; change the `external_components`
+source to `@v0.4.1`. No option changed and receiver behaviour is the same.
+
 ### Upgrading to 0.4.0
 
 Configurations from `v0.3.1` keep working; change the `external_components`

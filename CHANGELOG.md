@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-14
+
 ### Fixed
 - The ESP32 build no longer emits five `-Wformat` warnings from the startup
   configuration dump (`uint32_t` values printed with `%u`). The output is
   unchanged.
 - The Home Assistant integration manifest declares its category
   (`media_entertainment.speakers_audio`), which removes the hassfest warning.
+
+### Changed
+- CI runs on `ubuntu-26.04` instead of `ubuntu-24.04`.
 
 ## [0.4.0] - 2026-11-14
 
