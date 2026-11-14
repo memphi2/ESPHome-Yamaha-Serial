@@ -723,6 +723,28 @@ void test_regressions() {
     assert(startup.tuner_band_label_ == "FM");
     assert(startup.playback_format_ == "Analog" && startup.sampling_rate_hz_ == 0.0f);
     assert(startup.night_mode_label_ == "unknown");  // Not decoded from the x700 layout.
+    // Source information from DC2 (DT35 2/0, DT38 F, DT145 FF, DT147 FF, DT172 00) for analog.
+    assert(startup.input_channels_ == "2.0 (2/0)" && startup.bit_rate_ == "Unknown");
+    assert(std::isnan(startup.dialogue_normalization_db_) && startup.signal_flags_ == "None");
+    // Same capture with DT35 3/2, DT38 0.1, DT145 0x15, DT147 0x1F and DT172 0x42.
+    std::string film = frame;
+    film[44] = '7';
+    film[47] = '0';
+    film.replace(154, 2, "15");
+    film.replace(156, 2, "1F");
+    film.replace(181, 2, "42");
+    unsigned sum = 0;
+    for (size_t i = 1; i < film.size() - 3; i++) sum += static_cast<uint8_t>(film[i]);
+    char checksum[3];
+    std::snprintf(checksum, sizeof(checksum), "%02X", sum & 0xFF);
+    film.replace(film.size() - 3, 2, checksum);
+    Receiver restart;
+    restart.set_receiver_profile("rx_v1900_extended");
+    ready(restart);
+    restart.feed(film);
+    assert(restart.parse_errors_ == 0);
+    assert(restart.input_channels_ == "5.1 (3/2.1)" && restart.bit_rate_ == "640 kbps");
+    assert(restart.dialogue_normalization_db_ == 0.0f && restart.signal_flags_ == "DD 6.1, DPL Encoded");
   }
   // Profiles without the extended DC2 layout ignore the input bytes entirely.
   Receiver x800;
@@ -806,6 +828,57 @@ void test_regressions() {
   signal_x600.feed(status("001004"));
   signal_x600.feed(status("001109"));
   assert(signal_x600.playback_format_ == "Dolby Digital 2.0" && signal_x600.sampling_rate_hz_ == 176400.0f);
+
+  // Source information reports 0x12-0x16, as captured on RX-V1900 hardware.
+  signal_x700.feed(status("301202"));
+  assert(signal_x700.input_channels_ == "2.0 (2/0)");
+  signal_x700.feed(status("301207"));
+  signal_x700.feed(status("301300"));
+  assert(signal_x700.input_channels_ == "5.1 (3/2.1)");
+  signal_x700.feed(status("30120B"));
+  assert(signal_x700.input_channels_ == "7.1 (3/4.1)");
+  signal_x700.feed(status("3013FF"));
+  assert(signal_x700.input_channels_ == "7.0 (3/4)");
+  signal_x700.feed(status("301200"));
+  assert(signal_x700.input_channels_ == "1+1");
+  signal_x700.feed(status("30120C"));
+  assert(signal_x700.input_channels_ == "Multichannel");
+  signal_x700.feed(status("30120F"));
+  assert(signal_x700.input_channels_ == "Unknown");
+  signal_x700.feed(status("301415"));
+  assert(signal_x700.bit_rate_ == "640 kbps");
+  signal_x700.feed(status("301411"));
+  assert(signal_x700.bit_rate_ == "384 kbps");
+  signal_x700.feed(status("30141F"));
+  assert(signal_x700.bit_rate_ == "1536 kbps");
+  signal_x700.feed(status("301400"));
+  assert(signal_x700.bit_rate_ == "32 kbps");
+  signal_x700.feed(status("30141D"));
+  assert(signal_x700.bit_rate_ == "1411.2 kbps");
+  signal_x700.feed(status("301423"));
+  assert(signal_x700.bit_rate_ == "3840 kbps");
+  signal_x700.feed(status("301426"));
+  assert(signal_x700.bit_rate_ == "Lossless");
+  signal_x700.feed(status("3014FF"));
+  assert(signal_x700.bit_rate_ == "Unknown");
+  signal_x700.feed(status("30151F"));
+  assert(signal_x700.dialogue_normalization_db_ == 0.0f);
+  signal_x700.feed(status("301500"));
+  assert(signal_x700.dialogue_normalization_db_ == -31.0f);
+  signal_x700.feed(status("3015FF"));
+  assert(std::isnan(signal_x700.dialogue_normalization_db_));
+  signal_x700.feed(status("301600"));
+  assert(signal_x700.signal_flags_ == "None");
+  signal_x700.feed(status("30160C"));
+  assert(signal_x700.signal_flags_ == "DTS-ES Matrix 6.1, DTS-ES Discrete 6.1");
+  signal_x700.feed(status("301680"));
+  assert(signal_x700.signal_flags_ == "None");  // Bit 7 is "don't care".
+  assert(signal_x700.parse_errors_ == 0);
+  // x500/x600 do not have these reports in their tables, so they are ignored.
+  for (const char *report : {"301207", "301300", "301415", "30151F", "301601"})
+    signal_x600.feed(status(report));
+  assert(signal_x600.input_channels_ == "unknown" && signal_x600.bit_rate_ == "unknown");
+  assert(std::isnan(signal_x600.dialogue_normalization_db_) && signal_x600.signal_flags_ == "unknown");
 
   Receiver diagnostics;
   ready(diagnostics);

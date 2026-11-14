@@ -72,6 +72,7 @@ entities that depend on the profile:
 | `sleep_timer` (untested on x500-x800) | yes | yes | yes | yes | no |
 | `decoder_mode` | yes | yes | yes | yes | no |
 | `surround_decoder` | no | no | no | no | yes |
+| `input_channels`, `bit_rate`, `signal_flags`, `dialogue_normalization` | no | no | yes | yes | yes |
 | `fan_mode` | no | extended | no | no | no |
 | `bass`, `treble`, speaker distances, `dimmer`, `tuner_fm_frequency`, `tuner_am_frequency`, `receiver_reset` | no | extended | extended | extended | extended |
 
@@ -329,6 +330,10 @@ text_sensor:
     yamaha_serial_id: yamaha
     playback_format:
       name: Yamaha Playback Format
+    input_channels:
+      name: Yamaha Input Channels
+    bit_rate:
+      name: Yamaha Bit Rate
     receiver_model:
       name: Yamaha Receiver Model
     connection_state:
@@ -359,12 +364,17 @@ Notes for this configuration:
   sources, analog or digital. Selecting one switches the program to Surround
   Decode first. On a multichannel source the receiver keeps and reports the
   stored setting, but decodes the source format.
+- Input Channels and Bit Rate describe the playing source, for example
+  `5.1 (3/2.1)` at `640 kbps` for Dolby Digital. The `signal_flags` text
+  sensor and the `dialogue_normalization` sensor are also available.
 
 What was tested on the G/E unit: model detection (DC2 ID `R0240`), the DC2
 startup values, input and program reports and select commands (main zone and
 Zone2, including DOCK and 7ch Enhancer), playback format and sampling rate,
-tuner band, System Memory 1-6 (recall and remote reports), all six surround
-decoder modes including Pro Logic, and bass/treble.
+input channels, bit rate and dialogue normalization (analog, PCM, Dolby Digital
+and DTS, from reports and from the DC2 reply at startup; signal flags were only
+seen as `None`), tuner band, System Memory 1-6 (recall and remote reports), all
+six surround decoder modes including Pro Logic, and bass/treble.
 
 Not supported on the RX-V1900: the Auto/DTS/AAC decoder mode (the receiver
 ignores it), the sleep timer (its Off is never reported back; use a Home

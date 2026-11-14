@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Source information for x700+ profiles (x700, x800, RX-V1900), from the
+  Playback Status Reports `12`-`16` in the RX-Vx700 RS-232C manual: an
+  `input_channels` text sensor (`2.0 (2/0)`, `5.1 (3/2.1)`), `bit_rate` and
+  `signal_flags` text sensors and a `dialogue_normalization` sensor (dB). The
+  RX-V1900 extended profile also reads them from the DC2 reply at startup.
+  Verified on an RX-V1900 with analog, PCM, Dolby Digital and DTS sources,
+  including the startup values; no source with signal flags set was tried.
+
 ### Fixed
 - Power-on after a long standby no longer waits 3.5 s to retry. The receiver
   can answer the first power-on with a bare `0x00` byte (its RS-232 waking up)

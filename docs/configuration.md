@@ -161,6 +161,7 @@ Tone, distance, dimmer and tuner frequency controls need an extended profile.
 |---|---|
 | `volume_db`, `zone2_volume_db` | Current volume in dB. |
 | `sampling_rate` | Sampling rate of the playing source in Hz. |
+| `dialogue_normalization` | Dialogue normalization of the playing source in dB, `-31` to `0` (x700+ profiles). Empty when the source has none. |
 | `last_response_age` | Milliseconds since the last receiver reply. |
 | `commands_sent`, `responses_received`, `parse_errors`, `timeouts`, `queue_drops` | Diagnostic counters. |
 
@@ -170,6 +171,9 @@ Tone, distance, dimmer and tuner frequency controls need an extended profile.
 |---|---|
 | `playback_format` | Format of the playing source, for example Dolby Digital or PCM. |
 | `sampling_rate` | Sampling rate as the receiver's label. |
+| `input_channels` | Channels of the playing source as count and front/rear layout, for example `2.0 (2/0)` or `5.1 (3/2.1)` (x700+ profiles). |
+| `bit_rate` | Bit rate of the playing source, for example `640 kbps` or `Lossless` (x700+ profiles). |
+| `signal_flags` | Source flags such as `DD 6.1`, `DTS-ES Discrete 6.1` or `DPL Encoded`, or `None` (x700+ profiles). |
 | `power_state`, `input_source`, `zone2_input_source`, `program`, `main_volume_text`, `audio_select_state`, `night_mode_state` | Text mirrors of states. Only useful when you do not use the matching control entity. |
 | `connection_state` | Connection to the receiver, for example `waiting_for_receiver` or `online`. |
 | `receiver_model` | Model the receiver reports. |
