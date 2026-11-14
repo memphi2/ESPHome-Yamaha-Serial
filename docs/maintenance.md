@@ -2,6 +2,13 @@
 
 ## Migration
 
+### Upgrading to 0.4.0
+
+Configurations from `v0.3.1` keep working; change the `external_components`
+source to `@v0.4.0`. On x700, x800 and RX-V1900 profiles you can add the new
+`input_channels`, `bit_rate`, `signal_flags` and `dialogue_normalization`
+entities. Nothing else needs to change.
+
 ### Upgrading to 0.3.1
 
 Configurations from `v0.3.0` keep working; change the `external_components`
