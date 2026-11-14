@@ -30,6 +30,36 @@ receiver never answers, swap TX and RX first.
 The serial settings are `9600` baud, 8 data bits, no parity, 1 stop bit, as in
 the examples' `uart:` block.
 
+## Tested Setups
+
+Setups that users have run against a receiver. They are not CI-built: CI
+compiles only the ESP32 and ESP8266 examples above.
+
+**ESP32-C3 RS232 Adapter (RX-V1900).** The
+[ESP32-C3 RS232 Adapter](https://github.com/Leotro-Engineering/ESP32-C3-RS232-Adapter)
+by LEOTRO combines an ESP32-C3 and an RS-232 transceiver with a DB9 male
+connector on one board, so no separate converter or TTL wiring is needed. It
+was tested with an RX-V1900 G/E:
+
+- a null-modem (crossed) female-to-female DB9 cable to the receiver;
+- ESP TX `GPIO10`, ESP RX `GPIO4`;
+- no handshake wiring or flow-control settings;
+- the logger stays on the ESP32-C3's built-in USB, so the UART is free for
+  the receiver.
+
+```yaml
+esp32:
+  variant: esp32c3
+  framework:
+    type: esp-idf
+
+uart:
+  id: uart_yamaha
+  tx_pin: GPIO10
+  rx_pin: GPIO4
+  baud_rate: 9600
+```
+
 ## Handshake
 
 Yamaha documents hardware handshaking (`RTS/CTS`). If your converter needs the

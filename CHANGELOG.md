@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
   RX-V1900 extended profile also reads them from the DC2 reply at startup.
   Verified on an RX-V1900 with analog, PCM, Dolby Digital and DTS sources,
   including the startup values; no source with signal flags set was tried.
+- [Tested Setups](docs/wiring.md#tested-setups) in the wiring guide: the
+  ESP32-C3 RS232 Adapter used for the RX-V1900 tests, with its pins, cable and
+  a minimal `esp32:` and `uart:` configuration.
 
 ### Fixed
 - Power-on after a long standby no longer waits 3.5 s to retry. The receiver

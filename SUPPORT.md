@@ -94,8 +94,9 @@ honestly:
 - Profile mappings for RX-Vx500, RX-Vx600, RX-Vx700 and RX-Vx800 families are
   derived from publicly known RS-232 behaviour and reimplementation, with
   partial hardware testing.
-- The RX-V1900 profile was tested on one RX-V1900 G/E (UK/Europe) unit, for the
-  controls listed in
+- The RX-V1900 profile was tested on one RX-V1900 G/E (UK/Europe) unit, with
+  an ESP32-C3 RS232 Adapter (see [Tested Setups](docs/wiring.md#tested-setups)),
+  for the controls listed in
   [Supported Receivers](docs/supported_models.md#rx-v1900). Regional variants
   (U/C/J) are untested.
 - Extended setup controls (bass, treble, speaker distances, dimmer) are
