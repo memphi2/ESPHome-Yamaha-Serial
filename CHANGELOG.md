@@ -13,6 +13,13 @@ All notable changes to this project will be documented in this file.
   Verified on an RX-V1900 with analog, PCM, Dolby Digital and DTS sources,
   including the startup values; no source with signal flags set was tried.
 
+### Fixed
+- Power-on after a long standby no longer waits 3.5 s to retry. The receiver
+  can answer the first power-on with a bare `0x00` byte (its RS-232 waking up)
+  and drop the command; the component now retries 500 ms after that byte
+  (seen on an RX-V1900 G/E unit). Other commands and later attempts are
+  unchanged.
+
 ## [0.3.1] - 2026-11-13
 
 ### Added
