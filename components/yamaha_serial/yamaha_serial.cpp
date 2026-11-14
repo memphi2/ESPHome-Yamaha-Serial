@@ -156,13 +156,13 @@ void YamahaSerialComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  UART baud_rate: use 9600, 8N1, hardware handshaking when possible");
   ESP_LOGCONFIG(TAG, "  Periodic polling: %s", this->periodic_poll_enabled_ ? "enabled" : "disabled");
   if (this->periodic_poll_enabled_) {
-    ESP_LOGCONFIG(TAG, "  Poll interval: %u ms", this->get_update_interval());
+    ESP_LOGCONFIG(TAG, "  Poll interval: %u ms", static_cast<unsigned>(this->get_update_interval()));
   }
-  ESP_LOGCONFIG(TAG, "  Command timeout: %u ms", this->command_timeout_ms_);
+  ESP_LOGCONFIG(TAG, "  Command timeout: %u ms", static_cast<unsigned>(this->command_timeout_ms_));
   ESP_LOGCONFIG(TAG, "  Max retries: %u", this->max_retries_);
-  ESP_LOGCONFIG(TAG, "  Command spacing: %u ms", this->command_spacing_ms_);
-  ESP_LOGCONFIG(TAG, "  Power-on delay: %u ms", this->power_on_delay_ms_);
-  ESP_LOGCONFIG(TAG, "  Diagnostics interval: %u ms", this->diagnostics_interval_ms_);
+  ESP_LOGCONFIG(TAG, "  Command spacing: %u ms", static_cast<unsigned>(this->command_spacing_ms_));
+  ESP_LOGCONFIG(TAG, "  Power-on delay: %u ms", static_cast<unsigned>(this->power_on_delay_ms_));
+  ESP_LOGCONFIG(TAG, "  Diagnostics interval: %u ms", static_cast<unsigned>(this->diagnostics_interval_ms_));
   ESP_LOGCONFIG(TAG, "  Raw commands: %s", this->allow_raw_commands_ ? "enabled" : "disabled");
   ESP_LOGCONFIG(TAG, "  Startup probe mode: poll waits until first receiver response");
   ESP_LOGCONFIG(TAG, "  Input mappings: %u", static_cast<unsigned>(this->inputs_.size()));

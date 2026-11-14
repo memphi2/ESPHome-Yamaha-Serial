@@ -11,7 +11,7 @@ permissions:
 jobs:
   validate:
     name: release validation
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -50,7 +50,7 @@ jobs:
 
   companion:
     name: release HA companion runtime
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -68,7 +68,7 @@ jobs:
     # not a missing-credential problem. The job therefore waits until the
     # repository is public instead of failing every push.
     if: github.event.repository.private == false
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: HACS validation
@@ -78,7 +78,7 @@ jobs:
 
   hassfest:
     name: release hassfest
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Hassfest
@@ -86,7 +86,7 @@ jobs:
 
   release:
     name: publish release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [validate, companion, hacs, hassfest]
     permissions:
       contents: write

@@ -15,7 +15,7 @@ permissions:
 jobs:
   dispatch:
     name: start validate on main
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       # A workflow_dispatch sent with GITHUB_TOKEN does start a run.
       - run: gh workflow run validate.yml --repo "$GITHUB_REPOSITORY" --ref main

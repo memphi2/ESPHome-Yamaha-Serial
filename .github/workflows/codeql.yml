@@ -19,7 +19,7 @@ jobs:
     # with "Resource not accessible by integration", so the job waits until
     # the repository is public instead of failing every push.
     if: github.event.repository.private == false
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
