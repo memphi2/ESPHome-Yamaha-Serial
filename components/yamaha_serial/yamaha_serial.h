@@ -396,12 +396,17 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     uint32_t sent_at_ms{0};
     uint8_t attempts{1};
     uint32_t responses_at_send{0};
+    // Nonzero: retry at this time instead of waiting for the full timeout (see WAKE_RETRY_MS).
+    uint32_t early_retry_at_ms{0};
   };
 
   static constexpr size_t MAX_EXTENDED_DATA_LEN = 256;
   static constexpr size_t BUFFER_MAX_LEN = MAX_EXTENDED_DATA_LEN + 12;  // DC2 has the longest header.
   static constexpr size_t MAX_RAW_INPUT_LEN = 320;
   static constexpr uint32_t FRAME_READ_TIMEOUT_MS = 550;
+  // After a long standby the receiver may answer the first power-on with a bare 0x00 (its
+  // RS-232 waking) and drop the command. Retry this long after that byte, not the full timeout.
+  static constexpr uint32_t WAKE_RETRY_MS = 500;
   static constexpr size_t MAX_QUEUE_LEN = 32;
 
   std::string resolve_profile_() const;
@@ -441,6 +446,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
   void process_command_queue_();
   bool send_command_(const QueuedCommand &command);
   void process_incoming_byte_(uint8_t byte);
+  void handle_wake_byte_(uint32_t now);
   void check_frame_timeout_();
   void parse_frame_(const std::vector<uint8_t> &frame);
   void parse_stx_frame_(const std::vector<uint8_t> &frame);

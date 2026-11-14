@@ -83,14 +83,22 @@ void YamahaSerialComponent::process_command_queue_() {
     auto &in_flight = this->in_flight_.value();
     if (!in_flight.command.expect_response) {
       this->in_flight_.reset();
-    } else if (now - in_flight.sent_at_ms > in_flight.command.timeout_ms) {
+    } else if (now - in_flight.sent_at_ms > in_flight.command.timeout_ms ||
+               (in_flight.early_retry_at_ms != 0U &&
+                static_cast<int32_t>(now - in_flight.early_retry_at_ms) >= 0)) {
       if (now - this->last_tx_ms_ < this->command_spacing_ms_) {
         return;
       }
       if (in_flight.command.retries_left > 0) {
         in_flight.command.retries_left--;
         in_flight.attempts++;
-        ESP_LOGW(TAG, "Command timeout for '%s', retry %u", in_flight.command.tag, in_flight.attempts);
+        if (in_flight.early_retry_at_ms != 0U) {
+          ESP_LOGD(TAG, "Receiver woke without replying to '%s', retry %u", in_flight.command.tag,
+                   in_flight.attempts);
+        } else {
+          ESP_LOGW(TAG, "Command timeout for '%s', retry %u", in_flight.command.tag, in_flight.attempts);
+        }
+        in_flight.early_retry_at_ms = 0U;
         if (this->send_command_(in_flight.command)) {
           in_flight.sent_at_ms = now;
           in_flight.responses_at_send = this->responses_received_;
@@ -179,6 +187,23 @@ void YamahaSerialComponent::check_frame_timeout_() {
   }
 }
 
+void YamahaSerialComponent::handle_wake_byte_(uint32_t now) {
+  // Only the first attempt of a retryable power-on, with nothing received since it was sent.
+  if (!this->in_flight_.has_value())
+    return;
+  auto &in_flight = this->in_flight_.value();
+  if (!in_flight.command.power_on || in_flight.attempts != 1 || in_flight.command.retries_left == 0 ||
+      in_flight.responses_at_send != this->responses_received_ || in_flight.early_retry_at_ms != 0U)
+    return;
+  in_flight.early_retry_at_ms = now + WAKE_RETRY_MS;
+  if (in_flight.early_retry_at_ms == 0U)
+    in_flight.early_retry_at_ms = 1U;
+  if (this->command_hold_until_ms_ != 0U &&
+      static_cast<int32_t>(this->command_hold_until_ms_ - in_flight.early_retry_at_ms) > 0)
+    this->command_hold_until_ms_ = in_flight.early_retry_at_ms;
+  ESP_LOGD(TAG, "Receiver RS-232 woke; retrying '%s' early", in_flight.command.tag);
+}
+
 void YamahaSerialComponent::process_incoming_byte_(uint8_t byte) {
   const uint32_t now = millis();
   this->check_frame_timeout_();
@@ -195,6 +220,8 @@ void YamahaSerialComponent::process_incoming_byte_(uint8_t byte) {
   }
 
   if (!this->in_frame_) {
+    if (byte == 0x00U)
+      this->handle_wake_byte_(now);
     return;
   }
 
