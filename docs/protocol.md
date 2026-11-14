@@ -69,7 +69,12 @@ The component uses a command queue with:
 - profile capability gating for typed controls (raw commands bypass capabilities)
 
 Power-on holdoff also applies to raw aliases, and the response timeout includes
-the configured startup delay. The queue is limited to 32 pending commands;
+the configured startup delay. After a long standby the receiver may answer the
+first power-on with a single `0x00` byte (its RS-232 waking up) and drop the
+command (seen on an RX-V1900 G/E unit). When that byte arrives during the first
+attempt with nothing else received, the retry is sent 500 ms later instead of
+after the full timeout. Periodic polling (for example `poll_interval: 30s`)
+also keeps the port awake. The queue is limited to 32 pending commands;
 overflow discards an old refresh first, otherwise the oldest pending command.
 
 ## Ported command set

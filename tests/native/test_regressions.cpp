@@ -116,6 +116,82 @@ void test_regressions() {
   aliases.process_command_queue_();
   assert(aliases.sent.size() == 1);
 
+  // After a long standby the receiver may answer power-on with a bare 0x00 (its RS-232 waking)
+  // and drop the command: retry WAKE_RETRY_MS after that byte, not after the full 3.5 s (G/E).
+  {
+    const std::string wake(1, '\0');
+    auto power_on = [](Receiver &r) {
+      ready(r);
+      r.set_allow_raw_commands(true);
+      r.command_raw_text("power_on");
+      r.process_command_queue_();
+      assert(r.in_flight_ && r.in_flight_->command.power_on && r.sent.size() == 1);
+    };
+    Receiver woke;
+    power_on(woke);
+    test_now += 120;
+    woke.feed(wake);
+    test_now += 499;
+    woke.process_command_queue_();
+    assert(woke.sent.size() == 1);
+    test_now += 1;
+    woke.process_command_queue_();
+    assert(woke.sent.size() == 2 && woke.in_flight_->attempts == 2);
+    assert(woke.command_hold_until_ms_ == test_now + 2000 && woke.in_flight_->command.timeout_ms == 3500);
+    woke.feed(wake);  // The retry keeps the full power-on timeout.
+    test_now += 3000;
+    woke.process_command_queue_();
+    assert(woke.sent.size() == 2);
+    woke.feed(status("002002"));
+    assert(!woke.in_flight_ && woke.timeouts_ == 0);
+
+    Receiver asleep;  // No wake byte: unchanged.
+    power_on(asleep);
+    test_now += 3500;
+    asleep.process_command_queue_();
+    assert(asleep.sent.size() == 1);
+    test_now += 1;
+    asleep.process_command_queue_();
+    assert(asleep.sent.size() == 2);
+
+    Receiver second;  // Only the first attempt retries early.
+    power_on(second);
+    test_now += 3501;
+    second.process_command_queue_();
+    assert(second.sent.size() == 2);
+    second.feed(wake);
+    test_now += 500;
+    second.process_command_queue_();
+    assert(second.sent.size() == 2);
+
+    Receiver answered;  // A frame since sending means the link is awake.
+    power_on(answered);
+    answered.feed(status("002124"));
+    assert(answered.in_flight_);
+    answered.feed(wake);
+    test_now += 500;
+    answered.process_command_queue_();
+    assert(answered.sent.size() == 1);
+
+    Receiver no_retry;  // Without retries an early timeout would mark the receiver unavailable.
+    no_retry.set_max_retries(0);
+    power_on(no_retry);
+    no_retry.feed(wake);
+    test_now += 500;
+    no_retry.process_command_queue_();
+    assert(no_retry.in_flight_ && no_retry.timeouts_ == 0 && no_retry.available_);
+
+    Receiver other;  // Other commands ignore the byte.
+    ready(other);
+    other.command_mute(true);
+    other.process_command_queue_();
+    assert(other.in_flight_ && other.sent.size() == 1);
+    other.feed(wake);
+    test_now += 500;
+    other.process_command_queue_();
+    assert(other.sent.size() == 1);
+  }
+
   Receiver raw;
   ready(raw);
   raw.command_raw_text("power_on");
