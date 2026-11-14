@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- The ESP32 build no longer emits five `-Wformat` warnings from the startup
+  configuration dump (`uint32_t` values printed with `%u`). The output is
+  unchanged.
+
 ## [0.4.0] - 2026-11-14
 
 ### Added
