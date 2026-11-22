@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Refresh the November LTS build pins to ESPHome 2026.11.0 and Home Assistant
+  2026.11.2, with pytest 9.2.0 and Ruff 0.17.6.
+
 ## [0.4.1] - 2026-11-14
 
 ### Fixed

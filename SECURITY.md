@@ -69,9 +69,8 @@ Brotli, certifi, pyasn1, Starlette, Tornado and urllib3. Optional packages only
 receive constraints if installed. Firmware test/lint tool versions are pinned;
 the full transitive environment is not hash-locked across Python/platforms.
 
-Two upstream pins remain unresolved in the latest stable ESPHome baseline
-available on this review date (`2026.10.1`). `2026.10.2`, the LTS pin since
-`0.3.1`, declares the same dependency pins:
+The November 1 review found two affected dependencies in ESPHome
+`2026.10.1`. ESPHome `2026.10.2` retained those pins.
 
 | Dependency | ESPHome pin | Patched version | Relevant boundary |
 |---|---|---|---|
@@ -82,9 +81,11 @@ The upstream [filelock advisory](https://github.com/tox-dev/filelock/security/ad
 describes attacks through attacker-writable lock directories. The upstream
 [Pillow advisory](https://github.com/python-pillow/Pillow/security/advisories/GHSA-78g4-xqwv-q3g8)
 includes a bundled image decoder vulnerability. Other advisories affect these
-versions too; the table is not a complete CVE inventory. The separately tested
-HA baseline also pins Pillow 12.3.0. Updating this component cannot repair
-dependencies inside an existing HA/ESPHome installation.
+versions too; the table is not a complete CVE inventory.
+
+The November 22 baseline update brings filelock 4.2.6 and Pillow 13.0.0
+with ESPHome 2026.11.0. Home Assistant 2026.11.2 also pins Pillow 13.0.0.
+Existing installations receive those fixes when their host software is updated.
 
 Do not force incompatible dependency versions with `--no-deps` and call the
 result supported. Build as an unprivileged user, keep caches/build directories
