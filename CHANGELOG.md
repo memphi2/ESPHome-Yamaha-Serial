@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-27
+
 ### Fixed
 - Every profile now reads the receiver's startup state from its configuration reply, using the
   layout in the matching RS-232C manual. Before, only the RX-V1600 and RX-V1900 extended profiles
