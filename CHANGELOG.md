@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-27
+
+### Fixed
+- Every profile now reads the receiver's startup state from its configuration reply, using the
+  layout in the matching RS-232C manual. Before, only the RX-V1600 and RX-V1900 extended profiles
+  did, so on the RX-Vx500, RX-Vx700 and RX-Vx800 families power, input, mute, volume, program and
+  similar entities stayed `off` or `unknown` until something changed on the receiver. The RX-Vx700
+  and RX-Vx800 profiles also read the decoder mode, speaker relays, speaker B assignment and
+  Zone 2 amplifier, and the RX-Vx500 its Zone 2, tuner and speaker relay state. This follows the
+  manuals and is not yet confirmed on hardware for these families.
+
+### Changed
+- Refresh the November LTS build pins to ESPHome 2026.11.0 and Home Assistant
+  2026.11.2, with pytest 9.2.0 and Ruff 0.17.6.
+
 ## [0.4.1] - 2026-11-14
 
 ### Fixed

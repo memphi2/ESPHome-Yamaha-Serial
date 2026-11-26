@@ -62,6 +62,14 @@ class Receiver : public yamaha_serial::YamahaSerialComponent {
   using YamahaSerialComponent::signal_flags_;
   using YamahaSerialComponent::scene_label_;
   using YamahaSerialComponent::surround_decoder_label_;
+  using YamahaSerialComponent::audio_select_label_;
+  using YamahaSerialComponent::speaker_b_assignment_label_;
+  using YamahaSerialComponent::zone2_amp_label_;
+  using YamahaSerialComponent::decoder_mode_label_;
+  using YamahaSerialComponent::speaker_a_on_;
+  using YamahaSerialComponent::speaker_b_on_;
+  using YamahaSerialComponent::pure_direct_on_;
+  using YamahaSerialComponent::fan_mode_on_;
   using YamahaSerialComponent::bass_percent_;
   using YamahaSerialComponent::treble_percent_;
   void feed(const std::string &s) { for (uint8_t byte : s) process_incoming_byte_(byte); }

@@ -2,6 +2,13 @@
 
 ## Migration
 
+### Upgrading to 0.4.2
+
+Configurations from `v0.4.1` keep working; change the `external_components`
+source to `@v0.4.2`. No option changed. Receivers of the RX-Vx500, RX-Vx700 and
+RX-Vx800 families now show their power, input, volume and other state right
+after startup instead of after the first change on the receiver.
+
 ### Upgrading to 0.4.1
 
 Configurations from `v0.4.0` keep working; change the `external_components`

@@ -343,6 +343,10 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     char command[FLASH_COMMAND_SIZE];
   };
 
+  // Layout of the DC2 CONFIG reply to the ready command, per profile family (see
+  // parse_dc2_frame_). NONE skips decoding.
+  enum class Dc2Layout : uint8_t { NONE, X500, X600, X700, X1900 };
+
   struct ProfileCapabilities {
     bool supports_zone2{true};
     bool supports_scene{true};
@@ -351,7 +355,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     bool supports_fan_mode{true};
     bool supports_pure_direct{true};
     bool supports_extended{true};
-    bool decode_dc2_layout{false};
+    Dc2Layout dc2_layout{Dc2Layout::NONE};
     // STX 07EDB/07EA8/07E3B input decoder mode (Auto/DTS/AAC); ignored by the RX-V1900.
     bool supports_decoder_mode{true};
     // STX 07EB3-07EB7 sleep timer commands and their 2C/DC2 DT24 reports. Untested on
@@ -370,8 +374,7 @@ class YamahaSerialComponent : public PollingComponent, public uart::UARTDevice {
     bool surround_decoder{false};
     // x700+ protocol generation (RX-Vx700, RX-Vx800, RX-V1900), per the x700/x800 manuals:
     // - DC2 CONFIG uses the x700 layout: two-nibble input ID at frame[18..19] and the
-    //   extra startup fields (Zone2, extended surround, sleep, tuner, format/sampling);
-    //   the RX-V1600 night-mode offset is not read.
+    //   extra startup fields (Zone2, extended surround, sleep, tuner, format/sampling).
     // - STX 0x10/0x11 playback format/sampling use the full-byte x700 tables.
     // - STX 0x30 reports a System Memory recall (1-based).
     bool x700_protocol{false};

@@ -2,11 +2,11 @@
 
 ## Supported Release Line
 
-- LTS maintenance baseline: **11.2026**, reviewed on **2026-11-01**.
-- `0.4.x`: active maintenance line; `0.4.1` is the current release.
-- `0.3.x`: superseded; update to `0.4.1`, which keeps `0.3.x` configurations
+- LTS maintenance baseline: **11.2026**, reviewed on **2026-11-22**.
+- `0.4.x`: active maintenance line; `0.4.2` is the current release.
+- `0.3.x`: superseded; update to `0.4.2`, which keeps `0.3.x` configurations
   working.
-- `0.2.x`: superseded; update to `0.4.1`, which keeps `0.2.4` configurations
+- `0.2.x`: superseded; update to `0.4.2`, which keeps `0.2.4` configurations
   working.
 - `0.1.x`: superseded; update to the current maintenance release.
 
@@ -17,10 +17,10 @@ fixes on the current minor line; no fixed end-of-support date is promised.
 ## Compatibility Baseline
 
 - Minimum ESPHome: `2026.9.0`
-- LTS build ESPHome: `2026.10.2`
+- LTS build ESPHome: `2026.11.0`
 - Python (for the repository's own tooling and tests): `3.12`, `3.13`, `3.14`
 - Minimum Home Assistant for the optional companion integration: `2026.9.0`
-- LTS build Home Assistant (companion runtime tests): `2026.10.4` on Python `3.14`
+- LTS build Home Assistant (companion runtime tests): `2026.11.2` on Python `3.14`
 - Targets: ESP32 (basic example) and ESP8266 (full example), both compiled in
   CI on every push
 
@@ -40,7 +40,7 @@ the weekly workflow in the Actions tab if that happens.
 
 | Version | ESPHome | Home Assistant |
 |---|---|---|
-| LTS pin | `2026.10.2` | `2026.10.4` |
+| LTS pin | `2026.11.0` | `2026.11.2` |
 | Minimum | `2026.9.0` | `2026.9.0` |
 | Newest stable | from PyPI | from PyPI |
 | Newest beta | from PyPI | from PyPI |
@@ -68,8 +68,7 @@ ESPHome's `media_player` exposes `SELECT_SOURCE` and `SELECT_SOUND_MODE`
 feature flags, but its C++ and native-API call path carries no source or
 sound-mode value: `media_player::MediaPlayerCall` has only `command`,
 `media_url`, `volume` and `announcement`, and `MediaPlayerTraits` has no
-`source_list` or `sound_mode_list`. This is verified on ESPHome `2026.10.2`;
-the `2026.11.0b4` beta and `dev` on 2026-11-13 have no such fields either.
+`source_list` or `sound_mode_list`. This was verified against the ESPHome `2026.11.0` release.
 
 Consequences, which are deliberate and not bugs:
 

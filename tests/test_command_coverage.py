@@ -245,11 +245,27 @@ def test_standard_and_extended_profiles_have_distinct_capabilities() -> None:
         assert "tuner_band_fm_is_1 = false" in body(name)
         assert "surround_decoder = false" in body(name)
 
-    # RX-V1900 is a standalone profile; only extended enables DC2 decode.
+    # RX-V1900 is a standalone profile.
     assert "this->apply_profile_rx_vx800_();" not in body("apply_profile_rx_v1900_")
-    assert "decode_dc2_layout = false" in body("apply_profile_rx_v1900_")
     assert "x700_protocol = true" in body("apply_profile_rx_v1900_")
-    assert "decode_dc2_layout = true" in body("apply_profile_rx_v1900_extended_")
+
+    # Every profile family decodes the DC2 CONFIG reply with the layout of its own manual; the
+    # extended variants inherit it.
+    for name, layout in (
+        ("apply_profile_rx_vx500_", "X500"),
+        ("apply_profile_rx_vx600_", "X600"),
+        ("apply_profile_rx_vx700_", "X700"),
+        ("apply_profile_rx_vx800_", "X700"),
+        ("apply_profile_rx_v1900_", "X1900"),
+    ):
+        assert f"dc2_layout = Dc2Layout::{layout};" in body(name)
+    for name in (
+        "apply_profile_rx_vx600_extended_",
+        "apply_profile_rx_vx700_extended_",
+        "apply_profile_rx_vx800_extended_",
+        "apply_profile_rx_v1900_extended_",
+    ):
+        assert "dc2_layout" not in body(name)
 
     assert "void YamahaSerialComponent::apply_profile_rx_vx500_extended_()" in text
 

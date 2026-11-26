@@ -144,7 +144,7 @@ void YamahaSerialComponent::apply_profile_rx_vx500_() {
   this->profile_caps_.supports_fan_mode = false;
   this->profile_caps_.supports_pure_direct = true;
   this->profile_caps_.supports_extended = false;
-  this->profile_caps_.decode_dc2_layout = false;
+  this->profile_caps_.dc2_layout = Dc2Layout::X500;
   this->profile_caps_.supports_decoder_mode = true;
   this->profile_caps_.sleep_control = true;
   this->profile_caps_.supports_speaker_relays = true;
@@ -219,7 +219,6 @@ void YamahaSerialComponent::apply_profile_rx_vx600_extended_() {
   this->apply_profile_rx_vx600_();
   this->profile_caps_.supports_fan_mode = true;
   this->profile_caps_.supports_extended = true;
-  this->profile_caps_.decode_dc2_layout = true;
 }
 
 void YamahaSerialComponent::apply_profile_rx_vx500_extended_() { this->apply_profile_rx_vx500_(); }
@@ -233,7 +232,7 @@ void YamahaSerialComponent::apply_profile_rx_vx600_() {
   this->profile_caps_.supports_fan_mode = false;
   this->profile_caps_.supports_pure_direct = true;
   this->profile_caps_.supports_extended = false;
-  this->profile_caps_.decode_dc2_layout = false;
+  this->profile_caps_.dc2_layout = Dc2Layout::X600;
   this->profile_caps_.supports_decoder_mode = true;
   this->profile_caps_.sleep_control = true;
   this->profile_caps_.supports_speaker_relays = true;
@@ -257,7 +256,7 @@ void YamahaSerialComponent::apply_profile_rx_vx700_() {
   this->profile_caps_.supports_fan_mode = false;
   this->profile_caps_.supports_pure_direct = true;
   this->profile_caps_.supports_extended = false;
-  this->profile_caps_.decode_dc2_layout = false;
+  this->profile_caps_.dc2_layout = Dc2Layout::X700;
   this->profile_caps_.supports_decoder_mode = true;
   this->profile_caps_.sleep_control = true;
   this->profile_caps_.supports_speaker_relays = true;
@@ -339,7 +338,7 @@ void YamahaSerialComponent::apply_profile_rx_vx800_() {
   this->profile_caps_.supports_fan_mode = false;
   this->profile_caps_.supports_pure_direct = true;
   this->profile_caps_.supports_extended = false;
-  this->profile_caps_.decode_dc2_layout = false;
+  this->profile_caps_.dc2_layout = Dc2Layout::X700;
   this->profile_caps_.supports_decoder_mode = true;
   this->profile_caps_.sleep_control = true;
   this->profile_caps_.supports_speaker_relays = true;
@@ -423,7 +422,7 @@ void YamahaSerialComponent::apply_profile_rx_v1900_() {
   this->profile_caps_.supports_fan_mode = false;
   this->profile_caps_.supports_pure_direct = true;
   this->profile_caps_.supports_extended = false;
-  this->profile_caps_.decode_dc2_layout = false;
+  this->profile_caps_.dc2_layout = Dc2Layout::X1900;
   this->profile_caps_.supports_decoder_mode = false;
   this->profile_caps_.sleep_control = false;
   this->profile_caps_.supports_speaker_relays = false;
@@ -495,7 +494,6 @@ void YamahaSerialComponent::apply_profile_rx_v1900_() {
 void YamahaSerialComponent::apply_profile_rx_v1900_extended_() {
   this->apply_profile_rx_v1900_();
   this->profile_caps_.supports_extended = true;
-  this->profile_caps_.decode_dc2_layout = true;
 }
 
 void YamahaSerialComponent::apply_profile_(const std::string &profile_id) {

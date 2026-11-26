@@ -371,13 +371,16 @@ Receiver-specific behavior is modularized by profile:
 - `rx_vx500`: standard x500 command set baseline.
 - `rx_vx500_extended`: auto-selected x500 profile slot; same typed capability as standard x500 until additional x500-only controls are validated.
 - `rx_vx600`: standard x600-compatible baseline with DC4 setup entities disabled.
-- `rx_vx600_extended`: auto-selected x600 profile with DC4 setup controls and RX-V1600 DC2 offset decode.
+- `rx_vx600_extended`: auto-selected x600 profile with DC4 setup controls.
 - `rx_vx700`: standard x700 input/DSP map with DC4 setup entities disabled.
 - `rx_vx700_extended`: auto-selected x700 profile with DC4 raw/setup transport enabled.
 - `rx_vx800`: standard x800 input/DSP map with DC4 setup entities disabled.
 - `rx_vx800_extended`: auto-selected x800 profile with DC4 raw/setup transport enabled.
-- `rx_v1900`: standard RX-V1900 input and DSP program maps; DC4 setup entities and DC2 offset decode disabled.
-- `rx_v1900_extended`: auto-selected RX-V1900 profile with DC4 raw/setup transport and DC2 offset decode.
+- `rx_v1900`: standard RX-V1900 input and DSP program maps; DC4 setup entities disabled.
+- `rx_v1900_extended`: auto-selected RX-V1900 profile with DC4 raw/setup transport.
+
+Every profile decodes the DC2 configuration reply to `ready` at startup with the layout of its
+family (see below).
 
 In `auto` mode, the configured `model` value is only a startup hint. Once a DC2
 or DC4 recognized model response is received, the normalized receiver model is
@@ -422,39 +425,63 @@ input map:
 - DOCK reports `12` in the main zone but `08` in zone 2. It is selected with the
   long remote-code form `0F7F014AB5` (main) and `0F7F014BB4` (zone 2), the codes
   the remote and Yamaha's Receiver Manager send. `07A55` selects V-AUX, not DOCK.
-- In the DC2 configuration reply, the main input ID spans two hex nibbles
-  (DC2 data DT9/DT10, frame bytes 18-19). RX-Vx500/RX-Vx600 use a single nibble
-  at frame byte 18, so the two-nibble decode is a per-profile capability.
-  The RX-Vx700 RS-232C documentation uses the same two-nibble layout, but the
-  x700/x800 profiles do not enable DC2 offset decode yet.
-- The remaining DC2 offsets used by the extended decode (power, audio select,
-  mute, volume, program, dimmer, fan, Pure Direct) match the RX-V1600 layout.
-- The DC2 reply also gives these startup values, checked against RX-V1900
-  captures with known settings. DTn is frame byte 9+n.
+- The DC2 configuration reply to `ready` carries the receiver's startup state: DTn is frame
+  byte 9+n, and when the receiver is off only DT0-DT9 follow the header. Every profile decodes
+  it with the layout of its family, and each value uses the encoding of the STX report with the
+  same meaning, so the reply and the reports always agree. The layouts follow the CONFIG tables
+  of the RS-232C manuals:
+
+  | Profile family | Layout | Basis |
+  |---|---|---|
+  | RX-Vx500 | x500 | RX-V1500 and RX-V2500 manuals |
+  | RX-Vx600 | x600 | Checked on an RX-V1600; no CONFIG table in the manual |
+  | RX-Vx700, RX-Vx800 | x700 | RX-Vx700 and RX-Vx800 manuals, same table; not yet confirmed on hardware |
+  | RX-V1900 | x700, without the x700-only fields | Checked on an RX-V1900 |
+
+  The x500 manual differs from the others: power is `0`/`1` for the main room only, the input is
+  one nibble, Pure Direct is DT28 (not DT126), the night mode parameter is DT68, and DT123 is a
+  speaker level, not the fan mode. The x500 playback format, sleep, zone 2 amplifier and
+  decoder mode fields use other encodings or are not defined, so they are not decoded.
+- In the x700 layout, the main input ID spans two hex nibbles (DT9/DT10, frame bytes 18-19).
+  RX-Vx500 and RX-Vx600 use a single nibble at frame byte 18.
+- The fields below are decoded from the x700 layout (checked against RX-V1900 captures with
+  known settings unless marked). The shared fields are also read on the x500, with the x500
+  table's own offsets where they differ.
 
   | Field | DT | Frame byte(s) |
   |---|---|---|
+  | Power (main / zone 2) | DT8 | 17 |
+  | Audio select | DT11 | 20 |
+  | Mute | DT12 | 21 |
   | Zone 2 input (one nibble) | DT13 | 22 |
   | Zone 2 mute | DT14 | 23 |
+  | Main volume | DT15-16 | 24-25 |
   | Zone 2 volume | DT17-18 | 26-27 |
+  | DSP program | DT19-20 | 28-29 |
   | Extended Surround | DT22 | 31 |
   | System Sleep, last time set (not used, see below) | DT24 | 33 |
   | Tuner preset page | DT25 | 34 |
   | Tuner preset | DT26 | 35 |
+  | Night mode, RX-Vx700 only (report `8B`) | DT27-28 | 36-37 |
+  | Speaker relay A and B, not RX-V1900 | DT29, DT30 | 38, 39 |
   | Playback format | DT31-32 | 40-41 |
   | Sampling rate | DT33-34 | 42-43 |
   | Channel Front/Rear (one nibble, `F` = ---) | DT35 | 44 |
   | Tuner band | DT37 | 46 |
   | Channel LFE (one nibble, `0` = .1, `F` = ---) | DT38 | 47 |
+  | Decoder mode, RX-Vx700 and RX-Vx800 only (report `5E`) | DT40 | 49 |
+  | Speaker B assignment, not RX-V1900 | DT46 | 55 |
+  | Zone 2 amplifier, RX-Vx700 and RX-Vx800 only | DT47 | 56 |
+  | Dimmer | DT85 | 94 |
+  | Fan mode (not x500) | DT123 | 132 |
+  | Pure Direct (x500: DT28, byte 37) | DT126 | 135 |
   | Bit rate | DT145-146 | 154-155 |
   | Dialogue normalization | DT147-148 | 156-157 |
   | Signal flags | DT172-173 | 181-182 |
   | Sleep, remote timer (not used, see below) | DT186 | 195 |
 
-  Each value uses the same encoding as the matching STX report.
-- Night mode isn't read from the DC2 reply on the RX-V1900, because its RX-V1600
-  position (frame bytes 36-37) holds DT27-28 in this layout. The RX-V1900 has no
-  night mode anyway.
+- Night mode isn't read from the DC2 reply on the RX-V1900 or the RX-Vx800: the RX-V1900 has
+  no night mode, and the RX-Vx800 manual marks DT27-28 as deleted.
 - DSP program reports use x700 codes except the enhancers: Straight Enhancer is
   `44` and 7ch Enhancer is `45`. `07ED8` selects Straight Enhancer. 7ch Enhancer
   is only accepted in the long remote-code form `0F7E81146B` (captured from

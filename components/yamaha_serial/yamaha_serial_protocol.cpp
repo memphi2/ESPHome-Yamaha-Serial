@@ -260,18 +260,32 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
   std::string model(frame.begin() + 1, frame.begin() + 6);
   this->handle_detected_model_(model);
 
-  // Standby configuration replies contain only the first ten data bytes.
-  if (this->profile_caps_.decode_dc2_layout && frame.size() >= 22) {
+  // The data bytes follow the manual's CONFIG table: DTn is frame[9 + n]. Each profile family has
+  // its own layout, and every field is decoded with the publisher of the STX report that carries
+  // the same value (the table lists that report next to each DT).
+  const Dc2Layout layout = this->profile_caps_.dc2_layout;
+  if (layout == Dc2Layout::NONE) {
+    this->publish_connection_state_("configured");
+    return;
+  }
+  const bool x500 = layout == Dc2Layout::X500;
+  const bool x700_layout = layout == Dc2Layout::X700 || layout == Dc2Layout::X1900;
+
+  // Standby configuration replies contain only the first ten data bytes (DT0-DT9).
+  if (frame.size() >= 22) {
     const int8_t power = hex_nibble_(frame[17]);
     if (power >= 0) {
-      this->publish_power_state_(power == 1 || power == 2 || power == 4 || power == 5);
-      this->publish_zone2_power_state_(power == 1 || power == 3 || power == 4 || power == 6);
+      if (x500) {
+        this->publish_power_state_(power == 1);  // x500 DT8: 0 = off, 1 = on, main room only.
+      } else {
+        this->publish_power_state_(power == 1 || power == 2 || power == 4 || power == 5);
+        this->publish_zone2_power_state_(power == 1 || power == 3 || power == 4 || power == 6);
+      }
     }
   }
 
-  // Extended DC2 CONFIG layout (RX-V1600 offsets; frame[20] onward verified on RX-V1900).
-  if (this->profile_caps_.decode_dc2_layout && frame.size() > 138) {
-    if (this->profile_caps_.x700_protocol) {
+  if (frame.size() > 138) {
+    if (x700_layout) {
       // x700+ (verified on RX-V1900): input ID is one hex byte across frame[18..19], e.g. 0x12 DOCK.
       const int8_t input_hi = hex_nibble_(frame[18]);
       const int8_t input_lo = hex_nibble_(frame[19]);
@@ -309,10 +323,11 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
       this->publish_program_by_report_(static_cast<uint8_t>((program_hi << 4) | program_lo));
     }
 
-    // RX-V1600 night-mode offset; in the x700 layout these bytes (DT27-28) hold something else.
-    if (!this->profile_caps_.x700_protocol) {
+    // Night mode (report 8B): DT27 holds the mode; the parameter is DT28 on the RX-V1600 layout
+    // and the x700 manual, and DT68 on the x500. The x800 manual deleted it; the RX-V1900 has none.
+    if (this->profile_caps_.supports_night_mode && layout != Dc2Layout::X1900) {
       const int8_t night_hi = hex_nibble_(frame[36]);
-      const int8_t night_lo = hex_nibble_(frame[37]);
+      const int8_t night_lo = hex_nibble_(frame[x500 ? 77 : 37]);
       if (night_hi >= 0 && night_lo >= 0) {
         this->publish_night_mode_by_report_(static_cast<uint8_t>(night_hi), static_cast<uint8_t>(night_lo));
       }
@@ -323,15 +338,18 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
       this->publish_dimmer_percent_(static_cast<uint8_t>(dimmer));
     }
 
-    const int8_t fan = hex_nibble_(frame[132]);
-    if (fan >= 0) {
-      this->fan_mode_on_ = (fan == 1);
-      if (this->fan_mode_switch_ != nullptr) {
-        this->fan_mode_switch_->publish_state(this->fan_mode_on_);
+    // Fan control (DT123) and Pure Direct (DT126). On the x500 table DT123 is a speaker level and
+    // Pure Direct is DT28 instead.
+    if (!x500) {
+      const int8_t fan = hex_nibble_(frame[132]);
+      if (fan >= 0) {
+        this->fan_mode_on_ = (fan == 1);
+        if (this->fan_mode_switch_ != nullptr) {
+          this->fan_mode_switch_->publish_state(this->fan_mode_on_);
+        }
       }
     }
-
-    const int8_t pure = hex_nibble_(frame[135]);
+    const int8_t pure = hex_nibble_(frame[x500 ? 37 : 135]);
     if (pure >= 0) {
       this->pure_direct_on_ = (pure == 1);
       if (this->pure_direct_switch_ != nullptr) {
@@ -339,9 +357,9 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
       }
     }
 
-    // x700 layout (DTn = frame[9 + n]); offsets and values verified against RX-V1900 captures.
-    // Values use the same encoding as the matching STX reports, so reuse their publishers.
-    if (this->profile_caps_.x700_protocol) {
+    // Fields shared by the x500 and x700 manuals (same report encodings): Zone 2, extended
+    // surround, tuner and speaker relays. The RX-V1900 has no speaker relays.
+    if (x500 || x700_layout) {
       auto byte_at = [&frame](size_t pos) -> int {
         const int8_t hi = hex_nibble_(frame[pos]);
         const int8_t lo = hex_nibble_(frame[pos + 1]);
@@ -355,33 +373,55 @@ void YamahaSerialComponent::parse_dc2_frame_(const std::vector<uint8_t> &frame) 
         this->publish_volume_db_(volume_raw_to_db_(static_cast<uint8_t>(v)), true);
       if (const int8_t v = hex_nibble_(frame[31]); v >= 0)  // DT22 extended surround
         this->publish_extended_surround_by_report_(static_cast<uint8_t>(v));
-      if (const int8_t v = hex_nibble_(frame[33]); v >= 0)  // DT24 sleep timer
-        this->publish_sleep_timer_by_report_(static_cast<uint8_t>(v));
       if (const int8_t v = hex_nibble_(frame[34]); v >= 0)  // DT25 tuner preset page
         this->publish_tuner_preset_page_by_report_(static_cast<uint8_t>(v));
       if (const int8_t v = hex_nibble_(frame[35]); v >= 0)  // DT26 tuner preset
         this->publish_tuner_preset_by_report_(static_cast<uint8_t>(v));
-      if (const int v = byte_at(40); v >= 0)  // DT31-32 playback format
-        this->publish_playback_format_by_report_(static_cast<uint8_t>(v));
-      if (const int v = byte_at(42); v >= 0)  // DT33-34 sampling rate
-        this->publish_sampling_rate_by_report_(static_cast<uint8_t>(v));
       if (const int8_t v = hex_nibble_(frame[46]); v >= 0)  // DT37 tuner band
         this->publish_tuner_band_by_report_(static_cast<uint8_t>(v));
-      // DT35 channel front/rear and DT38 channel LFE are single nibbles; F means "---".
-      const int8_t layout = hex_nibble_(frame[44]);
-      const int8_t lfe = hex_nibble_(frame[47]);
-      if (layout >= 0 && lfe >= 0) {
-        this->channel_layout_ = layout == 0xF ? 0xFF : static_cast<uint8_t>(layout);
-        this->channel_lfe_ = lfe == 0xF ? 0xFF : static_cast<uint8_t>(lfe);
-        this->publish_input_channels_();
+      if (this->profile_caps_.supports_speaker_relays) {
+        if (const int8_t v = hex_nibble_(frame[38]); v >= 0)  // DT29 speaker relay A
+          this->publish_speaker_relay_state_('A', v == 1);
+        if (const int8_t v = hex_nibble_(frame[39]); v >= 0)  // DT30 speaker relay B
+          this->publish_speaker_relay_state_('B', v == 1);
+        if (const int8_t v = hex_nibble_(frame[55]); v >= 0)  // DT46 speaker B assignment
+          this->publish_speaker_b_assignment_by_report_(static_cast<uint8_t>(v));
       }
-      if (frame.size() >= 186) {  // Only when the frame reaches DT173.
-        if (const int v = byte_at(154); v >= 0)  // DT145-146 bit rate
-          this->publish_bit_rate_by_report_(static_cast<uint8_t>(v));
-        if (const int v = byte_at(156); v >= 0)  // DT147-148 dialogue normalization
-          this->publish_dialogue_normalization_by_report_(static_cast<uint8_t>(v));
-        if (const int v = byte_at(181); v >= 0)  // DT172-173 flags
-          this->publish_signal_flags_by_report_(static_cast<uint8_t>(v));
+
+      if (x700_layout) {
+        // x700 layout (DTn = frame[9 + n]); offsets and values verified against RX-V1900 captures.
+        if (const int8_t v = hex_nibble_(frame[33]); v >= 0)  // DT24 sleep timer
+          this->publish_sleep_timer_by_report_(static_cast<uint8_t>(v));
+        if (const int v = byte_at(40); v >= 0)  // DT31-32 playback format
+          this->publish_playback_format_by_report_(static_cast<uint8_t>(v));
+        if (const int v = byte_at(42); v >= 0)  // DT33-34 sampling rate
+          this->publish_sampling_rate_by_report_(static_cast<uint8_t>(v));
+        // DT35 channel front/rear and DT38 channel LFE are single nibbles; F means "---".
+        const int8_t channels = hex_nibble_(frame[44]);
+        const int8_t lfe = hex_nibble_(frame[47]);
+        if (channels >= 0 && lfe >= 0) {
+          this->channel_layout_ = channels == 0xF ? 0xFF : static_cast<uint8_t>(channels);
+          this->channel_lfe_ = lfe == 0xF ? 0xFF : static_cast<uint8_t>(lfe);
+          this->publish_input_channels_();
+        }
+        if (frame.size() >= 186) {  // Only when the frame reaches DT173.
+          if (const int v = byte_at(154); v >= 0)  // DT145-146 bit rate
+            this->publish_bit_rate_by_report_(static_cast<uint8_t>(v));
+          if (const int v = byte_at(156); v >= 0)  // DT147-148 dialogue normalization
+            this->publish_dialogue_normalization_by_report_(static_cast<uint8_t>(v));
+          if (const int v = byte_at(181); v >= 0)  // DT172-173 flags
+            this->publish_signal_flags_by_report_(static_cast<uint8_t>(v));
+        }
+        // x700/x800 manuals only; the RX-V1900 profile has no decoder mode or zone 2 amp report.
+        if (layout == Dc2Layout::X700) {
+          if (this->profile_caps_.supports_decoder_mode) {
+            // DT40 holds the mode as one nibble; report 5E carries it in the upper nibble.
+            if (const int8_t v = hex_nibble_(frame[49]); v >= 0)
+              this->publish_decoder_mode_by_report_(static_cast<uint8_t>(v << 4));
+          }
+          if (const int8_t v = hex_nibble_(frame[56]); v >= 0)  // DT47 zone 2 amplifier
+            this->publish_zone2_amp_by_report_(static_cast<uint8_t>(v));
+        }
       }
     }
   }
