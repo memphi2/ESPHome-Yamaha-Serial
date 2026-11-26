@@ -746,19 +746,121 @@ void test_regressions() {
     assert(restart.input_channels_ == "5.1 (3/2.1)" && restart.bit_rate_ == "640 kbps");
     assert(restart.dialogue_normalization_db_ == 0.0f && restart.signal_flags_ == "DD 6.1, DPL Encoded");
   }
-  // Profiles without the extended DC2 layout ignore the input bytes entirely.
-  Receiver x800;
-  x800.set_receiver_profile("rx_vx800_extended");
-  ready(x800);
-  x800.feed(full_config("R0226", "05"));
-  assert(x800.parse_errors_ == 0 && x800.input_label_ == "unknown");
-  // The standard RX-V1900 profile is conservative: no DC2 offset decode.
-  Receiver v1900_standard;
-  v1900_standard.set_receiver_profile("rx_v1900");
-  ready(v1900_standard);
-  v1900_standard.feed(full_config("R0240", "0D"));
-  assert(v1900_standard.parse_errors_ == 0 && v1900_standard.active_profile_ == "rx_v1900");
-  assert(v1900_standard.input_label_ == "unknown");
+  // The CONFIG reply to the ready command is decoded for every profile, following the CONFIG
+  // table of each family's manual (DTn is frame[9 + n]). Each field must decode exactly like the
+  // STX report with the same value, so a second receiver fed those reports is the reference.
+  {
+    using Field = std::pair<size_t, std::string>;
+    auto dc2_frame = [](const std::string &model, size_t length, const std::vector<Field> &fields) {
+      std::string data(length, '0');
+      for (const auto &field : fields) data.replace(field.first, field.second.size(), field.second);
+      char size[3];
+      std::snprintf(size, sizeof(size), "%02X", static_cast<unsigned>(length & 0xFF));
+      auto frame = extended(model + "A" + size + data);
+      frame[0] = '\x12';
+      return frame;
+    };
+    auto same_state = [](const Receiver &a, const Receiver &b, bool zone2_power = true) {
+      // The x500 CONFIG power byte covers the main room only, while its power report sets both.
+      assert(a.main_power_on_ == b.main_power_on_ && (!zone2_power || a.zone2_power_on_ == b.zone2_power_on_));
+      assert(a.input_label_ == b.input_label_ && a.zone2_input_label_ == b.zone2_input_label_);
+      assert(a.audio_select_label_ == b.audio_select_label_ && a.program_label_ == b.program_label_);
+      assert(a.mute_on_ == b.mute_on_ && a.zone2_mute_on_ == b.zone2_mute_on_);
+      assert(a.main_volume_db_ == b.main_volume_db_ && a.zone2_volume_db_ == b.zone2_volume_db_);
+      assert(a.extended_surround_label_ == b.extended_surround_label_);
+      assert(a.tuner_preset_page_label_ == b.tuner_preset_page_label_ && a.tuner_preset_label_ == b.tuner_preset_label_);
+      assert(a.tuner_band_label_ == b.tuner_band_label_ && a.sleep_timer_label_ == b.sleep_timer_label_);
+      assert(a.speaker_b_assignment_label_ == b.speaker_b_assignment_label_ && a.zone2_amp_label_ == b.zone2_amp_label_);
+      assert(a.decoder_mode_label_ == b.decoder_mode_label_ && a.night_mode_label_ == b.night_mode_label_);
+      assert(a.speaker_a_on_ == b.speaker_a_on_ && a.speaker_b_on_ == b.speaker_b_on_);
+      assert(a.pure_direct_on_ == b.pure_direct_on_ && a.fan_mode_on_ == b.fan_mode_on_);
+    };
+    auto run = [&](const char *profile, const std::string &model, const std::string &name, size_t length,
+                   const std::vector<Field> &fields, const std::vector<const char *> &reports,
+                   bool zone2_power = true) {
+      Receiver config;
+      config.set_receiver_profile(profile);
+      ready(config);
+      config.feed(dc2_frame(model, length, fields));
+      assert(config.parse_errors_ == 0 && config.receiver_model_ == name);
+      Receiver reference;
+      reference.set_receiver_profile(profile);
+      ready(reference);
+      for (const char *report : reports) reference.feed(status(report));
+      same_state(config, reference, zone2_power);
+      return config;
+    };
+
+    // RX-Vx800 table (RX-V1800 R0226): standard and extended profile decode the same fields.
+    const std::vector<Field> x800_fields = {
+        {8, "2"},  {9, "05"}, {11, "4"}, {12, "1"}, {13, "2"}, {14, "1"}, {15, "2A"}, {17, "20"}, {19, "01"},
+        {22, "5"}, {24, "2"}, {25, "1"}, {26, "2"}, {29, "1"}, {30, "0"}, {37, "1"},  {40, "1"},  {46, "1"},
+        {47, "2"}, {126, "1"}};
+    const std::vector<const char *> x800_reports = {
+        "002002", "002105", "002204", "002301", "002402", "002501", "00262A", "002720", "002801", "002D05",
+        "002C02", "002901", "002A02", "002E01", "002F00", "003501", "005E10", "003D01", "003E02", "008C01"};
+    for (const char *profile : {"rx_vx800_extended", "rx_vx800"}) {
+      auto v1800 = run(profile, "R0226", "RX-V1800", 174, x800_fields, x800_reports);
+      assert(v1800.main_power_on_ && !v1800.zone2_power_on_ && v1800.mute_on_ && v1800.zone2_mute_on_);
+      assert(v1800.input_label_ != "unknown" && v1800.zone2_input_label_ != "unknown");
+      assert(v1800.decoder_mode_label_ == "DTS" && v1800.extended_surround_label_ != "unknown");
+      assert(v1800.speaker_a_on_ && !v1800.speaker_b_on_ && v1800.pure_direct_on_);
+      assert(v1800.night_mode_label_ == "unknown");  // The x800 table deleted night mode.
+    }
+    // RX-V1800 in standby sends only DT0-DT9: power is read, nothing else.
+    {
+      Receiver standby;
+      standby.set_receiver_profile("rx_vx800_extended");
+      ready(standby);
+      standby.feed(dc2_frame("R0226", 10, {{8, "0"}, {9, "0"}}));
+      assert(standby.parse_errors_ == 0 && !standby.main_power_on_ && standby.input_label_ == "unknown");
+    }
+    // RX-Vx700 table (RX-V1700 R0210) is the same, and it still has night mode (DT27/DT28, report 8B).
+    {
+      std::vector<Field> fields = x800_fields;
+      fields.push_back({27, "1"});
+      fields.push_back({28, "2"});
+      std::vector<const char *> reports = x800_reports;
+      reports.push_back("008B12");
+      auto v1700 = run("rx_vx700_extended", "R0210", "RX-V1700", 174, fields, reports);
+      assert(v1700.night_mode_label_ == "Cinema High");
+    }
+    // RX-Vx500 table (RX-V1500/V2500 R0177): power is 0/1, night mode parameter is DT68, Pure
+    // Direct is DT28, and DT123/DT126 (speaker levels) must not be read as fan or Pure Direct.
+    {
+      const std::vector<Field> fields = {{8, "1"},  {9, "5"},  {11, "4"}, {12, "1"}, {13, "2"}, {14, "1"}, {15, "2A"},
+                                         {17, "20"}, {19, "01"}, {22, "3"}, {25, "1"}, {26, "2"}, {27, "2"}, {28, "0"},
+                                         {29, "1"}, {30, "0"}, {37, "1"}, {46, "1"}, {68, "1"}, {123, "1"}, {126, "1"}};
+      const std::vector<const char *> reports = {
+          "002001", "002105", "002204", "002301", "002402", "002501", "00262A", "002720", "002801", "002D03",
+          "002901", "002A02", "002E01", "002F00", "003501", "003D01", "008B21", "008C00"};
+      auto v1500 = run("rx_vx500_extended", "R0177", "RX-Vx500", 138, fields, reports, false);
+      assert(v1500.main_power_on_ && v1500.mute_on_ && !v1500.pure_direct_on_ && !v1500.fan_mode_on_);
+      assert(v1500.night_mode_label_ == "Music Mid");
+      Receiver x500_standard;
+      x500_standard.set_receiver_profile("rx_vx500");
+      ready(x500_standard);
+      x500_standard.feed(dc2_frame("R0177", 138, fields));
+      same_state(x500_standard, v1500);
+    }
+    // RX-Vx600 keeps the RX-V1600 layout on both profiles (checked on hardware): a Zone 2 field
+    // from the x500/x700 tables is not read there.
+    for (const char *profile : {"rx_vx600", "rx_vx600_extended"}) {
+      Receiver v1600;
+      v1600.set_receiver_profile(profile);
+      ready(v1600);
+      v1600.feed(dc2_frame("R0210", 140, {{8, "1"}, {9, "5"}, {12, "1"}, {13, "2"}, {15, "2A"}}));
+      assert(v1600.parse_errors_ == 0 && v1600.main_power_on_ && v1600.mute_on_);
+      assert(v1600.input_label_ != "unknown" && v1600.zone2_input_label_ == "unknown");
+    }
+    // The standard RX-V1900 profile decodes like the extended one, without speaker relays.
+    Receiver v1900_standard;
+    v1900_standard.set_receiver_profile("rx_v1900");
+    ready(v1900_standard);
+    v1900_standard.feed(full_config("R0240", "0D"));
+    assert(v1900_standard.parse_errors_ == 0 && v1900_standard.active_profile_ == "rx_v1900");
+    assert(v1900_standard.input_label_ == "USB" && v1900_standard.main_power_on_);
+  }
 
   // RX-V1900 enhancer report codes (verified 0x44/0x45). 7ch Enhancer only accepts the
   // long remote-code form, captured from Receiver Manager.

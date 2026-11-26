@@ -234,6 +234,12 @@ own labels. Then add the entities you need from
 [`examples/yamaha_rx_v_full.yaml`](../examples/yamaha_rx_v_full.yaml), following
 [Entities per Profile](#entities-per-profile).
 
+At startup these profiles read the receiver's configuration reply as the
+RX-Vx700 and RX-Vx800 manuals specify, so power, input, mute, volume, program,
+decoder mode, Zone 2 and the tuner show their state without a change on the
+receiver. This follows the manual and has not been confirmed on an RX-V1700,
+RX-V2700, RX-V1800 or RX-V3800 yet.
+
 Zone3, XM, NET/USB/iPod operation, trigger outputs, memory save and DSP
 parameter editing are not entities; they stay available through
 [raw commands](configuration.md#raw-commands).
